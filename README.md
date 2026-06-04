@@ -46,9 +46,9 @@ Source for development is maintained in a **private** repository; this repo ship
 2. Run the executable. SmartScreen: **More info → Run anyway**.
 3. Browser opens at `http://127.0.0.1:8765`.
 
-## Support
+## Tip (optional)
 
-[GitHub Sponsors](https://github.com/sponsors/avinashpeyyety) · [Ko-fi](https://ko-fi.com/avinashpeyyety)
+[Ko-fi](https://ko-fi.com/avinashpeyyety) — if the app helps you.
 
 ## License
 

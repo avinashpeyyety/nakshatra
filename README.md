@@ -7,7 +7,7 @@ Public installers for **Nakshatra Chakram**. Source code is maintained in a priv
 
 ## Download
 
-**[Landing page & downloads](https://avinashpeyyety.github.io/nakshatra-chakram-releases/#downloads)** — macOS `.dmg` and Windows `.exe` (no GitHub Releases page; avoids extra source-code zip files).
+**[Landing page & downloads](https://avinashpeyyety.github.io/nakshatra-chakram-releases/#downloads)** — macOS `.dmg` and Windows `.exe`.
 
 ## Install (macOS)
 

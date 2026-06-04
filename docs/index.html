@@ -122,12 +122,53 @@
     footer a { color: var(--gold); }
     .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
     section a { color: var(--gold); }
+    .glance {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1.75rem;
+    }
+    .glance-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+    }
+    .glance-card strong {
+      display: block;
+      font-family: Cinzel, serif;
+      color: var(--saffron);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+    .glance-card span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    .glance-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: -1rem 0 1.75rem;
+    }
+    .glance-note a { color: var(--gold); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1 id="app-name">Nakshatra Chakram</h1>
     <p class="tagline" id="tagline">Loading…</p>
+
+    <div class="glance" id="glance" aria-label="Features at a glance">
+      <div class="glance-card"><strong>Wheel</strong><span>Sidereal chart &amp; nakshatra wheel</span></div>
+      <div class="glance-card"><strong>Dasha</strong><span>Vimshottari &amp; Jaimini timelines</span></div>
+      <div class="glance-card"><strong>Yogas</strong><span>Major yoga detection</span></div>
+      <div class="glance-card"><strong>Gochara</strong><span>Transits &amp; alerts</span></div>
+    </div>
+    <p class="glance-note">
+      Local-first · no signup ·
+      <a href="https://github.com/avinashpeyyety/nakshatra-chakram-releases/blob/main/docs/FEATURES.md">feature list on GitHub (markdown)</a>
+    </p>
 
     <div class="cta" id="downloads">
       <a class="btn btn-primary" id="dl-mac" href="#">Download for macOS</a>

@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| **Download** | [Landing page](https://avinashpeyyety.github.io/nakshatra-chakram-releases/#downloads) (macOS `.dmg`, Windows `.exe`) |
-| **Full docs** | [Site](https://avinashpeyyety.github.io/nakshatra-chakram-releases/) · [Feature list (markdown)](docs/FEATURES.md) |
-| **Issues** | [Report a bug](https://github.com/avinashpeyyety/nakshatra-chakram-releases/issues) (no chart attachments) |
+| **Download** | [Landing page](https://avinashpeyyety.github.io/nakshatra-releases/#downloads) (macOS `.dmg`, Windows `.exe`) |
+| **Full docs** | [Site](https://avinashpeyyety.github.io/nakshatra-releases/) · [Feature list (markdown)](docs/FEATURES.md) |
+| **Issues** | [Report a bug](https://github.com/avinashpeyyety/nakshatra-releases/issues) (no chart attachments) |
 
 Source for development is maintained in a **private** repository; this repo ships installers and documentation only.
 
@@ -31,7 +31,7 @@ Source for development is maintained in a **private** repository; this repo ship
 
 ## Download
 
-**[Get the latest installers](https://avinashpeyyety.github.io/nakshatra-chakram-releases/#downloads)**
+**[Get the latest installers](https://avinashpeyyety.github.io/nakshatra-releases/#downloads)**
 
 ## Install (macOS)
 

@@ -55,4 +55,4 @@ Jobs, Agents, scheduler, and admin tooling — development builds only (`NAKSHAT
 
 ---
 
-[Download](https://avinashpeyyety.github.io/nakshatra-chakram-releases/#downloads) · [Landing page](https://avinashpeyyety.github.io/nakshatra-chakram-releases/) · [Issues](https://github.com/avinashpeyyety/nakshatra-chakram-releases/issues)
+[Download](https://avinashpeyyety.github.io/nakshatra-releases/#downloads) · [Landing page](https://avinashpeyyety.github.io/nakshatra-releases/) · [Issues](https://github.com/avinashpeyyety/nakshatra-releases/issues)

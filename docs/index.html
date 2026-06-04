@@ -19,11 +19,12 @@
       --border: rgba(212, 168, 83, 0.25);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: Lato, system-ui, sans-serif;
       background: radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, var(--bg) 55%);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.65;
       min-height: 100vh;
     }
     .wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
@@ -64,12 +65,27 @@
       pointer-events: none;
       cursor: default;
     }
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-nav a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .page-nav a:hover { text-decoration: underline; }
     section {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1.5rem;
       margin-bottom: 1.25rem;
+      scroll-margin-top: 1.25rem;
     }
     section h2 {
       font-family: Cinzel, serif;
@@ -79,14 +95,23 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+    section h3 {
+      font-size: 0.95rem;
+      color: var(--saffron);
+      margin: 1rem 0 0.4rem;
+    }
+    section h3:first-of-type { margin-top: 0; }
     ul { padding-left: 1.25rem; color: var(--muted); }
     li { margin-bottom: 0.35rem; }
+    section p, section li { color: var(--muted); font-size: 0.95rem; }
+    section p { margin-bottom: 0.5rem; }
+    .lead { font-size: 1.05rem; }
     .install { font-size: 0.9rem; color: var(--muted); }
-    .install code {
+    code {
       background: rgba(0,0,0,0.35);
-      padding: 0.15rem 0.4rem;
+      padding: 0.12rem 0.35rem;
       border-radius: 4px;
-      font-size: 0.85em;
+      font-size: 0.88em;
     }
     footer {
       margin-top: 2rem;
@@ -96,10 +121,7 @@
     }
     footer a { color: var(--gold); }
     .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
-    .nav-links { margin-bottom: 1.5rem; font-size: 0.9rem; }
-    .nav-links a { color: var(--gold); text-decoration: none; margin-right: 1rem; }
-    .nav-links a:hover { text-decoration: underline; }
-    section p { color: var(--muted); font-size: 0.95rem; margin-bottom: 0.5rem; }
+    section a { color: var(--gold); }
   </style>
 </head>
 <body>
@@ -113,55 +135,91 @@
     </div>
     <p class="badge" id="version-line"></p>
 
-    <p class="nav-links">
-      <a href="about.html">About &amp; features</a>
-    </p>
+    <nav class="page-nav" aria-label="On this page">
+      <a href="#downloads">Download</a>
+      <a href="#about">About</a>
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#install">Install</a>
+      <a href="#support">Support</a>
+    </nav>
 
-    <section>
+    <section id="about">
       <h2>About</h2>
-      <p>
-        Nakshatra Chakram is a local Vedic (Jyotish) birth chart app: enter date, time, and place, then explore an interactive
-        nakshatra wheel, Vimshottari and Jaimini dashas, classical yogas, and gochara (transits). Calculations use Swiss Ephemeris
-        with Lahiri ayanamsa (others optional). No account — your charts stay on your Mac or PC.
+      <p class="lead">
+        Nakshatra Chakram is a <strong>local-first</strong> desktop app for Vedic (Jyotish) birth chart work.
+        Enter birth date, time, and place; the app computes a sidereal chart with Swiss Ephemeris and shows it in your browser at <code>127.0.0.1</code>.
+        No account, no cloud storage of chart data.
       </p>
-      <p><a href="about.html" style="color:var(--gold)">Read full feature list →</a></p>
+      <p>
+        Built for students and practitioners who want a private wheel, dasha timelines, classical yoga summaries, and transit (gochara) context —
+        without uploading birth details to a website. Everything runs on your computer; saved charts stay in your user data folder.
+      </p>
     </section>
 
-    <section>
-      <h2>Features</h2>
+    <section id="features">
+      <h2>Features (Chart edition)</h2>
+
+      <h3>Wheel</h3>
       <ul>
-        <li><strong>Wheel</strong> — sidereal chart as an interactive nakshatra wheel</li>
-        <li><strong>Dasha</strong> — Vimshottari and Jaimini chara timelines</li>
-        <li><strong>Yogas</strong> — automatic detection of major yogas</li>
-        <li><strong>Gochara</strong> — transits and alerts for your saved chart</li>
-        <li><strong>Saved charts</strong> — multiple birth profiles, stored locally</li>
-        <li><strong>Offline-first</strong> — place lookup from a bundled catalog</li>
+        <li>Sidereal positions from <strong>Swiss Ephemeris</strong> (Lahiri ayanamsa by default; Raman and Krishnamurti also available)</li>
+        <li>Interactive <strong>nakshatra wheel</strong> — lagna at top, planets by longitude, retrograde and dignity cues</li>
+        <li>Offline place lookup (bundled city catalog)</li>
+        <li>Save and switch between <strong>multiple named charts</strong> (stored locally)</li>
+      </ul>
+
+      <h3>Dasha</h3>
+      <ul>
+        <li><strong>Vimshottari</strong> — current Maha / Antar / Pratyantar, balance at birth, past and upcoming periods</li>
+        <li><strong>Jaimini Chara</strong> (sign-based) — direction from lagna, 12-sign timeline</li>
+      </ul>
+
+      <h3>Yogas</h3>
+      <ul>
+        <li>Automatic detection of common yogas (e.g. Gajakeshari, Pancha Mahapurusha variants, Kemadruma, Neecha Bhanga Raja, Parivartana, and others)</li>
+        <li>Short interpretations in the Yogas tab</li>
+      </ul>
+
+      <h3>Gochara (transits)</h3>
+      <ul>
+        <li>Current planetary positions and ranked transit alerts</li>
+        <li>Context for the active saved chart (Sade Sati, sign changes, major aspects)</li>
+        <li>Dasha-period notes including Jupiter / Saturn / Rahu ingresses and double-transit windows</li>
+      </ul>
+
+      <h3>Under the hood</h3>
+      <ul>
+        <li>Divisional vargas, ashtakavarga, shadbala, Jaimini karakas — available to the calculation engine and exports</li>
+        <li>Combustion and retrograde flags use traditional orbs</li>
       </ul>
     </section>
 
-    <section>
-      <h2>Why local</h2>
+    <section id="privacy">
+      <h2>Privacy &amp; data</h2>
       <ul>
-        <li>No account or signup — install and run in your browser at <code>127.0.0.1</code></li>
-        <li>Birth charts saved on your machine, not our servers</li>
-        <li>Swiss Ephemeris sidereal calculations (Lahiri and other ayanamsas)</li>
-        <li>Interactive nakshatra wheel, dashas, yogas, and gochara</li>
+        <li>No signup or license server</li>
+        <li>Chart library and settings on disk (macOS: <code>~/Library/Application Support/Nakshatra Chakram/</code>)</li>
+        <li>The app does not send your birth data to us; there is no central chart database</li>
+        <li>Educational software — not a substitute for professional advice</li>
       </ul>
+      <p style="margin-top: 0.75rem;">
+        This site is documentation and installers only — not a hosted chart service. Source for development is maintained separately.
+      </p>
     </section>
 
     <section id="install">
       <h2>Install</h2>
       <p class="install">
         <strong>macOS:</strong> use the <a href="#downloads">macOS download</a> above. Open the <strong>.dmg</strong>, drag <strong>Nakshatra Chakram</strong> to Applications, then launch from Applications.
-        Requires <strong>Python 3.10+</strong> installed from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> (macOS system Python 3.9 is not enough). First launch installs dependencies (a few minutes).<br />
-        <strong>Windows:</strong> use the <a href="#downloads">Windows download</a> above and run the <code>.exe</code> (browser opens at http://127.0.0.1:8765).<br />
-        <strong>Note:</strong> the installed app uses port <code>8765</code>; local development still uses <code>8000</code>.<br />
-        If macOS blocks the app: <strong>right-click → Open</strong>, or <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
+        Requires <strong>Python 3.10+</strong> from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> or Homebrew (macOS system Python 3.9 is not enough). First launch installs dependencies (a few minutes).<br /><br />
+        <strong>Windows:</strong> use the <a href="#downloads">Windows download</a> above and run the <code>.exe</code> (browser opens at <code>http://127.0.0.1:8765</code>). No separate Python install.<br /><br />
+        <strong>Note:</strong> the installed app uses port <code>8765</code>; local development still uses <code>8000</code>. Network is only your browser talking to the local server.<br /><br />
+        If macOS blocks the app (not notarized): <strong>right-click → Open</strong>, or <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
         If Windows SmartScreen warns: <strong>More info → Run anyway</strong>.
       </p>
     </section>
 
-    <section>
+    <section id="support">
       <h2>Support development</h2>
       <p class="install" style="margin-bottom: 1rem;">
         The app is free to use. If it helps you, optional donations keep development going.

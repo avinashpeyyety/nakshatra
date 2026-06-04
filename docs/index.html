@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nakshatra Chakram</title>
+  <meta name="description" content="Local Vedic astrology birth chart and nakshatra wheel. No signup. Data stays on your computer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lato:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0b12;
+      --panel: #12141f;
+      --gold: #d4a853;
+      --saffron: #e8a838;
+      --text: #e8e6e3;
+      --muted: #9a958c;
+      --border: rgba(212, 168, 83, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Lato, system-ui, sans-serif;
+      background: radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+    h1 {
+      font-family: Cinzel, serif;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+    .tagline { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; }
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.35rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--saffron), var(--gold));
+      color: #1a1208;
+    }
+    .btn-secondary {
+      border: 1px solid var(--border);
+      color: var(--gold);
+      background: var(--panel);
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212, 168, 83, 0.2); }
+    .btn[aria-disabled="true"] {
+      opacity: 0.45;
+      pointer-events: none;
+      cursor: default;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    section h2 {
+      font-family: Cinzel, serif;
+      font-size: 1rem;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    ul { padding-left: 1.25rem; color: var(--muted); }
+    li { margin-bottom: 0.35rem; }
+    .install { font-size: 0.9rem; color: var(--muted); }
+    .install code {
+      background: rgba(0,0,0,0.35);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    footer {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    footer a { color: var(--gold); }
+    .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 id="app-name">Nakshatra Chakram</h1>
+    <p class="tagline" id="tagline">Loading…</p>
+
+    <div class="cta">
+      <a class="btn btn-primary" id="dl-mac" href="#">Download for macOS</a>
+      <a class="btn btn-primary" id="dl-win" href="#">Download for Windows</a>
+      <a class="btn btn-secondary" id="all-releases" href="#">All releases</a>
+    </div>
+    <p class="badge" id="version-line"></p>
+
+    <section>
+      <h2>Why local</h2>
+      <ul>
+        <li>No account or signup — install and run in your browser at <code>127.0.0.1</code></li>
+        <li>Birth charts saved on your machine, not our servers</li>
+        <li>Swiss Ephemeris sidereal calculations (Lahiri and other ayanamsas)</li>
+        <li>Interactive nakshatra wheel, dashas, yogas, and gochara</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Install (macOS)</h2>
+      <p class="install">
+        Unzip the download, open <code>run-macos.command</code>. First launch installs Python dependencies (a few minutes).
+        If macOS blocks the app: <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
+        See <a id="install-releases" href="#">release notes</a> for details.
+      </p>
+    </section>
+
+    <section>
+      <h2>Support development</h2>
+      <p class="install" style="margin-bottom: 1rem;">
+        The app is free to use. If it helps you, optional donations keep development going.
+      </p>
+      <div class="cta" style="margin-bottom: 0;">
+        <a class="btn btn-secondary" id="sponsor" href="#">GitHub Sponsors</a>
+        <a class="btn btn-secondary" id="donate" href="#">Ko-fi</a>
+      </div>
+    </section>
+
+    <footer>
+      <p>Questions or bugs: <a id="issues" href="#">report an issue</a> (no chart data — describe steps only).</p>
+      <p style="margin-top: 0.5rem;">Educational software — not professional advice.</p>
+    </footer>
+  </div>
+  <script>
+    (async function () {
+      let cfg = {};
+      try {
+        const r = await fetch("site.json", { cache: "no-store" });
+        if (r.ok) cfg = await r.json();
+      } catch (_) {}
+
+      const set = (id, text) => { const el = document.getElementById(id); if (el && text) el.textContent = text; };
+      const href = (id, url) => { const el = document.getElementById(id); if (el && url) el.href = url; };
+
+      set("app-name", cfg.appName || "Nakshatra Chakram");
+      set("tagline", cfg.tagline || "Local Vedic birth chart and nakshatra wheel.");
+      if (cfg.version) set("version-line", "Latest: v" + cfg.version);
+
+      href("dl-mac", cfg.downloadMac);
+      href("dl-win", cfg.downloadWindows);
+      href("all-releases", cfg.releasesUrl);
+      href("install-releases", cfg.releasesUrl);
+      href("sponsor", cfg.sponsorUrl);
+      href("donate", cfg.donateUrl);
+      href("issues", cfg.issuesUrl);
+
+      if (!cfg.downloadMac) document.getElementById("dl-mac")?.setAttribute("aria-disabled", "true");
+      if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
+    })();
+  </script>
+</body>
+</html>

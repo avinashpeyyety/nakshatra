@@ -96,6 +96,10 @@
     }
     footer a { color: var(--gold); }
     .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+    .nav-links { margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .nav-links a { color: var(--gold); text-decoration: none; margin-right: 1rem; }
+    .nav-links a:hover { text-decoration: underline; }
+    section p { color: var(--muted); font-size: 0.95rem; margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
@@ -108,6 +112,32 @@
       <a class="btn btn-primary" id="dl-win" href="#">Download for Windows</a>
     </div>
     <p class="badge" id="version-line"></p>
+
+    <p class="nav-links">
+      <a href="about.html">About &amp; features</a>
+    </p>
+
+    <section>
+      <h2>About</h2>
+      <p>
+        Nakshatra Chakram is a local Vedic (Jyotish) birth chart app: enter date, time, and place, then explore an interactive
+        nakshatra wheel, Vimshottari and Jaimini dashas, classical yogas, and gochara (transits). Calculations use Swiss Ephemeris
+        with Lahiri ayanamsa (others optional). No account — your charts stay on your Mac or PC.
+      </p>
+      <p><a href="about.html" style="color:var(--gold)">Read full feature list →</a></p>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <ul>
+        <li><strong>Wheel</strong> — sidereal chart as an interactive nakshatra wheel</li>
+        <li><strong>Dasha</strong> — Vimshottari and Jaimini chara timelines</li>
+        <li><strong>Yogas</strong> — automatic detection of major yogas</li>
+        <li><strong>Gochara</strong> — transits and alerts for your saved chart</li>
+        <li><strong>Saved charts</strong> — multiple birth profiles, stored locally</li>
+        <li><strong>Offline-first</strong> — place lookup from a bundled catalog</li>
+      </ul>
+    </section>
 
     <section>
       <h2>Why local</h2>

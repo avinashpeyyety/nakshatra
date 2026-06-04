@@ -2,25 +2,27 @@
 
 Public installers for **Nakshatra Chakram**. Source code is maintained in a private repository.
 
-- **No signup** — download, unzip, run locally
+- **No signup** — download and run locally
 - **No cloud chart storage** — your data stays on your computer
 
 ## Download
 
-See **[Releases](https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases)** for the latest macOS and Windows packages.
+See **[Releases](https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases)** for the latest macOS `.dmg` and Windows `.exe`.
+
+**Landing page:** https://avinashpeyyety.github.io/nakshatra-chakram-releases/
 
 ## Install (macOS)
 
-1. Download `nakshatra-chakram-*-macos.zip` from the latest release.
-2. Unzip and double-click `run-macos.command` (or run it from Terminal).
-3. First run installs Python dependencies; the app opens at http://127.0.0.1:8000
-4. If macOS blocks the script: **System Settings → Privacy & Security → Open Anyway**.
+1. Download `nakshatra-chakram-*-macos.dmg` from the latest release.
+2. Open the DMG and drag **Nakshatra Chakram** to **Applications**.
+3. Launch from Applications. Requires **Python 3.10+** on first run.
+4. If macOS blocks the app: **right-click → Open**.
 
 ## Install (Windows)
 
-1. Download `nakshatra-chakram-*-windows.zip`.
-2. Unzip and run `run-windows.bat`.
-3. Open http://127.0.0.1:8000 in your browser.
+1. Download `nakshatra-chakram-*-windows.exe` from the latest release.
+2. Run the executable. If SmartScreen warns: **More info → Run anyway**.
+3. Browser opens at http://127.0.0.1:8000 when the server starts.
 
 ## Support
 
@@ -29,7 +31,3 @@ Optional donations: [GitHub Sponsors](https://github.com/sponsors/avinashpeyyety
 ## Issues
 
 Report bugs via [Issues](https://github.com/avinashpeyyety/nakshatra-chakram-releases/issues). Do not attach birth chart exports unless you intend to share them.
-
-## License
-
-Installers are distributed as-is for personal use. Swiss Ephemeris is subject to its own license (see in-app notices).

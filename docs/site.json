@@ -1,9 +1,9 @@
 {
   "appName": "Nakshatra Chakram",
   "tagline": "Local Vedic birth chart and nakshatra wheel — your data stays on your computer.",
-  "version": "1.0.1",
-  "downloadMac": "https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases/latest/download/nakshatra-chakram-1.0.1-macos.dmg",
-  "downloadWindows": "",
+  "version": "1.0.0",
+  "downloadMac": "https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases/latest/download/nakshatra-chakram-1.0.0-macos.dmg",
+  "downloadWindows": "https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases/latest/download/nakshatra-chakram-1.0.0-windows.exe",
   "releasesUrl": "https://github.com/avinashpeyyety/nakshatra-chakram-releases/releases",
   "sponsorUrl": "https://github.com/sponsors/avinashpeyyety",
   "donateUrl": "https://ko-fi.com/avinashpeyyety",

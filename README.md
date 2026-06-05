@@ -111,18 +111,15 @@ nakshatra_chakram/
 
 ## Development
 
-**Architecture (product vs admin):** **[ARCHITECTURE.md](ARCHITECTURE.md)** — the **Jobs & Agents** tab is admin-only and does not ship; default runs expose **Chart** only (`NAKSHATRA_ADMIN=0`).
+Use the **`develop`** branch for day-to-day work. Planning, backlog, architecture, release pipeline, and scope docs live **only on `develop`** — they are not on `main` and are not published to GitHub Pages.
 
-Prioritized improvements, release targets, and progress tracking: **[ROADMAP.md](ROADMAP.md)**.
+```bash
+git checkout develop
+```
 
-Mass-market launch, pricing, and minimal-overhead ops: **[SHIP_STRATEGY.md](SHIP_STRATEGY.md)**.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the doc index and branch rules.
 
-**Releases + landing page (no signups/trials):** **[PUBLIC_RELEASE.md](PUBLIC_RELEASE.md)** · site in `docs/`.
-
-Transit dial / Gochara noise reduction: **[TRANSIT_FILTER_PLAN.md](TRANSIT_FILTER_PLAN.md)**.
-
-- Work on branch `develop`; merge to `main` for releases (`v1.0.0`, `v1.1.0`, …).
-- Update `ROADMAP.md` checkboxes and the refinement log as items ship.
+Shipped product runs Chart only (`NAKSHATRA_ADMIN=0`). Admin surface (Jobs & Agents) is documented on `develop`.
 
 ---
 

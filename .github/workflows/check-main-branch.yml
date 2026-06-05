@@ -1,0 +1,44 @@
+# Fail if planning / pipeline / scope docs land on main (they belong on develop only).
+name: Check main branch docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  no-dev-docs-on-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block developer-only documentation on main
+        run: |
+          set -euo pipefail
+          forbidden=(
+            ROADMAP.md
+            SHIP_STRATEGY.md
+            PUBLIC_RELEASE.md
+            ARCHITECTURE.md
+            TRANSIT_FILTER_PLAN.md
+          )
+          found=0
+          for f in "${forbidden[@]}"; do
+            if [[ -f "$f" ]]; then
+              echo "::error::Developer doc must not be on main: $f (use branch develop)"
+              found=1
+            fi
+          done
+          if [[ -d public-releases ]]; then
+            echo "::error::public-releases/ must not be on main"
+            found=1
+          fi
+          shopt -s nullglob
+          for f in docs/RELEASE_NOTES_*.md docs/ANNOUNCE_*.md; do
+            echo "::error::Release pipeline doc must not be on main: $f"
+            found=1
+          done
+          if [[ "$found" -ne 0 ]]; then
+            exit 1
+          fi
+          echo "OK — main has no developer-only documentation"

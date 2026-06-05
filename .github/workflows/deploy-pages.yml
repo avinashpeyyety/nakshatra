@@ -1,5 +1,5 @@
 # Deploy docs/ to GitHub Pages (public repo required for free Pages on github.io).
-# Copy this workflow to nakshatra-chakram-releases or a dedicated site repo if the dev repo stays private.
+# Copy this workflow to nakshatra or a dedicated site repo if the dev repo stays private.
 name: Deploy landing page
 
 on:

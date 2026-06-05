@@ -1,0 +1,96 @@
+# Build macOS .dmg + Windows .exe and publish to nakshatra.
+# Requires repo secret RELEASES_PAT (classic PAT with repo scope) if default token cannot write across repos.
+name: Release desktop builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver version (e.g. 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: read
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod +x scripts/package_desktop.sh && ./scripts/package_desktop.sh "${{ inputs.version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg-${{ inputs.version }}
+          path: dist/nakshatra-chakram-${{ inputs.version }}-macos.dmg
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build exe
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller>=6.0
+          pyinstaller --noconfirm scripts/nakshatra-chakram.spec
+          mkdir dist\out 2>nul || exit 0
+          move /Y dist\nakshatra-chakram.exe dist\out\nakshatra-chakram-${{ inputs.version }}-windows.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe-${{ inputs.version }}
+          path: dist/out/nakshatra-chakram-${{ inputs.version }}-windows.exe
+          if-no-files-found: error
+
+  publish:
+    needs: [build-mac, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          V="${{ inputs.version }}"
+          mkdir -p release
+          cp "artifacts/macos-dmg-${V}/nakshatra-chakram-${V}-macos.dmg" release/
+          cp "artifacts/windows-exe-${V}/nakshatra-chakram-${V}-windows.exe" release/
+          ls -la release/
+
+      - name: Publish to GitHub Pages (no Release source-code zips)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          V="${{ inputs.version }}"
+          SITE="https://avinashpeyyety.github.io/nakshatra"
+          REPO="avinashpeyyety/nakshatra"
+          TAG="v${V}"
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" releases-repo
+          cd releases-repo
+          git lfs install
+          git lfs track "docs/downloads/*.exe" "docs/downloads/*.dmg"
+          mkdir -p docs/downloads
+          cp "../artifacts/macos-dmg-${V}/nakshatra-chakram-${V}-macos.dmg" docs/downloads/
+          cp "../artifacts/windows-exe-${V}/nakshatra-chakram-${V}-windows.exe" docs/downloads/
+          printf '%s\n' "{" \
+            "  \"appName\": \"Nakshatra Chakram\"," \
+            "  \"tagline\": \"Local Vedic birth chart and nakshatra wheel — your data stays on your computer.\"," \
+            "  \"version\": \"${V}\"," \
+            "  \"downloadMac\": \"${SITE}/downloads/nakshatra-chakram-${V}-macos.dmg\"," \
+            "  \"downloadWindows\": \"${SITE}/downloads/nakshatra-chakram-${V}-windows.exe\"," \
+            "  \"releasesUrl\": \"${SITE}/#downloads\"," \
+            "  \"donateUrl\": \"https://ko-fi.com/avinashpeyyety\"," \
+            "  \"issuesUrl\": \"https://github.com/avinashpeyyety/nakshatra/issues\"," \
+            "  \"siteUrl\": \"${SITE}/\"" \
+            "}" > docs/site.json
+          git add -A
+          git -c user.email="github-actions[bot]@users.noreply.github.com" -c user.name="github-actions[bot]" \
+            commit -m "downloads: v${V} macOS dmg + Windows exe"
+          git push origin main
+          gh release view "$TAG" --repo "$REPO" && gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag || true

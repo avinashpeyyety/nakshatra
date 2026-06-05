@@ -1,0 +1,10 @@
+Bundled web fonts (SIL Open Font License 1.1):
+
+- Cinzel — Copyright (c) Natanael Gama and others
+- Lato — Copyright (c) Lukasz Dziedzic
+- Share Tech Mono — Copyright (c) Carrois Apostrophe
+
+Full license: https://openfontlicense.org
+
+Fonts were downloaded from Google Fonts for local/offline use in Nakshatra Chakram.
+No network request is made to fonts.googleapis.com or fonts.gstatic.com at runtime.

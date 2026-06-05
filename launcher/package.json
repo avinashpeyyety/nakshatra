@@ -1,0 +1,17 @@
+{
+  "name": "cursor-headless-launcher",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@cursor/february": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.3"
+  }
+}

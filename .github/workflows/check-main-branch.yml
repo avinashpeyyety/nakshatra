@@ -16,6 +16,7 @@ jobs:
         run: |
           set -euo pipefail
           forbidden=(
+            CONTRIBUTING.md
             ROADMAP.md
             SHIP_STRATEGY.md
             PUBLIC_RELEASE.md
@@ -38,6 +39,10 @@ jobs:
             echo "::error::Release pipeline doc must not be on main: $f"
             found=1
           done
+          if grep -qE 'ROADMAP\.md|SHIP_STRATEGY|PUBLIC_RELEASE\.md|ARCHITECTURE\.md|TRANSIT_FILTER_PLAN|develop branch only|pipeline/backlog' README.md 2>/dev/null; then
+            echo "::error::README.md on main must not describe developer-only docs (use develop branch README)"
+            found=1
+          fi
           if [[ "$found" -ne 0 ]]; then
             exit 1
           fi

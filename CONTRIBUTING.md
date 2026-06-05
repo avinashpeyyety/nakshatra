@@ -1,5 +1,7 @@
 # Contributing
 
+> **`develop` branch only** — do not add this file to `main` (CI will fail).
+
 ## Branches
 
 | Branch | Purpose |

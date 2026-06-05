@@ -1,5 +1,7 @@
 # Nakshatra Chakram — Development Roadmap
 
+> **Branch: `develop` only** — not on `main`; not published to GitHub Pages.
+
 Living document for prioritized improvements and new features. Update checkboxes and the refinement log as work progresses.
 
 **Repository:** [github.com/avinashpeyyety/nakshatra](https://github.com/avinashpeyyety/nakshatra) (public)

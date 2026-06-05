@@ -111,18 +111,17 @@ nakshatra_chakram/
 
 ## Development
 
-**Architecture (product vs admin):** **[ARCHITECTURE.md](ARCHITECTURE.md)** — the **Jobs & Agents** tab is admin-only and does not ship; default runs expose **Chart** only (`NAKSHATRA_ADMIN=0`).
+You are on **`develop`**. These planning docs stay on this branch only — they are **not** on `main` and are **not** deployed to GitHub Pages. See **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
-Prioritized improvements, release targets, and progress tracking: **[ROADMAP.md](ROADMAP.md)**.
+| Doc | Topic |
+|-----|--------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Chart vs Jobs & Agents (`NAKSHATRA_ADMIN`) |
+| [ROADMAP.md](ROADMAP.md) | Backlog, tiers, release targets |
+| [SHIP_STRATEGY.md](SHIP_STRATEGY.md) | GTM and pricing |
+| [PUBLIC_RELEASE.md](PUBLIC_RELEASE.md) | Release checklist |
+| [TRANSIT_FILTER_PLAN.md](TRANSIT_FILTER_PLAN.md) | Gochara / time-dial scope |
 
-Mass-market launch, pricing, and minimal-overhead ops: **[SHIP_STRATEGY.md](SHIP_STRATEGY.md)**.
-
-**Releases + landing page (no signups/trials):** **[PUBLIC_RELEASE.md](PUBLIC_RELEASE.md)** · site in `docs/`.
-
-Transit dial / Gochara noise reduction: **[TRANSIT_FILTER_PLAN.md](TRANSIT_FILTER_PLAN.md)**.
-
-- Work on branch `develop`; merge to `main` for releases (`v1.0.0`, `v1.1.0`, …).
-- Update `ROADMAP.md` checkboxes and the refinement log as items ship.
+Merge to **`main`** for shipped releases; do not copy these files onto `main`.
 
 ---
 

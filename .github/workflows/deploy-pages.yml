@@ -1,12 +1,15 @@
-# Deploy docs/ to GitHub Pages (public repo required for free Pages on github.io).
-# Copy this workflow to nakshatra or a dedicated site repo if the dev repo stays private.
+# Deploy public landing site only from main. Pipeline/backlog markdown stays on develop.
 name: Deploy landing page
 
 on:
   push:
     branches: [main]
     paths:
-      - "docs/**"
+      - "docs/index.html"
+      - "docs/about.html"
+      - "docs/site.json"
+      - "docs/FEATURES.md"
+      - "docs/downloads/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -27,9 +30,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Assemble public site only
+        run: |
+          set -euo pipefail
+          mkdir -p _site/downloads
+          cp docs/index.html docs/about.html docs/site.json docs/FEATURES.md _site/
+          cp -r docs/downloads/. _site/downloads/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

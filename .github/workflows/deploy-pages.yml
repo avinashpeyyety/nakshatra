@@ -1,4 +1,4 @@
-# Deploy public landing site only from main. Pipeline/backlog markdown stays on develop.
+# Deploy public landing site from main (docs/ subset only).
 name: Deploy landing page
 
 on:

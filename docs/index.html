@@ -175,6 +175,12 @@
       font-size: 0.7rem;
       opacity: 0.65;
     }
+    .site-metrics .metrics-updated {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.68rem;
+      opacity: 0.55;
+    }
     .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
     section a { color: var(--gold); }
     .glance {
@@ -384,8 +390,8 @@
     <footer>
       <p>Questions or bugs: <a id="issues" href="#">report an issue</a> (no chart data — describe steps only).</p>
       <p style="margin-top: 0.5rem;">Educational software — not professional advice.</p>
-      <div class="site-metrics" id="site-metrics" aria-label="Site metrics">Loading metrics…</div>
-      <p class="site-metrics-note">Visits and download counts are approximate (page loads and download-link clicks). Repo views cover the last 14 days.</p>
+      <div class="site-metrics" id="site-metrics" aria-label="Site metrics"></div>
+      <p class="site-metrics-note">Views and clones are GitHub repo traffic (rolling 14 days). Installer downloads are not tracked on static Pages hosting.</p>
     </footer>
   </div>
   <script>
@@ -412,7 +418,7 @@
       if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
     })();
   </script>
-  <script src="site-metrics.js?v=1" defer></script>
+  <script src="site-metrics.js?v=2" defer></script>
   <script src="wheel-hero.js?v=4" defer></script>
   <script src="wheel-audio-5.js?v=7" defer></script>
 </body>

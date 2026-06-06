@@ -152,13 +152,94 @@
       margin: -1rem 0 1.75rem;
     }
     .glance-note a { color: var(--gold); }
+
+    .wheel-hero-wrap {
+      max-width: 820px;
+      margin: 0 auto 2rem;
+      padding: 0 1.5rem;
+    }
+    .wheel-hero {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1rem 0.85rem;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+    }
+    .wheel-frame {
+      position: relative;
+      width: min(100%, 760px);
+      margin: 0 auto;
+    }
+    #heroWheelSvg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 50%;
+    }
+    .wheel-caption {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem 1rem;
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    .wheel-live {
+      color: #86efac;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .wheel-live::before {
+      content: "";
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      margin-right: 0.35rem;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: livePulse 2s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 0.55; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    @keyframes transitGlow {
+      0%, 100% { stroke-opacity: 0.55; }
+      50% { stroke-opacity: 1; }
+    }
+    #heroWheelSvg .transit-orbit-ring {
+      animation: transitGlow 2.4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .wheel-live::before,
+      #heroWheelSvg .transit-orbit-ring { animation: none; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1 id="app-name">Nakshatra Chakram</h1>
     <p class="tagline" id="tagline">Loading…</p>
+  </div>
 
+  <div class="wheel-hero-wrap">
+    <section class="wheel-hero" aria-label="Animated nakshatra wheel with transits">
+      <div class="wheel-frame">
+        <svg id="heroWheelSvg" viewBox="0 0 760 760" role="img" aria-label="Nakshatra wheel — sample chart with animated transits"></svg>
+      </div>
+      <p class="wheel-caption">
+        <span class="wheel-live">Live transits</span>
+        <span>Sample chart · <span id="wheel-day-label">+0 days</span> — same wheel &amp; Time Dial pacing as the app</span>
+      </p>
+    </section>
+  </div>
+
+  <div class="wrap">
     <div class="glance" id="glance" aria-label="Features at a glance">
       <div class="glance-card"><strong>Wheel</strong><span>Sidereal chart &amp; nakshatra wheel</span></div>
       <div class="glance-card"><strong>Dasha</strong><span>Vimshottari &amp; Jaimini timelines</span></div>
@@ -299,5 +380,6 @@
       if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
     })();
   </script>
+  <script src="wheel-hero.js?v=1" defer></script>
 </body>
 </html>

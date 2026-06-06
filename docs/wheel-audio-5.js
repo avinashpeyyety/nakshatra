@@ -1,9 +1,9 @@
 /**
  * Ambient tanpura (Sa = D, Pa fifth) + soft ektaal tabla for the landing page.
- * Mix v4 — tanpura 0.018, tabla 0.45. Boot v6 — sync resume for autoplay gesture.
+ * Mix v4 — tanpura 0.018, tabla 0.45. Boot v7 — best-effort load autoplay.
  */
 (function () {
-  const AUDIO_MIX_VERSION = 6;
+  const AUDIO_MIX_VERSION = 7;
   const SA = 146.83;
   const PA = 220;
   const SA_HIGH = 293.66;
@@ -242,17 +242,37 @@
     masterGain.gain.linearRampToValueAtTime(to, t + duration);
   }
 
-  /** Must stay synchronous inside a user-gesture handler (Safari/iOS). */
+  function startAudioNodes() {
+    startTanpura();
+    startScheduler();
+    fadeMaster(1, 1.8);
+    playing = true;
+  }
+
+  /** Sync resume — must run inside a user-gesture handler (Safari/iOS). */
   function startAudio() {
     if (playing) return true;
     const c = ensureContext();
     if (!c) return false;
     if (c.state === "suspended") c.resume();
-    startTanpura();
-    startScheduler();
-    fadeMaster(1, 1.8);
-    playing = true;
+    startAudioNodes();
     return true;
+  }
+
+  /** Browsers may allow this for returning visitors (Chrome MEI, etc.). */
+  async function tryAutoplayOnLoad(btn) {
+    if (!enabled || playing) return;
+    const c = ensureContext();
+    if (!c) return;
+    try {
+      await c.resume();
+    } catch (_) {}
+    if (c.state !== "running") return;
+    cancelBoot?.();
+    cancelBoot = null;
+    startAudioNodes();
+    persistPreference(true);
+    updateToggle(btn, true, false);
   }
 
   function stopAudio() {
@@ -347,6 +367,7 @@
 
     if (enabled) {
       registerBoot(btn);
+      tryAutoplayOnLoad(btn);
     }
   }
 

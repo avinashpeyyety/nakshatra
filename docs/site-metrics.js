@@ -1,73 +1,77 @@
 /**
- * Landing page metrics — visits & download clicks via CountAPI; stars/traffic from metrics.json.
+ * Landing page metrics — GitHub stars (live) + traffic snapshot from metrics.json.
  */
 (function () {
-  const NS = "nakshatra-landing";
-  const KEYS = { visits: "visits", mac: "dl-mac", win: "dl-win" };
+  const FETCH_MS = 4000;
 
   function fmt(n) {
     if (n == null || Number.isNaN(n)) return null;
     return Number(n).toLocaleString();
   }
 
-  async function countApi(path, key) {
-    try {
-      const r = await fetch(`https://api.countapi.xyz/${path}/${NS}/${key}`);
-      if (!r.ok) return null;
-      const d = await r.json();
-      return typeof d.value === "number" ? d.value : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function countHit(key) {
-    return countApi("hit", key);
-  }
-
-  function countGet(key) {
-    return countApi("get", key);
+  function fetchWithTimeout(url, opts) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
+    return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
   }
 
   async function loadMetricsJson() {
     try {
-      const r = await fetch("metrics.json", { cache: "no-store" });
+      const r = await fetchWithTimeout("metrics.json", { cache: "no-store" });
       if (r.ok) return await r.json();
     } catch (_) {}
     return {};
   }
 
+  async function loadGithubStars() {
+    try {
+      const r = await fetchWithTimeout("https://api.github.com/repos/avinashpeyyety/nakshatra");
+      if (r.ok) {
+        const repo = await r.json();
+        return repo.stargazers_count;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   function render(el, data) {
     const items = [];
-    if (data.visits != null) items.push({ label: "visits", html: `<strong>${data.visits}</strong> visits` });
-    if (data.mac != null) items.push({ label: "macOS downloads", html: `<strong>${data.mac}</strong> macOS` });
-    if (data.win != null) items.push({ label: "Windows downloads", html: `<strong>${data.win}</strong> Windows` });
-    if (data.stars != null) items.push({ label: "GitHub stars", html: `<strong>★ ${data.stars}</strong> stars` });
     if (data.views14d != null) {
-      items.push({ label: "repo views (14 days)", html: `<strong>${data.views14d}</strong> repo views <span class="metrics-hint">(14d)</span>` });
+      items.push({
+        label: "GitHub repo page views in the last 14 days",
+        html: `<strong>${data.views14d}</strong> views <span class="metrics-hint">(14d)</span>`,
+      });
+    }
+    if (data.clones14d != null) {
+      items.push({
+        label: "Git clone events in the last 14 days",
+        html: `<strong>${data.clones14d}</strong> clones <span class="metrics-hint">(14d)</span>`,
+      });
+    }
+    if (data.stars != null) {
+      items.push({ label: "GitHub stars", html: `<strong>★ ${data.stars}</strong> stars` });
+    }
+    if (data.forks != null) {
+      items.push({ label: "GitHub forks", html: `<strong>${data.forks}</strong> forks` });
     }
 
     if (!items.length) {
-      el.innerHTML = '<span class="metrics-hint">Metrics unavailable</span>';
+      el.innerHTML = '<span class="metrics-hint">Metrics unavailable right now</span>';
       return;
     }
 
     el.innerHTML = items
       .map((item) => `<span class="metrics-item" title="${item.label}">${item.html}</span>`)
       .join('<span class="metrics-sep" aria-hidden="true">·</span>');
-  }
 
-  function wireDownloads(onUpdate) {
-    for (const [id, key] of [
-      ["dl-mac", KEYS.mac],
-      ["dl-win", KEYS.win],
-    ]) {
-      const link = document.getElementById(id);
-      if (!link || link.getAttribute("aria-disabled") === "true") continue;
-      link.addEventListener("click", async () => {
-        const value = await countHit(key);
-        if (value != null) onUpdate(key, value);
-      });
+    if (data.updatedAt) {
+      const when = new Date(data.updatedAt);
+      if (!Number.isNaN(when.getTime())) {
+        el.insertAdjacentHTML(
+          "beforeend",
+          `<span class="metrics-updated">Updated ${when.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>`
+        );
+      }
     }
   }
 
@@ -75,50 +79,34 @@
     const el = document.getElementById("site-metrics");
     if (!el) return;
 
-    const state = { visits: null, mac: null, win: null, stars: null, views14d: null };
+    const state = { stars: null, forks: null, views14d: null, clones14d: null, updatedAt: null };
 
     function paint() {
       render(el, {
-        visits: fmt(state.visits),
-        mac: fmt(state.mac),
-        win: fmt(state.win),
         stars: fmt(state.stars),
+        forks: fmt(state.forks),
         views14d: fmt(state.views14d),
+        clones14d: fmt(state.clones14d),
+        updatedAt: state.updatedAt,
       });
     }
 
-    function onDownloadUpdate(key, value) {
-      if (key === KEYS.mac) state.mac = value;
-      if (key === KEYS.win) state.win = value;
-      paint();
-    }
-
-    const [visits, mac, win, metrics] = await Promise.all([
-      countHit(KEYS.visits),
-      countGet(KEYS.mac),
-      countGet(KEYS.win),
-      loadMetricsJson(),
-    ]);
-
-    state.visits = visits;
-    state.mac = mac;
-    state.win = win;
-    state.stars = metrics.stars ?? null;
-    state.views14d = metrics.repoViews14d ?? null;
     paint();
 
-    wireDownloads(onDownloadUpdate);
+    const metricsP = loadMetricsJson();
+    const starsP = loadGithubStars();
 
-    if (state.stars == null) {
-      try {
-        const r = await fetch("https://api.github.com/repos/avinashpeyyety/nakshatra");
-        if (r.ok) {
-          const repo = await r.json();
-          state.stars = repo.stargazers_count;
-          paint();
-        }
-      } catch (_) {}
-    }
+    const metrics = await metricsP;
+    state.views14d = metrics.repoViews14d ?? null;
+    state.clones14d = metrics.repoClones14d ?? null;
+    state.forks = metrics.forks ?? null;
+    state.updatedAt = metrics.updatedAt ?? null;
+    if (metrics.stars != null) state.stars = metrics.stars;
+    paint();
+
+    const stars = await starsP;
+    if (stars != null) state.stars = stars;
+    paint();
   }
 
   if (document.readyState === "loading") {

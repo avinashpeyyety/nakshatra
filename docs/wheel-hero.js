@@ -316,7 +316,24 @@
     const { x: lm2x, y: lm2y } = pt(115, lagnaRawDeg);
     add("line", { x1: lm1x, y1: lm1y, x2: lm2x, y2: lm2y, stroke: "#60a5fa", "stroke-width": "2.5", "stroke-linecap": "round" });
 
-    if (!BACKGROUND_MODE) {
+    if (BACKGROUND_MODE) {
+      const hub = el("g", { opacity: "0.72" });
+      hub.appendChild(el("circle", {
+        cx: CX, cy: CY, r: "68", fill: "#0d0d22", "fill-opacity": "0.55",
+        stroke: "#c9a84c", "stroke-width": "1.2", "stroke-opacity": "0.65",
+      }));
+      hub.appendChild(el("text", {
+        x: CX, y: CY - 22, "font-size": "7", fill: "#c9a84c", "fill-opacity": "0.8",
+        "text-anchor": "middle", "dominant-baseline": "central",
+        "font-family": "Cinzel,serif", "letter-spacing": "2",
+      }, "LAGNA"));
+      hub.appendChild(el("text", {
+        x: CX, y: CY + 4, "font-size": "11", fill: "#e8d5a3", "fill-opacity": "0.9",
+        "text-anchor": "middle", "dominant-baseline": "central",
+        "font-family": "Cinzel,serif", "font-weight": "700",
+      }, RASI_FULL[lagnaRasiIdx]));
+      svg.appendChild(hub);
+    } else {
       add("circle", { cx: CX, cy: CY, r: "68", fill: "#0d0d22", stroke: "#c9a84c", "stroke-width": "1.2" });
       add("text", {
         x: CX, y: CY - 30, "font-size": "7.5", fill: "#c9a84c",

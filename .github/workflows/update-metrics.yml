@@ -1,0 +1,49 @@
+# Snapshot GitHub stars and traffic into docs/metrics.json for the landing page.
+name: Update site metrics
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch GitHub stats
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="avinashpeyyety/nakshatra"
+          STARS=$(gh api "repos/$REPO" --jq '.stargazers_count')
+          FORKS=$(gh api "repos/$REPO" --jq '.forks_count')
+          VIEWS=$(gh api "repos/$REPO/traffic/views" --jq '[.views[].count] | add // 0')
+          CLONES=$(gh api "repos/$REPO/traffic/clones" --jq '[.clones[].count] | add // 0')
+          UPDATED=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > docs/metrics.json <<EOF
+          {
+            "updatedAt": "$UPDATED",
+            "stars": $STARS,
+            "forks": $FORKS,
+            "repoViews14d": $VIEWS,
+            "repoClones14d": $CLONES
+          }
+          EOF
+
+      - name: Commit metrics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/metrics.json
+          if git diff --staged --quiet; then
+            echo "No metrics change"
+            exit 0
+          fi
+          git commit -m "metrics: update GitHub traffic snapshot"
+          git push

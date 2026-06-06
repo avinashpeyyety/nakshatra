@@ -1,9 +1,9 @@
 /**
  * Ambient tanpura (Sa = D, Pa fifth) + soft ektaal tabla for the landing page.
- * Mix v4 — tanpura 0.018, tabla 0.45. Ektaal 12 matras @ 45 BPM.
+ * Mix v4 — tanpura 0.018, tabla 0.45. Boot v5 autoplay fix.
  */
 (function () {
-  const AUDIO_MIX_VERSION = 4;
+  const AUDIO_MIX_VERSION = 5;
   const SA = 146.83;
   const PA = 220;
   const SA_HIGH = 293.66;
@@ -36,6 +36,7 @@
   let schedulerTimer = null;
   let playing = false;
   let enabled = true;
+  let booting = false;
   let reducedMotion = false;
   let cancelBoot = null;
 
@@ -280,8 +281,23 @@
     btn.querySelector(".ambient-audio-label").textContent = on ? "Sound on" : "Sound off";
   }
 
+  async function enableAndPlay(btn) {
+    cancelBoot?.();
+    cancelBoot = null;
+    const ok = await startAudio();
+    if (!ok) {
+      enabled = false;
+      persistPreference(false);
+      updateToggle(btn, false);
+      return false;
+    }
+    persistPreference(true);
+    updateToggle(btn, true);
+    return true;
+  }
+
   async function toggle(btn) {
-    if (enabled) {
+    if (enabled && playing) {
       enabled = false;
       cancelBoot?.();
       cancelBoot = null;
@@ -290,39 +306,28 @@
       updateToggle(btn, false);
       return;
     }
-    enabled = true;
-    const ok = await startAudio();
-    if (ok) {
-      persistPreference(true);
-      updateToggle(btn, true);
-    } else {
-      enabled = false;
-      updateToggle(btn, false);
+    if (enabled && !playing) {
+      await enableAndPlay(btn);
+      return;
     }
+    enabled = true;
+    await enableAndPlay(btn);
   }
 
   function registerBoot(btn) {
-    let booted = false;
-    const boot = async () => {
-      if (booted || playing || !enabled) return;
-      booted = true;
-      cancelBoot = null;
-      document.removeEventListener("click", boot);
-      document.removeEventListener("keydown", boot);
-      const ok = await startAudio();
-      if (!ok && enabled) {
-        enabled = false;
-        persistPreference(false);
-        updateToggle(btn, false);
-      }
+    const BOOT_EVENTS = ["pointerdown", "touchstart", "keydown"];
+    const opts = { capture: true, passive: true };
+    const boot = async (e) => {
+      if (booting || !enabled || playing) return;
+      if (e.target?.closest?.("#ambient-audio-toggle")) return;
+      booting = true;
+      await enableAndPlay(btn);
+      booting = false;
     };
     cancelBoot = () => {
-      booted = true;
-      document.removeEventListener("click", boot);
-      document.removeEventListener("keydown", boot);
+      BOOT_EVENTS.forEach((ev) => document.removeEventListener(ev, boot, opts));
     };
-    document.addEventListener("click", boot);
-    document.addEventListener("keydown", boot);
+    BOOT_EVENTS.forEach((ev) => document.addEventListener(ev, boot, opts));
   }
 
   function init() {

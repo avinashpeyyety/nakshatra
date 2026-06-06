@@ -194,6 +194,38 @@
     @media (prefers-reduced-motion: reduce) {
       #heroWheelSvg .transit-orbit-ring { animation: none; }
     }
+    .ambient-audio-toggle {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(18, 20, 31, 0.92);
+      color: var(--muted);
+      font-family: Lato, system-ui, sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .ambient-audio-toggle:hover {
+      color: var(--gold);
+      border-color: rgba(212, 168, 83, 0.45);
+    }
+    .ambient-audio-toggle.is-on {
+      color: var(--saffron);
+      border-color: rgba(232, 168, 56, 0.45);
+      box-shadow: 0 0 18px rgba(212, 168, 83, 0.12);
+    }
+    .ambient-audio-icon {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -346,5 +378,6 @@
     })();
   </script>
   <script src="wheel-hero.js?v=4" defer></script>
+  <script src="wheel-audio.js?v=1" defer></script>
 </body>
 </html>

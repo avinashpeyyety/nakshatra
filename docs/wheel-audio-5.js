@@ -318,6 +318,7 @@
     const opts = { capture: true, passive: true };
     const boot = (e) => {
       if (!enabled || playing) return;
+      if (e.target?.closest?.("#ambient-audio-toggle")) return;
       if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
       beginPlayback(btn);
     };

@@ -8,6 +8,7 @@
   const CX = 380;
   const CY = 380;
   const NAK_SPAN = 360 / 27;
+  const BACKGROUND_MODE = true;
 
   const NAK_ABBR = [
     "Ash", "Bha", "Kri", "Roh", "Mri", "Ard",
@@ -172,7 +173,7 @@
       }, txt);
     };
 
-    add("circle", { cx: CX, cy: CY, r: 375, fill: "#05050e" });
+    add("circle", { cx: CX, cy: CY, r: 375, fill: BACKGROUND_MODE ? "transparent" : "#05050e" });
 
     for (let i = 0; i < 27; i++) {
       const s = i * NAK_SPAN;
@@ -183,7 +184,7 @@
       g.appendChild(el("path", { d: seg(285, 362, s, e), fill: RULER_BG[rl], stroke: "#15103a", "stroke-width": "0.6" }));
       g.appendChild(el("path", { d: seg(358, 362, s, e), fill: RULER_ACCENT[rl] + "55", stroke: "none" }));
       svg.appendChild(g);
-      arcText(NAK_ABBR[i], 351, mid, "8", "#cfc6e6");
+      if (!BACKGROUND_MODE) arcText(NAK_ABBR[i], 351, mid, "8", "#cfc6e6");
       const t = el("title", {});
       t.textContent = `${i + 1}. ${NAK_FULL[i]} — ${rl}`;
       g.appendChild(t);
@@ -249,12 +250,14 @@
       let lblRot = svgDeg - 90;
       if (((lblRot % 360) + 360) % 360 > 90 && lblRot % 360 < 270) lblRot += 180;
 
-      const { x: nx, y: ny } = pt(r - 15, deg);
-      add("text", {
-        x: nx, y: ny, "font-size": "7", fill: color,
-        "text-anchor": "middle", "dominant-baseline": "central", "font-weight": "700",
-        transform: `rotate(${lblRot.toFixed(1)},${nx},${ny})`,
-      }, P_NAME_SHORT[p]);
+      if (!BACKGROUND_MODE) {
+        const { x: nx, y: ny } = pt(r - 15, deg);
+        add("text", {
+          x: nx, y: ny, "font-size": "7", fill: color,
+          "text-anchor": "middle", "dominant-baseline": "central", "font-weight": "700",
+          transform: `rotate(${lblRot.toFixed(1)},${nx},${ny})`,
+        }, P_NAME_SHORT[p]);
+      }
     }
 
     const sarva = wd.sarva || [];
@@ -266,11 +269,13 @@
       const g = el("g", {});
       g.appendChild(el("path", { d: seg(205, 285, s, e), fill: EL_BG[elem], stroke: EL_BORDER[elem], "stroke-width": "1.2" }));
       svg.appendChild(g);
-      arcText(RASI_SHORT[i], 248, mid, "11", EL_TEXT[elem], true);
-      if (sarva.length > i) {
-        const score = sarva[i];
-        const sCol = score >= 28 ? "#c9a84c" : score >= 20 ? "#94a3b8" : "#ef4444";
-        arcText(String(score), 225, mid, "9", sCol, true);
+      if (!BACKGROUND_MODE) {
+        arcText(RASI_SHORT[i], 248, mid, "11", EL_TEXT[elem], true);
+        if (sarva.length > i) {
+          const score = sarva[i];
+          const sCol = score >= 28 ? "#c9a84c" : score >= 20 ? "#94a3b8" : "#ef4444";
+          arcText(String(score), 225, mid, "9", sCol, true);
+        }
       }
     }
 
@@ -288,40 +293,46 @@
       const svgDeg = ((dToRad(mid) * 180 / Math.PI) % 360 + 360) % 360;
       let rot = svgDeg - 90;
       if (((rot % 360) + 360) % 360 > 90 && rot % 360 < 270) rot += 180;
-      add("text", {
-        x: bx, y: by - 7, "font-size": "13", fill: "#c9a84c",
-        "text-anchor": "middle", "dominant-baseline": "central",
-        "font-family": "Cinzel,serif", "font-weight": "700",
-        transform: `rotate(${rot.toFixed(1)},${bx},${by})`,
-      }, String(bhava));
-      add("text", {
-        x: bx, y: by + 8, "font-size": "6.5", fill: "#6b5fa0",
-        "text-anchor": "middle", "dominant-baseline": "central",
-        transform: `rotate(${rot.toFixed(1)},${bx},${by})`,
-      }, BHAVA_ABBR[bhava]);
+      if (!BACKGROUND_MODE) {
+        add("text", {
+          x: bx, y: by - 7, "font-size": "13", fill: "#c9a84c",
+          "text-anchor": "middle", "dominant-baseline": "central",
+          "font-family": "Cinzel,serif", "font-weight": "700",
+          transform: `rotate(${rot.toFixed(1)},${bx},${by})`,
+        }, String(bhava));
+        add("text", {
+          x: bx, y: by + 8, "font-size": "6.5", fill: "#6b5fa0",
+          "text-anchor": "middle", "dominant-baseline": "central",
+          transform: `rotate(${rot.toFixed(1)},${bx},${by})`,
+        }, BHAVA_ABBR[bhava]);
+      }
     }
 
-    add("circle", { cx: CX, cy: CY, r: "118", fill: "#07071a", stroke: "#241d52", "stroke-width": "0.8" });
+    if (!BACKGROUND_MODE) {
+      add("circle", { cx: CX, cy: CY, r: "118", fill: "#07071a", stroke: "#241d52", "stroke-width": "0.8" });
+    }
 
     const { x: lm1x, y: lm1y } = pt(125, lagnaRawDeg);
     const { x: lm2x, y: lm2y } = pt(115, lagnaRawDeg);
     add("line", { x1: lm1x, y1: lm1y, x2: lm2x, y2: lm2y, stroke: "#60a5fa", "stroke-width": "2.5", "stroke-linecap": "round" });
 
-    add("circle", { cx: CX, cy: CY, r: "68", fill: "#0d0d22", stroke: "#c9a84c", "stroke-width": "1.2" });
-    add("text", {
-      x: CX, y: CY - 30, "font-size": "7.5", fill: "#c9a84c",
-      "text-anchor": "middle", "dominant-baseline": "central",
-      "font-family": "Cinzel,serif", "letter-spacing": "2",
-    }, "LAGNA");
-    add("text", {
-      x: CX, y: CY + 2, "font-size": "12", fill: "#e8d5a3",
-      "text-anchor": "middle", "dominant-baseline": "central",
-      "font-family": "Cinzel,serif", "font-weight": "700",
-    }, RASI_FULL[lagnaRasiIdx]);
-    add("text", {
-      x: CX, y: CY + 34, "font-size": "6", fill: "#6b5fa0",
-      "text-anchor": "middle", "dominant-baseline": "central",
-    }, `Ayanamsa ${wd.ayanamsa.toFixed(2)}°`);
+    if (!BACKGROUND_MODE) {
+      add("circle", { cx: CX, cy: CY, r: "68", fill: "#0d0d22", stroke: "#c9a84c", "stroke-width": "1.2" });
+      add("text", {
+        x: CX, y: CY - 30, "font-size": "7.5", fill: "#c9a84c",
+        "text-anchor": "middle", "dominant-baseline": "central",
+        "font-family": "Cinzel,serif", "letter-spacing": "2",
+      }, "LAGNA");
+      add("text", {
+        x: CX, y: CY + 2, "font-size": "12", fill: "#e8d5a3",
+        "text-anchor": "middle", "dominant-baseline": "central",
+        "font-family": "Cinzel,serif", "font-weight": "700",
+      }, RASI_FULL[lagnaRasiIdx]);
+      add("text", {
+        x: CX, y: CY + 34, "font-size": "6", fill: "#6b5fa0",
+        "text-anchor": "middle", "dominant-baseline": "central",
+      }, `Ayanamsa ${wd.ayanamsa.toFixed(2)}°`);
+    }
 
     add("circle", { cx: CX, cy: CY, r: "372", fill: "none", stroke: "#3a2e10", "stroke-width": "3" });
     add("circle", { cx: CX, cy: CY, r: "285", fill: "none", stroke: "#3a2e10", "stroke-width": "1.5" });
@@ -400,10 +411,12 @@
       "stroke-width": "1", "stroke-dasharray": "3 4", class: "transit-orbit-ring",
     }));
 
-    const lbl = el("text", {
-      x: CX, y: CY - TRANSIT_R - 20, "text-anchor": "middle", "font-size": "9", fill: "#4a7aa5",
-    }, "TRANSITS");
-    svg.appendChild(lbl);
+    if (!BACKGROUND_MODE) {
+      const lbl = el("text", {
+        x: CX, y: CY - TRANSIT_R - 20, "text-anchor": "middle", "font-size": "9", fill: "#4a7aa5",
+      }, "TRANSITS");
+      svg.appendChild(lbl);
+    }
 
     const placed = {};
     for (const [p, deg] of Object.entries(t)) {
@@ -447,16 +460,12 @@
     if (!playing) return;
     transitDays += DAYS_PER_TICK;
     drawNakshatraWheel(wheelData());
-    const label = document.getElementById("wheel-day-label");
-    if (label) label.textContent = `+${transitDays} day${transitDays === 1 ? "" : "s"}`;
   }
 
   function start() {
     drawNakshatraWheel(wheelData());
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       playing = false;
-      const live = document.querySelector(".wheel-live");
-      if (live) live.textContent = "Transits (paused)";
       return;
     }
     timer = setInterval(tick, TICK_MS);
@@ -465,11 +474,13 @@
   function stop() {
     playing = false;
     if (timer) clearInterval(timer);
+    timer = null;
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stop();
-    else if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (document.hidden) {
+      stop();
+    } else if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       playing = true;
       timer = setInterval(tick, TICK_MS);
     }

@@ -22,10 +22,39 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: Lato, system-ui, sans-serif;
-      background: radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, var(--bg) 55%);
+      background: var(--bg);
       color: var(--text);
       line-height: 1.65;
       min-height: 100vh;
+    }
+    .wheel-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #heroWheelSvg {
+      width: min(125vmin, 920px);
+      height: min(125vmin, 920px);
+      opacity: 0.17;
+      transform: translateY(-2%);
+    }
+    .wheel-bg-vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 50% at 50% 42%, transparent 0%, rgba(10, 11, 18, 0.55) 58%, var(--bg) 88%),
+        radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, transparent 55%);
+    }
+    .page-content {
+      position: relative;
+      z-index: 1;
     }
     .wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
     h1 {
@@ -80,12 +109,13 @@
     }
     .page-nav a:hover { text-decoration: underline; }
     section {
-      background: var(--panel);
+      background: rgba(18, 20, 31, 0.88);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1.5rem;
       margin-bottom: 1.25rem;
       scroll-margin-top: 1.25rem;
+      backdrop-filter: blur(4px);
     }
     section h2 {
       font-family: Cinzel, serif;
@@ -129,10 +159,11 @@
       margin-bottom: 1.75rem;
     }
     .glance-card {
-      background: var(--panel);
+      background: rgba(18, 20, 31, 0.88);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 0.75rem 0.85rem;
+      backdrop-filter: blur(4px);
     }
     .glance-card strong {
       display: block;
@@ -153,93 +184,27 @@
     }
     .glance-note a { color: var(--gold); }
 
-    .wheel-hero-wrap {
-      max-width: 820px;
-      margin: 0 auto 2rem;
-      padding: 0 1.5rem;
-    }
-    .wheel-hero {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1rem 1rem 0.85rem;
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
-    }
-    .wheel-frame {
-      position: relative;
-      width: min(100%, 760px);
-      margin: 0 auto;
-    }
-    #heroWheelSvg {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: 50%;
-    }
-    .wheel-caption {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem 1rem;
-      margin-top: 0.75rem;
-      font-size: 0.82rem;
-      color: var(--muted);
-      text-align: center;
-    }
-    .wheel-live {
-      color: #86efac;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-    .wheel-live::before {
-      content: "";
-      display: inline-block;
-      width: 0.5rem;
-      height: 0.5rem;
-      margin-right: 0.35rem;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 8px #22c55e;
-      animation: livePulse 2s ease-in-out infinite;
-      vertical-align: middle;
-    }
-    @keyframes livePulse {
-      0%, 100% { opacity: 0.55; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.1); }
-    }
     @keyframes transitGlow {
-      0%, 100% { stroke-opacity: 0.55; }
-      50% { stroke-opacity: 1; }
+      0%, 100% { stroke-opacity: 0.4; }
+      50% { stroke-opacity: 0.85; }
     }
     #heroWheelSvg .transit-orbit-ring {
       animation: transitGlow 2.4s ease-in-out infinite;
     }
     @media (prefers-reduced-motion: reduce) {
-      .wheel-live::before,
       #heroWheelSvg .transit-orbit-ring { animation: none; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="wheel-bg" aria-hidden="true">
+    <svg id="heroWheelSvg" viewBox="0 0 760 760"></svg>
+  </div>
+  <div class="wheel-bg-vignette" aria-hidden="true"></div>
+
+  <div class="wrap page-content">
     <h1 id="app-name">Nakshatra Chakram</h1>
     <p class="tagline" id="tagline">Loading…</p>
-  </div>
-
-  <div class="wheel-hero-wrap">
-    <section class="wheel-hero" aria-label="Animated nakshatra wheel with transits">
-      <div class="wheel-frame">
-        <svg id="heroWheelSvg" viewBox="0 0 760 760" role="img" aria-label="Nakshatra wheel — sample chart with animated transits"></svg>
-      </div>
-      <p class="wheel-caption">
-        <span class="wheel-live">Live transits</span>
-        <span>Sample chart · <span id="wheel-day-label">+0 days</span> — same wheel &amp; Time Dial pacing as the app</span>
-      </p>
-    </section>
-  </div>
-
-  <div class="wrap">
     <div class="glance" id="glance" aria-label="Features at a glance">
       <div class="glance-card"><strong>Wheel</strong><span>Sidereal chart &amp; nakshatra wheel</span></div>
       <div class="glance-card"><strong>Dasha</strong><span>Vimshottari &amp; Jaimini timelines</span></div>
@@ -380,6 +345,6 @@
       if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
     })();
   </script>
-  <script src="wheel-hero.js?v=1" defer></script>
+  <script src="wheel-hero.js?v=2" defer></script>
 </body>
 </html>

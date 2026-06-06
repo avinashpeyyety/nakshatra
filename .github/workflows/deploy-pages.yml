@@ -9,6 +9,7 @@ on:
       - "docs/about.html"
       - "docs/site.json"
       - "docs/FEATURES.md"
+      - "docs/wheel-hero.js"
       - "docs/downloads/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
@@ -34,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site/downloads
-          cp docs/index.html docs/about.html docs/site.json docs/FEATURES.md _site/
+          cp docs/index.html docs/about.html docs/site.json docs/FEATURES.md docs/wheel-hero.js _site/
           cp -r docs/downloads/. _site/downloads/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

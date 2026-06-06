@@ -34,18 +34,24 @@
   let nextMatraTime = 0;
   let schedulerTimer = null;
   let playing = false;
+  let enabled = true;
   let reducedMotion = false;
+  let cancelBoot = null;
 
   function prefersReducedMotion() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  function savedPreference() {
+  function isExplicitlyOff() {
     try {
-      return localStorage.getItem(STORAGE_KEY) === "1";
+      return localStorage.getItem(STORAGE_KEY) === "0";
     } catch (_) {
       return false;
     }
+  }
+
+  function shouldEnableByDefault() {
+    return !reducedMotion && !isExplicitlyOff();
   }
 
   function persistPreference(on) {
@@ -64,11 +70,11 @@
       masterGain.connect(ctx.destination);
 
       tanpuraGain = ctx.createGain();
-      tanpuraGain.gain.value = 0.11;
+      tanpuraGain.gain.value = 0.055;
       tanpuraGain.connect(masterGain);
 
       tablaGain = ctx.createGain();
-      tablaGain.gain.value = 0.22;
+      tablaGain.gain.value = 0.38;
       tablaGain.connect(masterGain);
     }
     return ctx;
@@ -274,24 +280,55 @@
   }
 
   async function toggle(btn) {
-    if (playing) {
+    if (enabled) {
+      enabled = false;
+      cancelBoot?.();
+      cancelBoot = null;
       stopAudio();
       persistPreference(false);
       updateToggle(btn, false);
       return;
     }
+    enabled = true;
     const ok = await startAudio();
     if (ok) {
       persistPreference(true);
       updateToggle(btn, true);
+    } else {
+      enabled = false;
+      updateToggle(btn, false);
     }
+  }
+
+  function registerBoot(btn) {
+    let booted = false;
+    const boot = async () => {
+      if (booted || playing || !enabled) return;
+      booted = true;
+      cancelBoot = null;
+      document.removeEventListener("click", boot);
+      document.removeEventListener("keydown", boot);
+      const ok = await startAudio();
+      if (!ok && enabled) {
+        enabled = false;
+        persistPreference(false);
+        updateToggle(btn, false);
+      }
+    };
+    cancelBoot = () => {
+      booted = true;
+      document.removeEventListener("click", boot);
+      document.removeEventListener("keydown", boot);
+    };
+    document.addEventListener("click", boot);
+    document.addEventListener("keydown", boot);
   }
 
   function init() {
     reducedMotion = prefersReducedMotion();
+    enabled = shouldEnableByDefault();
     const btn = buildToggle();
-    const wantOn = !reducedMotion && savedPreference();
-    updateToggle(btn, false);
+    updateToggle(btn, enabled);
 
     btn.addEventListener("click", () => toggle(btn));
 
@@ -299,24 +336,13 @@
       if (!ctx) return;
       if (document.hidden) {
         if (playing) ctx.suspend();
-      } else if (playing) {
+      } else if (playing && enabled) {
         ctx.resume();
       }
     });
 
-    if (wantOn) {
-      let booted = false;
-      const boot = async (e) => {
-        if (booted || playing) return;
-        if (e.target && e.target.closest && e.target.closest("#ambient-audio-toggle")) return;
-        booted = true;
-        document.removeEventListener("click", boot);
-        document.removeEventListener("keydown", boot);
-        const ok = await startAudio();
-        if (ok) updateToggle(btn, true);
-      };
-      document.addEventListener("click", boot);
-      document.addEventListener("keydown", boot);
+    if (enabled) {
+      registerBoot(btn);
     }
   }
 

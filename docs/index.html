@@ -40,7 +40,7 @@
     #heroWheelSvg {
       width: min(125vmin, 920px);
       height: min(125vmin, 920px);
-      opacity: 0.17;
+      opacity: 0.25;
       transform: translateY(-2%);
     }
     .wheel-bg-vignette {
@@ -49,7 +49,7 @@
       z-index: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse 55% 50% at 50% 42%, transparent 0%, rgba(10, 11, 18, 0.55) 58%, var(--bg) 88%),
+        radial-gradient(ellipse 55% 50% at 50% 42%, transparent 0%, rgba(10, 11, 18, 0.42) 62%, var(--bg) 90%),
         radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, transparent 55%);
     }
     .page-content {
@@ -345,6 +345,6 @@
       if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
     })();
   </script>
-  <script src="wheel-hero.js?v=2" defer></script>
+  <script src="wheel-hero.js?v=3" defer></script>
 </body>
 </html>

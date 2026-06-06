@@ -103,7 +103,7 @@
   };
 
   const TICK_MS = 600;
-  const DAYS_PER_TICK = 1;
+  const DAYS_PER_TICK = 30;
 
   let transitDays = 0;
   let timer = null;

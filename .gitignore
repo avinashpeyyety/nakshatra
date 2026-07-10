@@ -18,3 +18,9 @@ launcher/node_modules/
 dist/
 !public-releases/README.md
 *.js.map
+
+# ensure-git
+.DS_Store
+
+# local TLS
+agent/certs/

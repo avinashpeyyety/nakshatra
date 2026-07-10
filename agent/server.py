@@ -1,11 +1,13 @@
 """
 Vedic Astrology Calculator — FastAPI server
-Usage:  python -m agent.server        → http://localhost:8000
+Usage:  python -m agent.server              → http://localhost:8000
         python -m agent.server --port 3000
+        python -m agent.server --https      → https://localhost:8443 (self-signed)
 """
 import argparse
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import agent.env  # noqa: F401 — load workspace .env before other modules
 
@@ -1248,10 +1250,81 @@ def _render_shadbala(result: dict) -> str:
 """
 
 
+def _default_cert_paths() -> tuple[Path, Path]:
+    """Local TLS material under agent/certs/ (gitignored)."""
+    cert_dir = Path(BASE_DIR) / "certs"
+    return cert_dir / "cert.pem", cert_dir / "key.pem"
+
+
+def _ensure_self_signed(cert_file: Path, key_file: Path) -> None:
+    """Create a localhost self-signed cert if missing (openssl)."""
+    if cert_file.is_file() and key_file.is_file():
+        return
+    cert_file.parent.mkdir(parents=True, exist_ok=True)
+    import subprocess
+
+    subprocess.run(
+        [
+            "openssl",
+            "req",
+            "-x509",
+            "-newkey",
+            "rsa:2048",
+            "-keyout",
+            str(key_file),
+            "-out",
+            str(cert_file),
+            "-days",
+            "825",
+            "-nodes",
+            "-subj",
+            "/CN=localhost",
+            "-addext",
+            "subjectAltName=DNS:localhost,IP:127.0.0.1",
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=None, help="Port (default 8000 http / 8443 https)")
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument(
+        "--https",
+        action="store_true",
+        help="Serve TLS (self-signed cert under agent/certs/ unless paths given)",
+    )
+    parser.add_argument("--ssl-certfile", default=None, help="PEM certificate path")
+    parser.add_argument("--ssl-keyfile", default=None, help="PEM private key path")
+    parser.add_argument("--reload", action="store_true", help="Auto-reload on code changes")
     args = parser.parse_args()
-    print(f"\n  Nakshatra Chakram → http://{args.host}:{args.port}\n")
-    uvicorn.run("agent.server:app", host=args.host, port=args.port, reload=True)
+
+    use_https = args.https or bool(args.ssl_certfile or args.ssl_keyfile)
+    port = args.port if args.port is not None else (8443 if use_https else 8000)
+    ssl_certfile = args.ssl_certfile
+    ssl_keyfile = args.ssl_keyfile
+
+    if use_https:
+        if not ssl_certfile or not ssl_keyfile:
+            c, k = _default_cert_paths()
+            _ensure_self_signed(c, k)
+            ssl_certfile = str(c)
+            ssl_keyfile = str(k)
+        scheme = "https"
+        print(f"\n  Nakshatra Chakram → {scheme}://{args.host}:{port}")
+        print(f"  TLS cert: {ssl_certfile}")
+        print("  (self-signed — browser may warn; proceed for local dev)\n")
+    else:
+        scheme = "http"
+        print(f"\n  Nakshatra Chakram → {scheme}://{args.host}:{port}\n")
+
+    uvicorn.run(
+        "agent.server:app",
+        host=args.host,
+        port=port,
+        reload=args.reload,
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile=ssl_keyfile,
+    )

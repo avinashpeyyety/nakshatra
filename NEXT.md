@@ -31,3 +31,4 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + insta
 - [x] v1.0.4 desktop releases (Chart edition)
 - [x] Define eval set for embedded Jyotish advisor (20–50 Q&A pairs) — `docs/eval/` 40 items + validator
 - [x] Fix saved charts feature (time normalize, orphan active_id, form wipe on list, stale watch, PATCH→create fallback)
+- [x] Standing ship loop: `./scripts/ship_iterate.sh` after every iterate; shipped **v1.0.5** installers to Pages

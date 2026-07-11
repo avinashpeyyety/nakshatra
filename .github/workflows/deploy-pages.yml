@@ -38,23 +38,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Refresh metrics snapshot
+        # Traffic APIs need elevated token; never block Pages deploy on metrics.
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           REPO="avinashpeyyety/nakshatra"
-          STARS=$(gh api "repos/$REPO" --jq '.stargazers_count')
-          FORKS=$(gh api "repos/$REPO" --jq '.forks_count')
-          VIEWS=$(gh api "repos/$REPO/traffic/views" --jq '[.views[].count] | add // 0')
-          CLONES=$(gh api "repos/$REPO/traffic/clones" --jq '[.clones[].count] | add // 0')
+          STARS=$(gh api "repos/$REPO" --jq '.stargazers_count' 2>/dev/null || echo 0)
+          FORKS=$(gh api "repos/$REPO" --jq '.forks_count' 2>/dev/null || echo 0)
+          VIEWS=$(gh api "repos/$REPO/traffic/views" --jq '[.views[].count] | add // 0' 2>/dev/null || echo 0)
+          CLONES=$(gh api "repos/$REPO/traffic/clones" --jq '[.clones[].count] | add // 0' 2>/dev/null || echo 0)
+          # Keep last good metrics if traffic calls fail
+          if [[ ! -f docs/metrics.json ]]; then
+            echo '{"updatedAt":"","stars":0,"forks":0,"repoViews14d":0,"repoClones14d":0}' > docs/metrics.json
+          fi
           UPDATED=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           cat > docs/metrics.json <<EOF
           {
             "updatedAt": "$UPDATED",
-            "stars": $STARS,
-            "forks": $FORKS,
-            "repoViews14d": $VIEWS,
-            "repoClones14d": $CLONES
+            "stars": ${STARS:-0},
+            "forks": ${FORKS:-0},
+            "repoViews14d": ${VIEWS:-0},
+            "repoClones14d": ${CLONES:-0}
           }
           EOF
       - name: Assemble public site only

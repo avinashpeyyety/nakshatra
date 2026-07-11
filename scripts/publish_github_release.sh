@@ -43,7 +43,12 @@ cp "$EXE" "docs/downloads/nakshatra-chakram-${VERSION}-windows.exe"
 cp "$ROOT/docs/index.html" docs/index.html
 cp "$ROOT/docs/about.html" docs/about.html
 cp "$ROOT/docs/FEATURES.md" docs/FEATURES.md
-cp "$ROOT/public-releases/README.md" README.md
+# Prefer slim public-releases README when present; else keep repo README.
+if [[ -f "$ROOT/public-releases/README.md" ]]; then
+  cp "$ROOT/public-releases/README.md" README.md
+elif [[ -f "$ROOT/README.md" ]]; then
+  cp "$ROOT/README.md" README.md
+fi
 cp "$ROOT/docs/site.json" docs/site.json
 # site.json overwritten below with publish URLs for this version
 

@@ -2434,14 +2434,40 @@ async function loadRunTrace(runId) {
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/** Format API error detail (string | FastAPI validation list). */
+function formatApiDetail(detail, fallback) {
+  if (detail == null || detail === '') return fallback || 'Request failed';
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail.map(d => d.msg || JSON.stringify(d)).join('; ') || fallback || 'Request failed';
+  }
+  if (typeof detail === 'object' && detail.msg) return detail.msg;
+  try { return JSON.stringify(detail); } catch (_) { return fallback || 'Request failed'; }
+}
+
+/** Zero-pad HH:MM so <input type="time"> accepts the value. */
+function normalizeTimeInput(t) {
+  if (t == null || t === '') return '12:00';
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!m) return '12:00';
+  const h = Math.min(23, parseInt(m[1], 10));
+  const mi = Math.min(59, parseInt(m[2], 10));
+  if (Number.isNaN(h) || Number.isNaN(mi)) return '12:00';
+  return `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`;
 }
 
 function copyBirthToWatch() {
-  document.getElementById('watchName').value = document.getElementById('chartName').value;
-  document.getElementById('watchDob').value = document.getElementById('dob').value;
-  document.getElementById('watchTob').value = document.getElementById('tob').value;
-  document.getElementById('watchPob').value = document.getElementById('pob').value;
+  const wn = document.getElementById('watchName');
+  const wd = document.getElementById('watchDob');
+  const wt = document.getElementById('watchTob');
+  const wp = document.getElementById('watchPob');
+  if (wn) wn.value = document.getElementById('chartName').value;
+  if (wd) wd.value = document.getElementById('dob').value;
+  if (wt) wt.value = normalizeTimeInput(document.getElementById('tob').value);
+  if (wp) wp.value = document.getElementById('pob').value;
   const wa = document.getElementById('watchAyanamsa');
   const ca = document.getElementById('ayanamsa');
   if (wa && ca) wa.value = ca.value || 'lahiri';
@@ -2451,9 +2477,9 @@ function chartFormPayload() {
   return {
     name: document.getElementById('chartName').value.trim(),
     date: document.getElementById('dob').value,
-    time: document.getElementById('tob').value || '12:00',
+    time: normalizeTimeInput(document.getElementById('tob').value || '12:00'),
     place: document.getElementById('pob').value.trim(),
-    ayanamsa: document.getElementById('ayanamsa').value,
+    ayanamsa: (document.getElementById('ayanamsa') || {}).value || 'lahiri',
   };
 }
 
@@ -2461,7 +2487,7 @@ function applyChartToForm(chart) {
   if (!chart) return;
   document.getElementById('chartName').value = chart.name || '';
   document.getElementById('dob').value = chart.date || '';
-  document.getElementById('tob').value = chart.time || '12:00';
+  document.getElementById('tob').value = normalizeTimeInput(chart.time || '12:00');
   document.getElementById('pob').value = chart.place || '';
   if (document.getElementById('ayanamsa')) {
     document.getElementById('ayanamsa').value = chart.ayanamsa || 'lahiri';
@@ -2477,9 +2503,15 @@ function applyChartToForm(chart) {
 function syncWatchFromChartForm() {
   const watchNameEl = document.getElementById('watchName');
   if (watchNameEl) watchNameEl.value = document.getElementById('chartName').value;
-  document.getElementById('watchDob').value = document.getElementById('dob').value;
-  document.getElementById('watchTob').value = document.getElementById('tob').value;
-  document.getElementById('watchPob').value = document.getElementById('pob').value;
+  const wd = document.getElementById('watchDob');
+  const wt = document.getElementById('watchTob');
+  const wp = document.getElementById('watchPob');
+  const wa = document.getElementById('watchAyanamsa');
+  const ca = document.getElementById('ayanamsa');
+  if (wd) wd.value = document.getElementById('dob').value;
+  if (wt) wt.value = normalizeTimeInput(document.getElementById('tob').value);
+  if (wp) wp.value = document.getElementById('pob').value;
+  if (wa && ca) wa.value = ca.value || 'lahiri';
 }
 
 function updateActiveChartLabel() {
@@ -2500,29 +2532,52 @@ function setChartSaveStatus(msg, type) {
   el.textContent = msg;
 }
 
-async function loadSavedCharts() {
+function fillChartSelect(preferredId) {
+  const sel = document.getElementById('chartSelect');
+  if (!sel) return;
+  const pick = preferredId || currentChartId || (savedChartsCache.find(c => c.active) || {}).id || '';
+  sel.innerHTML = '<option value="">— New chart —</option>' +
+    savedChartsCache.map(c =>
+      `<option value="${c.id}">${escapeHtml(c.name)}${c.active ? ' ★' : ''}</option>`
+    ).join('');
+  if (pick && savedChartsCache.some(c => c.id === pick)) {
+    sel.value = pick;
+  } else {
+    sel.value = '';
+  }
+}
+
+/**
+ * Load chart library from server.
+ * @param {{ applyForm?: boolean }} opts
+ *   applyForm (default true only on first load via caller): when true, fill form
+ *   from active chart (or blank if none). When false, only refresh dropdown —
+ *   preserves in-progress New / edits.
+ */
+async function loadSavedCharts(opts) {
+  const applyForm = !opts || opts.applyForm !== false;
   try {
     const res = await fetch('/api/charts');
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Failed to load charts');
+    if (!res.ok) throw new Error(formatApiDetail(data.detail, 'Failed to load charts'));
     savedChartsCache = data.charts || [];
-    const sel = document.getElementById('chartSelect');
-    if (sel) {
-      sel.innerHTML = '<option value="">— New chart —</option>' +
-        savedChartsCache.map(c =>
-          `<option value="${c.id}">${escapeHtml(c.name)}${c.active ? ' ★' : ''}</option>`
-        ).join('');
-    }
     const active = savedChartsCache.find(c => c.active);
-    if (active) {
-      applyChartToForm(active);
-    } else {
-      newChartForm();
+
+    if (applyForm) {
+      if (active) {
+        applyChartToForm(active);
+      } else if (savedChartsCache.length) {
+        // Server should repair orphan active_id; still show first chart.
+        applyChartToForm(savedChartsCache[0]);
+      } else {
+        newChartForm({ skipSelectReset: true });
+      }
     }
+    fillChartSelect(applyForm ? (currentChartId || (active && active.id)) : currentChartId);
     updateActiveChartLabel();
   } catch (e) {
     updateActiveChartLabel();
-    if (adminEnabled) loadBirthDetailsFromLocal();
+    loadBirthDetailsFromLocal();
   }
 }
 
@@ -2535,12 +2590,21 @@ async function selectSavedChart(chartId) {
   try {
     const res = await fetch(`/api/charts/${chartId}/activate`, { method: 'POST' });
     const chart = await res.json();
-    if (!res.ok) throw new Error(chart.detail || 'Failed to activate chart');
-    savedChartsCache = savedChartsCache.map(c => ({ ...c, active: c.id === chart.id }));
+    if (!res.ok) throw new Error(formatApiDetail(chart.detail, 'Failed to activate chart'));
+    savedChartsCache = savedChartsCache.map(c => ({
+      ...c,
+      active: c.id === chart.id,
+    }));
+    // Ensure activated chart is in cache (e.g. race with empty list)
+    if (!savedChartsCache.some(c => c.id === chart.id)) {
+      savedChartsCache.push({ ...chart, active: true });
+    }
     applyChartToForm(chart);
-    await loadSavedCharts();
+    fillChartSelect(chart.id);
+    updateActiveChartLabel();
     setChartSaveStatus(`✓ Active: ${chart.name}`, 'ok');
-    if (document.getElementById('jobsView').classList.contains('active')) {
+    const jobsView = document.getElementById('jobsView');
+    if (jobsView && jobsView.classList.contains('active')) {
       await loadTransitWindows();
     }
   } catch (e) {
@@ -2554,36 +2618,53 @@ async function saveCurrentChart() {
   if (!body.date || !body.place) { setChartSaveStatus('Date and place required.', 'error'); return; }
   setChartSaveStatus('Saving…', 'loading');
   try {
-    const res = currentChartId
-      ? await fetch(`/api/charts/${currentChartId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })
-      : await fetch('/api/charts', {
+    let res;
+    if (currentChartId) {
+      res = await fetch(`/api/charts/${currentChartId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      // Stale id (deleted chart / bad localStorage) → create instead of fail
+      if (res.status === 404) {
+        currentChartId = null;
+        res = await fetch('/api/charts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
+      }
+    } else {
+      res = await fetch('/api/charts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
     const chart = await res.json();
-    if (!res.ok) throw new Error(chart.detail || 'Save failed');
+    if (!res.ok) throw new Error(formatApiDetail(chart.detail, 'Save failed'));
     currentChartId = chart.id;
     applyChartToForm(chart);
-    await loadSavedCharts();
+    await loadSavedCharts({ applyForm: false });
+    fillChartSelect(chart.id);
     setChartSaveStatus('✓ Saved.', 'ok');
   } catch (e) {
     setChartSaveStatus('⚠ ' + e.message, 'error');
   }
 }
 
-function newChartForm() {
+function newChartForm(opts) {
   currentChartId = null;
   document.getElementById('chartName').value = '';
   document.getElementById('dob').value = '';
   document.getElementById('tob').value = '12:00';
   document.getElementById('pob').value = '';
-  const sel = document.getElementById('chartSelect');
-  if (sel) sel.value = '';
+  const ayan = document.getElementById('ayanamsa');
+  if (ayan) ayan.value = 'lahiri';
+  if (!opts || !opts.skipSelectReset) {
+    const sel = document.getElementById('chartSelect');
+    if (sel) sel.value = '';
+  }
   saveBirthDetails();
   syncWatchFromChartForm();
   updateActiveChartLabel();
@@ -2601,16 +2682,14 @@ async function deleteCurrentChart() {
   try {
     const res = await fetch(`/api/charts/${currentChartId}`, { method: 'DELETE' });
     if (!res.ok) {
-      const d = await res.json();
-      throw new Error(d.detail || 'Delete failed');
+      const d = await res.json().catch(() => ({}));
+      throw new Error(formatApiDetail(d.detail, 'Delete failed'));
     }
     currentChartId = null;
-    await loadSavedCharts();
-    const active = savedChartsCache.find(c => c.active);
-    if (active) applyChartToForm(active);
-    else newChartForm();
+    await loadSavedCharts({ applyForm: true });
     setChartSaveStatus('✓ Deleted.', 'ok');
-    if (document.getElementById('jobsView').classList.contains('active')) {
+    const jobsView = document.getElementById('jobsView');
+    if (jobsView && jobsView.classList.contains('active')) {
       await loadTransitWindows();
     }
   } catch (e) {
@@ -2682,11 +2761,12 @@ async function saveWatchProfile() {
   if (res.ok) {
     st.textContent = '✓ Watch profile saved.';
     st.className = 'status ok';
-    await loadSavedCharts();
+    // Refresh library without wiping Chart-tab form mid-edit
+    await loadSavedCharts({ applyForm: false });
     await loadTransitWindows();
   } else {
-    const d = await res.json();
-    st.textContent = '⚠ ' + (d.detail || 'Save failed');
+    const d = await res.json().catch(() => ({}));
+    st.textContent = '⚠ ' + formatApiDetail(d.detail, 'Save failed');
     st.className = 'status error';
   }
 }
@@ -2887,12 +2967,14 @@ document.addEventListener('keydown', e => {
 const CACHE_KEY = 'nakshatra_chakram_birth';
 
 function saveBirthDetails() {
+  const ayan = document.getElementById('ayanamsa');
   const d = {
     chartId: currentChartId,
     name: document.getElementById('chartName').value.trim(),
     dob: document.getElementById('dob').value,
-    tob: document.getElementById('tob').value,
+    tob: normalizeTimeInput(document.getElementById('tob').value),
     pob: document.getElementById('pob').value.trim(),
+    ayanamsa: ayan ? ayan.value : 'lahiri',
   };
   localStorage.setItem(CACHE_KEY, JSON.stringify(d));
 }
@@ -2904,22 +2986,30 @@ function loadBirthDetailsFromLocal() {
     if (saved.name && document.getElementById('chartName')) {
       document.getElementById('chartName').value = saved.name;
     }
-    if (saved.chartId) currentChartId = saved.chartId;
+    // Only restore chartId if it still exists in the library
+    if (saved.chartId && savedChartsCache.some(c => c.id === saved.chartId)) {
+      currentChartId = saved.chartId;
+    } else {
+      currentChartId = null;
+    }
     if (saved.dob) document.getElementById('dob').value = saved.dob;
-    if (saved.tob) document.getElementById('tob').value = saved.tob;
+    if (saved.tob) document.getElementById('tob').value = normalizeTimeInput(saved.tob);
     if (saved.pob) document.getElementById('pob').value = saved.pob;
-    const sel = document.getElementById('chartSelect');
-    if (sel && saved.chartId) sel.value = saved.chartId;
+    if (saved.ayanamsa && document.getElementById('ayanamsa')) {
+      document.getElementById('ayanamsa').value = saved.ayanamsa;
+    }
+    fillChartSelect(currentChartId);
   } catch (_) {}
 }
 
 // Save on any input change
-['chartName', 'dob', 'tob', 'pob'].forEach(id =>
-  document.getElementById(id).addEventListener('change', saveBirthDetails)
-);
+['chartName', 'dob', 'tob', 'pob', 'ayanamsa'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', saveBirthDetails);
+});
 
 // Restore saved charts from server (falls back to localStorage)
-initAppConfig().then(() => loadSavedCharts());
+initAppConfig().then(() => loadSavedCharts({ applyForm: true }));
 
 // Redraw wheel if window resizes (SVG is responsive but re-render ensures crispness)
 let resizeTimer;

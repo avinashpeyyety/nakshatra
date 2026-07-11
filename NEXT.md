@@ -20,8 +20,10 @@
 
 - Wire eval runner to ollama-chat or a small local script that hits the finetuned adapter
 - Auto-generate more `chart_facts` from `calculate_chart` for additional birth samples (no train contamination)
+- Optional: multi-select / rename-only UX polish on saved charts dropdown
 
 ## Done
 
 - [x] v1.0.4 desktop releases (Chart edition)
 - [x] Define eval set for embedded Jyotish advisor (20–50 Q&A pairs) — `docs/eval/` 40 items + validator
+- [x] Fix saved charts feature (time normalize, orphan active_id, form wipe on list, stale watch, PATCH→create fallback)

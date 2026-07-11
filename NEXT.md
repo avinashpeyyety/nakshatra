@@ -1,5 +1,9 @@
 # NEXT — nakshatra
 
+## Standing (every iterate)
+
+After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + installers + Pages). Landing downloads must match `main`.
+
 ## Now (app — use Grok Build)
 
 - [ ] Document advisor integration plan in `docs/` (local Ollama vs bundled weights)

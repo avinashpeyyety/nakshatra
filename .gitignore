@@ -10,6 +10,9 @@ agent/data/watch_profile.json
 agent/data/email_settings.json
 agent/data/geocode_cache.json
 agent/data/_build/
+# dual HTTPS local editions (serve-https.sh)
+agent/data-lite/
+agent/data-advisor/
 .pytest_cache/
 venv/
 .venv

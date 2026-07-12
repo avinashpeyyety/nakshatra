@@ -9,7 +9,14 @@
 | **Docs site** | [avinashpeyyety.github.io/nakshatra](https://avinashpeyyety.github.io/nakshatra/) |
 | **Issues** | [Report a bug](https://github.com/avinashpeyyety/nakshatra/issues) (no chart attachments) |
 
-Public installers ship the **Chart** edition (Wheel, Dasha, Yogas, Gochara). Data stays on your computer.
+Public installers ship two builds:
+
+| | |
+|--|--|
+| **Lite** | Wheel, Dasha, Yogas, Gochara, strengths — no LLM |
+| **Advisor** | Lite + local **Ornith 9B** full report & chat (requires [Ollama](https://ollama.com) + `ollama pull ornith:9b`) |
+
+Data stays on your computer. Details: [docs/ADVISOR.md](docs/ADVISOR.md).
 
 ---
 
@@ -36,7 +43,13 @@ python -m agent.server
 
 Open http://127.0.0.1:8000
 
-Copy `.env.example` → `.env` for optional API keys (chart advisor in admin builds).
+```bash
+# Advisor edition from source:
+export NAKSHATRA_EDITION=advisor
+python -m agent.server
+```
+
+Optional cloud keys in `.env` are for **admin** Jobs builds only (`NAKSHATRA_ADMIN=1`), not the public Advisor product.
 
 ---
 

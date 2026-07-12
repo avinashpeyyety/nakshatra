@@ -14,10 +14,25 @@ def _bundle_root() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _read_edition(root: str) -> str:
+    for rel in ("agent/edition.txt", "edition.txt"):
+        path = os.path.join(root, rel)
+        if os.path.isfile(path):
+            try:
+                with open(path, encoding="utf-8") as f:
+                    val = f.read().strip().lower()
+                if val in ("lite", "advisor"):
+                    return val
+            except OSError:
+                pass
+    return "lite"
+
+
 def main() -> None:
     root = _bundle_root()
     os.chdir(root)
     os.environ.setdefault("NAKSHATRA_ADMIN", "0")
+    os.environ.setdefault("NAKSHATRA_EDITION", _read_edition(root))
 
     if root not in sys.path:
         sys.path.insert(0, root)

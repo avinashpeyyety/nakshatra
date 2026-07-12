@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from agent.app_config import admin_enabled, app_config
+from agent.app_config import admin_enabled, advisor_enabled, app_config, product_edition
 
 from agent.email_service import (
     get_email_settings_public,
@@ -87,6 +87,216 @@ async def admin_api_gate(request: Request, call_next):
 @app.get("/api/app-config")
 async def api_app_config():
     return JSONResponse(app_config())
+
+
+def _require_advisor():
+    if not advisor_enabled():
+        raise HTTPException(
+            status_code=404,
+            detail="Advisor edition only — use the Advisor build or set NAKSHATRA_EDITION=advisor",
+        )
+
+
+class AdvisorBirth(BaseModel):
+    date: str
+    time: str = "12:00"
+    place: str
+    ayanamsa: str = "lahiri"
+    force: bool = False  # regenerate report even if cached
+
+
+class AdvisorChatRequest(BaseModel):
+    message: str
+    date: str
+    time: str = "12:00"
+    place: str
+    ayanamsa: str = "lahiri"
+
+
+@app.get("/api/advisor/status")
+async def api_advisor_status():
+    """LLM readiness (Advisor edition). Lite returns enabled=false."""
+    if not advisor_enabled():
+        return JSONResponse(
+            {
+                "enabled": False,
+                "edition": product_edition(),
+                "ready": False,
+                "error": "Lite edition — no on-device LLM",
+            }
+        )
+    from agent.local_llm import advisor_status
+
+    st = advisor_status()
+    st["enabled"] = True
+    st["edition"] = "advisor"
+    return JSONResponse(st)
+
+
+@app.post("/api/advisor/report")
+async def api_advisor_report(body: AdvisorBirth):
+    """Generate (or return cached) full chart report from calculator digest + Ornith."""
+    _require_advisor()
+    from agent.advisor_store import get_report, save_report
+    from agent.chart_digest import build_chart_digest
+    from agent.local_llm import advisor_status, generate_full_report
+
+    place = body.place.strip()
+    if not body.date or not place:
+        raise HTTPException(status_code=400, detail="date and place are required")
+    try:
+        result = calculate_chart(body.date, body.time, place, ayanamsa=body.ayanamsa)
+        digest = build_chart_digest(
+            result,
+            date=body.date,
+            time=body.time or "12:00",
+            place=place,
+            ayanamsa=body.ayanamsa,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Calculation error: {exc}")
+
+    fp = digest["fingerprint"]
+    if not body.force:
+        cached = get_report(fp)
+        if cached and cached.get("report_text"):
+            return JSONResponse(
+                {
+                    "fingerprint": fp,
+                    "report": cached["report_text"],
+                    "cached": True,
+                    "model": cached.get("model") or "",
+                    "digest_preview": digest["text"][:500],
+                }
+            )
+
+    st = advisor_status()
+    if not st.get("ready"):
+        raise HTTPException(
+            status_code=503,
+            detail=st.get("error")
+            or "Local model not ready. Install Ollama and run: ollama pull ornith:9b",
+        )
+    try:
+        report = generate_full_report(digest["text"], model=st.get("model"))
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    save_report(
+        fp,
+        date=body.date,
+        time=body.time or "12:00",
+        place=place,
+        ayanamsa=body.ayanamsa,
+        digest_text=digest["text"],
+        report_text=report,
+        model=st.get("model"),
+    )
+    return JSONResponse(
+        {
+            "fingerprint": fp,
+            "report": report,
+            "cached": False,
+            "model": st.get("model"),
+            "digest_preview": digest["text"][:500],
+        }
+    )
+
+
+@app.post("/api/advisor/chat")
+async def api_advisor_chat(body: AdvisorChatRequest):
+    """Follow-up Q&A grounded in digest + cached report."""
+    _require_advisor()
+    from agent.advisor_store import append_chat, get_report, list_chat, save_report
+    from agent.chart_digest import build_chart_digest
+    from agent.local_llm import advisor_status, answer_followup
+
+    msg = (body.message or "").strip()
+    if not msg:
+        raise HTTPException(status_code=400, detail="message is required")
+    place = body.place.strip()
+    if not body.date or not place:
+        raise HTTPException(status_code=400, detail="date and place are required")
+
+    st = advisor_status()
+    if not st.get("ready"):
+        raise HTTPException(status_code=503, detail=st.get("error") or "Model not ready")
+
+    try:
+        result = calculate_chart(body.date, body.time, place, ayanamsa=body.ayanamsa)
+        digest = build_chart_digest(
+            result,
+            date=body.date,
+            time=body.time or "12:00",
+            place=place,
+            ayanamsa=body.ayanamsa,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    fp = digest["fingerprint"]
+    cached = get_report(fp)
+    report_text = (cached or {}).get("report_text") or ""
+    # Ensure digest stored for consistency
+    if not cached:
+        save_report(
+            fp,
+            date=body.date,
+            time=body.time or "12:00",
+            place=place,
+            ayanamsa=body.ayanamsa,
+            digest_text=digest["text"],
+            report_text="",
+            model=st.get("model"),
+        )
+
+    history = list_chat(fp)
+    try:
+        reply = answer_followup(
+            digest["text"],
+            report_text or None,
+            history,
+            msg,
+            model=st.get("model"),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    append_chat(fp, "user", msg)
+    append_chat(fp, "assistant", reply)
+    return JSONResponse(
+        {
+            "fingerprint": fp,
+            "reply": reply,
+            "model": st.get("model"),
+            "history": list_chat(fp),
+        }
+    )
+
+
+@app.get("/api/advisor/chat")
+async def api_advisor_chat_history(date: str, time: str = "12:00", place: str = "", ayanamsa: str = "lahiri"):
+    _require_advisor()
+    from agent.chart_digest import chart_fingerprint
+    from agent.advisor_store import list_chat
+
+    if not date or not place.strip():
+        return JSONResponse({"history": [], "fingerprint": ""})
+    fp = chart_fingerprint(date, time, place.strip(), ayanamsa)
+    return JSONResponse({"fingerprint": fp, "history": list_chat(fp)})
+
+
+@app.delete("/api/advisor/chat")
+async def api_advisor_chat_clear(date: str, time: str = "12:00", place: str = "", ayanamsa: str = "lahiri"):
+    _require_advisor()
+    from agent.chart_digest import chart_fingerprint
+    from agent.advisor_store import clear_chat
+
+    if date and place.strip():
+        clear_chat(chart_fingerprint(date, time, place.strip(), ayanamsa))
+    return JSONResponse({"ok": True})
 
 
 @app.get("/api/places")

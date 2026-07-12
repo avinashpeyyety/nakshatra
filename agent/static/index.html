@@ -933,6 +933,35 @@
       <div id="shadbalaContainer"></div>
     </details>
 
+    <!-- Advisor edition: auto report + follow-up chat (hidden in Lite) -->
+    <div id="advisorPanel" class="form-card" style="display:none;margin-top:16px" hidden>
+      <h2 style="margin-top:0">✦ Local Advisor (Ornith 9B)</h2>
+      <p id="advisorStatusLine" style="font-size:.78rem;color:var(--gold-light);margin:0 0 10px">Checking Ollama…</p>
+      <div id="advisorSetup" style="display:none;font-size:.8rem;line-height:1.45;padding:10px 12px;border:1px solid rgba(212,175,55,.25);border-radius:8px;margin-bottom:12px">
+        <strong>Setup required</strong>
+        <ol style="margin:8px 0 0 18px;padding:0">
+          <li>Install <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> and start it</li>
+          <li>Run: <code>ollama pull ornith:9b</code></li>
+          <li>Click <em>Retry</em> or recalculate the chart</li>
+        </ol>
+        <button type="button" class="btn-secondary" style="margin-top:8px" onclick="refreshAdvisorStatus()">Retry connection</button>
+      </div>
+      <div class="section-title" style="margin-top:4px">Complete chart report</div>
+      <p style="font-size:.72rem;opacity:.8;margin:0 0 8px">Grounded in app calculations (vargas, shadbala, dashas, ashtakavarga, yogas). Educational only.</p>
+      <div class="btn-row" style="margin-bottom:8px">
+        <button type="button" class="btn-secondary" id="advisorRegenBtn" onclick="generateAdvisorReport(true)">Regenerate report</button>
+        <span class="status" id="advisorReportStatus"></span>
+      </div>
+      <div id="advisorReport" style="white-space:pre-wrap;font-size:.82rem;line-height:1.5;max-height:420px;overflow:auto;padding:12px;background:rgba(0,0,0,.25);border-radius:8px;min-height:80px">Calculate a chart to generate a report…</div>
+      <div class="section-title" style="margin-top:18px">Ask the model</div>
+      <div id="advisorChatLog" style="max-height:220px;overflow:auto;font-size:.8rem;margin-bottom:8px;padding:8px;background:rgba(0,0,0,.2);border-radius:8px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="advisorChatInput" placeholder="e.g. What does my current dasha emphasize?" style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')sendAdvisorChat()" />
+        <button type="button" class="btn-primary" onclick="sendAdvisorChat()">Ask</button>
+        <button type="button" class="btn-secondary" onclick="clearAdvisorChat()">Clear chat</button>
+      </div>
+    </div>
+
     <!-- Tab views -->
     <div class="view-outer">
       <div class="tab-bar">
@@ -1877,14 +1906,20 @@ let transitWindowsData = null;
 let currentChartId = null;
 let savedChartsCache = [];
 let adminEnabled = false;
+let advisorEnabled = false;
+let advisorLlmReady = false;
+let lastAdvisorFingerprint = null;
 
 async function initAppConfig() {
   try {
     const r = await fetch('/api/app-config');
     const cfg = await r.json();
     adminEnabled = !!cfg.admin_enabled;
+    advisorEnabled = !!cfg.advisor_enabled || cfg.edition === 'advisor';
+    if (cfg.llm) advisorLlmReady = !!cfg.llm.ready;
   } catch (_) {
     adminEnabled = false;
+    advisorEnabled = false;
   }
   const navJobs = document.getElementById('navJobs');
   if (navJobs) navJobs.hidden = !adminEnabled;
@@ -1892,6 +1927,149 @@ async function initAppConfig() {
     clearInterval(jobsPollTimer);
     jobsPollTimer = null;
   }
+  const panel = document.getElementById('advisorPanel');
+  if (panel) {
+    panel.hidden = !advisorEnabled;
+    panel.style.display = advisorEnabled ? '' : 'none';
+  }
+  if (advisorEnabled) refreshAdvisorStatus();
+}
+
+function birthPayloadForAdvisor() {
+  const dob = document.getElementById('dob').value;
+  const tob = document.getElementById('tob').value || '12:00';
+  const pob = document.getElementById('pob').value.trim();
+  const ayan = (document.getElementById('ayanamsa') || {}).value || 'lahiri';
+  return { date: dob, time: tob, place: pob, ayanamsa: ayan };
+}
+
+async function refreshAdvisorStatus() {
+  if (!advisorEnabled) return;
+  const line = document.getElementById('advisorStatusLine');
+  const setup = document.getElementById('advisorSetup');
+  try {
+    const r = await fetch('/api/advisor/status');
+    const st = await r.json();
+    advisorLlmReady = !!st.ready;
+    if (line) {
+      line.textContent = st.ready
+        ? `Model ready: ${st.model || 'local'} @ ${st.ollama_url || 'Ollama'}`
+        : (st.error || 'Local model not ready');
+      line.style.color = st.ready ? 'var(--gold-light)' : '#f87171';
+    }
+    if (setup) setup.style.display = st.ready ? 'none' : 'block';
+  } catch (e) {
+    advisorLlmReady = false;
+    if (line) {
+      line.textContent = 'Cannot reach advisor status: ' + e.message;
+      line.style.color = '#f87171';
+    }
+    if (setup) setup.style.display = 'block';
+  }
+}
+
+function setAdvisorReportStatus(msg, type) {
+  const el = document.getElementById('advisorReportStatus');
+  if (!el) return;
+  el.className = type ? `status ${type}` : 'status';
+  el.textContent = msg || '';
+}
+
+async function generateAdvisorReport(force) {
+  if (!advisorEnabled) return;
+  const body = birthPayloadForAdvisor();
+  if (!body.date || !body.place) {
+    setAdvisorReportStatus('Set birth date and place first.', 'error');
+    return;
+  }
+  const out = document.getElementById('advisorReport');
+  setAdvisorReportStatus(force ? 'Regenerating…' : 'Generating report…', 'loading');
+  if (out) out.textContent = 'Running local Ornith on full chart digest (vargas, shadbala, dashas, ashtakavarga)…';
+  try {
+    await refreshAdvisorStatus();
+    if (!advisorLlmReady) {
+      setAdvisorReportStatus('Ollama / ornith:9b not ready', 'error');
+      return;
+    }
+    const res = await fetch('/api/advisor/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, force: !!force }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(formatApiDetail(data.detail, 'Report failed'));
+    lastAdvisorFingerprint = data.fingerprint || null;
+    if (out) out.textContent = data.report || '(empty report)';
+    setAdvisorReportStatus(
+      data.cached ? '✓ Cached report' : `✓ Report ready (${data.model || 'local'})`,
+      'ok'
+    );
+    await loadAdvisorChatHistory();
+  } catch (e) {
+    setAdvisorReportStatus('⚠ ' + e.message, 'error');
+    if (out) out.textContent = 'Report error: ' + e.message;
+  }
+}
+
+function renderAdvisorChat(history) {
+  const log = document.getElementById('advisorChatLog');
+  if (!log) return;
+  if (!history || !history.length) {
+    log.innerHTML = '<div style="opacity:.6">Ask a follow-up about the report or chart…</div>';
+    return;
+  }
+  log.innerHTML = history.map(m => {
+    const role = m.role === 'user' ? 'You' : 'Advisor';
+    return `<div style="margin:6px 0"><strong>${role}:</strong> ${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>`;
+  }).join('');
+  log.scrollTop = log.scrollHeight;
+}
+
+async function loadAdvisorChatHistory() {
+  if (!advisorEnabled) return;
+  const b = birthPayloadForAdvisor();
+  if (!b.date || !b.place) return;
+  const q = new URLSearchParams(b);
+  try {
+    const res = await fetch('/api/advisor/chat?' + q.toString());
+    const data = await res.json();
+    if (res.ok) renderAdvisorChat(data.history || []);
+  } catch (_) {}
+}
+
+async function sendAdvisorChat() {
+  if (!advisorEnabled) return;
+  const input = document.getElementById('advisorChatInput');
+  const message = (input && input.value || '').trim();
+  if (!message) return;
+  const body = { ...birthPayloadForAdvisor(), message };
+  if (!body.date || !body.place) {
+    setAdvisorReportStatus('Set birth details first.', 'error');
+    return;
+  }
+  if (input) input.value = '';
+  setAdvisorReportStatus('Thinking…', 'loading');
+  try {
+    const res = await fetch('/api/advisor/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(formatApiDetail(data.detail, 'Chat failed'));
+    renderAdvisorChat(data.history || []);
+    setAdvisorReportStatus('✓', 'ok');
+  } catch (e) {
+    setAdvisorReportStatus('⚠ ' + e.message, 'error');
+  }
+}
+
+async function clearAdvisorChat() {
+  if (!advisorEnabled) return;
+  const b = birthPayloadForAdvisor();
+  const q = new URLSearchParams(b);
+  await fetch('/api/advisor/chat?' + q.toString(), { method: 'DELETE' });
+  renderAdvisorChat([]);
 }
 
 function switchTransitTab(tab) {
@@ -2869,6 +3047,11 @@ async function calculate() {
     document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
     setStatus('✓ Chart calculated successfully.', 'ok');
 
+    // Advisor edition: auto full report from calculator digest + local Ornith
+    if (advisorEnabled) {
+      generateAdvisorReport(false);
+    }
+
   } catch(err) {
     setStatus(`⚠ Network error: ${err.message}`, 'error');
   } finally {
@@ -2891,9 +3074,21 @@ function showVargaAnalysisTab(btn, paneId) {
 
 function requestVargaLLMAnalysis() {
   const output = document.getElementById('varga-llm-output');
+  if (advisorEnabled) {
+    const prompt = 'Please expand on the varga (divisional chart) indications from the digest/report, especially D9, D10, D7, and D60.';
+    const input = document.getElementById('advisorChatInput');
+    if (input) input.value = prompt;
+    const panel = document.getElementById('advisorPanel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    sendAdvisorChat();
+    if (output) {
+      output.innerHTML = '<em>Sent to Local Advisor chat (grounded in calculator digest).</em>';
+    }
+    return;
+  }
   if (!adminEnabled) {
     if (output) {
-      output.innerHTML = '<em>AI varga analysis is available in admin builds only (Jobs &amp; Agents). Shipped product will use Chart-tab BYOK advisor.</em>';
+      output.innerHTML = '<em>Varga narrative analysis is in the <strong>Advisor</strong> edition (local Ornith). Lite edition is calculation-only.</em>';
     }
     return;
   }

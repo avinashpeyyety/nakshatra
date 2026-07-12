@@ -3,11 +3,9 @@
 #
 # Usage:
 #   ./scripts/ship_iterate.sh              # auto patch bump from docs/site.json
-#   ./scripts/ship_iterate.sh 1.0.5        # explicit version
-#   ./scripts/ship_iterate.sh 1.0.5 --push-only   # git push only (no package)
-#   ./scripts/ship_iterate.sh 1.0.5 --mac-only    # mac dmg + publish with existing win exe if present
-#
-# Requires: git credentials for github.com; gh CLI or GH_TOKEN for Windows CI.
+#   ./scripts/ship_iterate.sh 1.1.0        # explicit version
+#   ./scripts/ship_iterate.sh 1.1.0 --push-only
+#   ./scripts/ship_iterate.sh 1.1.0 --mac-only
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -32,7 +30,6 @@ done
 
 if [[ -z "$VERSION" ]]; then
   CUR="$(python3 -c "import json; print(json.load(open('docs/site.json')).get('version','1.0.0'))" 2>/dev/null || echo "1.0.0")"
-  # patch bump: 1.0.4 -> 1.0.5
   VERSION="$(python3 -c "
 v='${CUR}'.strip().lstrip('v')
 parts=[int(x) for x in v.split('.')]
@@ -43,7 +40,6 @@ print('.'.join(str(p) for p in parts[:3]))
   echo "==> Auto version ${CUR} → ${VERSION}"
 fi
 
-# GitHub token for gh (workflow + download artifacts)
 if [[ -z "${GH_TOKEN:-}" ]]; then
   GH_TOKEN="$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null | awk -F= '/^password=/{print $2}')" || true
   export GH_TOKEN
@@ -61,75 +57,95 @@ echo "==> Push origin/main"
 git push -u origin HEAD:main
 
 if [[ "$PUSH_ONLY" -eq 1 ]]; then
-  echo "==> --push-only: done (no installer rebuild)"
+  echo "==> --push-only: done"
   exit 0
 fi
 
-echo "==> Build macOS dmg v${VERSION}"
-chmod +x scripts/package_desktop.sh scripts/publish_github_release.sh scripts/fetch_and_publish_release.sh
-./scripts/package_desktop.sh "$VERSION"
+echo "==> Build macOS dmg (lite + advisor) v${VERSION}"
+chmod +x scripts/package_desktop.sh scripts/publish_github_release.sh
+./scripts/package_desktop.sh "$VERSION" lite
+./scripts/package_desktop.sh "$VERSION" advisor
 
-EXE="$ROOT/dist/nakshatra-chakram-${VERSION}-windows.exe"
-if [[ ! -f "$EXE" && "$MAC_ONLY" -eq 0 ]]; then
-  if command -v gh >/dev/null 2>&1 && [[ -n "${GH_TOKEN:-}" ]]; then
-    echo "==> Trigger Windows exe CI (build-windows-exe)"
-    # Prefer authenticated gh; fall back to token env
-    if ! gh auth status &>/dev/null; then
-      export GH_TOKEN
-    fi
-    gh workflow run build-windows-exe.yml --repo avinashpeyyety/nakshatra -f "version=${VERSION}"
-    sleep 12
-    RUN_ID="$(gh run list --repo avinashpeyyety/nakshatra --workflow=build-windows-exe.yml --limit 1 --json databaseId -q '.[0].databaseId')"
-    echo "==> Watching Windows run $RUN_ID"
-    gh run watch "$RUN_ID" --repo avinashpeyyety/nakshatra --exit-status
-    TMP="$(mktemp -d)"
-    gh run download "$RUN_ID" --repo avinashpeyyety/nakshatra -D "$TMP"
-    find "$TMP" -name "*-windows.exe" -exec cp {} "$EXE" \;
-    rm -rf "$TMP"
-  else
-    echo "WARN: no gh/token — cannot build Windows exe via CI" >&2
+build_win() {
+  local edition="$1"
+  local out="$ROOT/dist/nakshatra-chakram-${VERSION}-${edition}-windows.exe"
+  if [[ -f "$out" ]]; then
+    echo "==> Windows ${edition} exe already present"
+    return 0
   fi
+  if [[ "$MAC_ONLY" -eq 1 ]]; then
+    return 1
+  fi
+  if ! command -v gh >/dev/null 2>&1 || [[ -z "${GH_TOKEN:-}" ]]; then
+    echo "WARN: no gh/token for Windows ${edition}" >&2
+    return 1
+  fi
+  echo "==> Trigger Windows exe CI (edition=${edition})"
+  gh workflow run build-windows-exe.yml --repo avinashpeyyety/nakshatra \
+    -f "version=${VERSION}" -f "edition=${edition}"
+  sleep 12
+  RUN_ID="$(gh run list --repo avinashpeyyety/nakshatra --workflow=build-windows-exe.yml --limit 1 --json databaseId -q '.[0].databaseId')"
+  echo "==> Watching Windows run $RUN_ID (${edition})"
+  gh run watch "$RUN_ID" --repo avinashpeyyety/nakshatra --exit-status
+  TMP="$(mktemp -d)"
+  gh run download "$RUN_ID" --repo avinashpeyyety/nakshatra -D "$TMP"
+  find "$TMP" -name "*-windows.exe" -exec cp {} "$out" \;
+  rm -rf "$TMP"
+  [[ -f "$out" ]]
+}
+
+build_win lite || true
+build_win advisor || true
+
+EXE_LITE="$ROOT/dist/nakshatra-chakram-${VERSION}-lite-windows.exe"
+EXE_ADV="$ROOT/dist/nakshatra-chakram-${VERSION}-advisor-windows.exe"
+# Compat: single unprefixed exe counts as lite only if lite missing
+if [[ ! -f "$EXE_LITE" && -f "$ROOT/dist/nakshatra-chakram-${VERSION}-windows.exe" ]]; then
+  cp "$ROOT/dist/nakshatra-chakram-${VERSION}-windows.exe" "$EXE_LITE"
 fi
 
-if [[ ! -f "$EXE" ]]; then
-  echo "ERROR: missing $EXE" >&2
-  echo "  Build Windows via: gh workflow run build-windows-exe.yml -f version=${VERSION}" >&2
-  echo "  Or re-run: ./scripts/fetch_and_publish_release.sh ${VERSION}" >&2
-  echo "  macOS dmg is ready: dist/nakshatra-chakram-${VERSION}-macos.dmg" >&2
-  exit 1
-fi
+for f in \
+  "$ROOT/dist/nakshatra-chakram-${VERSION}-lite-macos.dmg" \
+  "$ROOT/dist/nakshatra-chakram-${VERSION}-advisor-macos.dmg" \
+  "$EXE_LITE" \
+  "$EXE_ADV"
+do
+  [[ -f "$f" ]] || { echo "ERROR: missing $f" >&2; exit 1; }
+done
 
 echo "==> Publish installers to GitHub Pages"
 ./scripts/publish_github_release.sh "$VERSION"
 
-# Keep local working tree site.json in sync with what was published
 python3 - <<PY
 import json
 from pathlib import Path
-p = Path("docs/site.json")
+V = "${VERSION}"
+SITE = "https://avinashpeyyety.github.io/nakshatra"
 site = {
   "appName": "Nakshatra Chakram",
   "tagline": "Local Vedic birth chart and nakshatra wheel — your data stays on your computer.",
-  "version": "${VERSION}",
-  "downloadMac": f"https://avinashpeyyety.github.io/nakshatra/downloads/nakshatra-chakram-${VERSION}-macos.dmg",
-  "downloadWindows": f"https://avinashpeyyety.github.io/nakshatra/downloads/nakshatra-chakram-${VERSION}-windows.exe",
-  "releasesUrl": "https://avinashpeyyety.github.io/nakshatra/#downloads",
+  "version": V,
+  "downloadMacLite": f"{SITE}/downloads/nakshatra-chakram-{V}-lite-macos.dmg",
+  "downloadWindowsLite": f"{SITE}/downloads/nakshatra-chakram-{V}-lite-windows.exe",
+  "downloadMacAdvisor": f"{SITE}/downloads/nakshatra-chakram-{V}-advisor-macos.dmg",
+  "downloadWindowsAdvisor": f"{SITE}/downloads/nakshatra-chakram-{V}-advisor-windows.exe",
+  "downloadMac": f"{SITE}/downloads/nakshatra-chakram-{V}-lite-macos.dmg",
+  "downloadWindows": f"{SITE}/downloads/nakshatra-chakram-{V}-lite-windows.exe",
+  "releasesUrl": f"{SITE}/#downloads",
   "donateUrl": "https://ko-fi.com/avinashpeyyety",
   "issuesUrl": "https://github.com/avinashpeyyety/nakshatra/issues",
-  "siteUrl": "https://avinashpeyyety.github.io/nakshatra/",
+  "siteUrl": f"{SITE}/",
 }
-p.write_text(json.dumps(site, indent=2) + "\n", encoding="utf-8")
-print("Updated local docs/site.json →", site["version"])
+Path("docs/site.json").write_text(json.dumps(site, indent=2) + "\n", encoding="utf-8")
+print("Updated local docs/site.json →", V)
 PY
 
 if ! git diff --quiet -- docs/site.json; then
   git add docs/site.json
-  git commit -m "docs: site.json v${VERSION} after ship"
+  git commit -m "docs: site.json v${VERSION} lite+advisor after ship"
   git push origin HEAD:main
 fi
 
 echo ""
-echo "Shipped v${VERSION}"
-echo "  macOS:   https://avinashpeyyety.github.io/nakshatra/downloads/nakshatra-chakram-${VERSION}-macos.dmg"
-echo "  Windows: https://avinashpeyyety.github.io/nakshatra/downloads/nakshatra-chakram-${VERSION}-windows.exe"
-echo "  Site:    https://avinashpeyyety.github.io/nakshatra/"
+echo "Shipped v${VERSION} (lite + advisor)"
+echo "  Site: https://avinashpeyyety.github.io/nakshatra/"

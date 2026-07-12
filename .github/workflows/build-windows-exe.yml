@@ -5,9 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Semver version (e.g. 1.0.0)"
+        description: "Semver version (e.g. 1.1.0)"
         required: true
-        default: "1.0.0"
+        default: "1.1.0"
+      edition:
+        description: "lite or advisor"
+        required: true
+        default: "lite"
 
 jobs:
   build-windows:
@@ -24,16 +28,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller>=6.0
 
-      - name: Build exe
+      - name: Bake edition + build exe
         working-directory: ${{ github.workspace }}
+        shell: pwsh
         run: |
-          pyinstaller --noconfirm scripts/nakshatra-chakram.spec
           $v = "${{ inputs.version }}"
+          $ed = "${{ inputs.edition }}".ToLower()
+          if ($ed -ne "lite" -and $ed -ne "advisor") { $ed = "lite" }
+          Set-Content -Path "agent/edition.txt" -Value $ed -NoNewline
+          pyinstaller --noconfirm scripts/nakshatra-chakram.spec
           New-Item -ItemType Directory -Force -Path dist/out | Out-Null
-          Move-Item -Force "dist/nakshatra-chakram.exe" "dist/out/nakshatra-chakram-$v-windows.exe"
+          Move-Item -Force "dist/nakshatra-chakram.exe" "dist/out/nakshatra-chakram-$v-$ed-windows.exe"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-exe-${{ inputs.version }}
-          path: dist/out/nakshatra-chakram-${{ inputs.version }}-windows.exe
+          name: windows-exe-${{ inputs.version }}-${{ inputs.edition }}
+          path: dist/out/nakshatra-chakram-${{ inputs.version }}-${{ inputs.edition }}-windows.exe
           if-no-files-found: error

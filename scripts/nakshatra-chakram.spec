@@ -11,12 +11,20 @@ a = Analysis(
     datas=[
         (str(ROOT / "agent" / "static"), "agent/static"),
         (str(ROOT / "agent" / "data" / "places.json"), "agent/data"),
-    ],
+    ]
+    + (
+        [(str(ROOT / "agent" / "edition.txt"), "agent")]
+        if (ROOT / "agent" / "edition.txt").is_file()
+        else []
+    ),
     hiddenimports=[
         "agent",
         "agent.server",
         "agent.calculator",
         "agent.chart_store",
+        "agent.chart_digest",
+        "agent.local_llm",
+        "agent.advisor_store",
         "agent.geocode",
         "agent.transit_filter",
         "agent.app_config",

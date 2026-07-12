@@ -288,8 +288,19 @@
     </p>
 
     <div class="cta" id="downloads">
-      <a class="btn btn-primary" id="dl-mac" href="#">Download for macOS</a>
-      <a class="btn btn-primary" id="dl-win" href="#">Download for Windows</a>
+      <div style="width:100%;text-align:left;margin-bottom:10px">
+        <strong>Lite</strong> — charts only, no LLM
+      </div>
+      <a class="btn btn-primary" id="dl-mac-lite" href="#">Lite · macOS</a>
+      <a class="btn btn-primary" id="dl-win-lite" href="#">Lite · Windows</a>
+      <div style="width:100%;text-align:left;margin:16px 0 10px">
+        <strong>Advisor</strong> — local Ornith 9B report + chat (needs <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> + <code>ollama pull ornith:9b</code>)
+      </div>
+      <a class="btn btn-primary" id="dl-mac-advisor" href="#">Advisor · macOS</a>
+      <a class="btn btn-primary" id="dl-win-advisor" href="#">Advisor · Windows</a>
+      <!-- back-compat single buttons -->
+      <a class="btn btn-primary" id="dl-mac" href="#" style="display:none">Download for macOS</a>
+      <a class="btn btn-primary" id="dl-win" href="#" style="display:none">Download for Windows</a>
     </div>
     <p class="badge" id="version-line"></p>
 
@@ -316,7 +327,8 @@
     </section>
 
     <section id="features">
-      <h2>Features (Chart edition)</h2>
+      <h2>Features</h2>
+      <p class="lead" style="font-size:1rem">Two builds: <strong>Lite</strong> (calculations only) and <strong>Advisor</strong> (Lite + local Ornith 9B full-chart report and Q&amp;A).</p>
 
       <h3>Wheel</h3>
       <ul>
@@ -409,13 +421,21 @@
       set("tagline", cfg.tagline || "Local Vedic birth chart and nakshatra wheel.");
       if (cfg.version) set("version-line", "Latest: v" + cfg.version);
 
-      href("dl-mac", cfg.downloadMac);
-      href("dl-win", cfg.downloadWindows);
+      const macLite = cfg.downloadMacLite || cfg.downloadMac;
+      const winLite = cfg.downloadWindowsLite || cfg.downloadWindows;
+      const macAdv = cfg.downloadMacAdvisor || macLite;
+      const winAdv = cfg.downloadWindowsAdvisor || winLite;
+      href("dl-mac-lite", macLite);
+      href("dl-win-lite", winLite);
+      href("dl-mac-advisor", macAdv);
+      href("dl-win-advisor", winAdv);
+      href("dl-mac", macLite);
+      href("dl-win", winLite);
       href("donate", cfg.donateUrl);
       href("issues", cfg.issuesUrl);
 
-      if (!cfg.downloadMac) document.getElementById("dl-mac")?.setAttribute("aria-disabled", "true");
-      if (!cfg.downloadWindows) document.getElementById("dl-win")?.setAttribute("aria-disabled", "true");
+      if (!macLite) document.getElementById("dl-mac-lite")?.setAttribute("aria-disabled", "true");
+      if (!winLite) document.getElementById("dl-win-lite")?.setAttribute("aria-disabled", "true");
     })();
   </script>
   <script src="site-metrics.js?v=2" defer></script>

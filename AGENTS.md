@@ -19,7 +19,7 @@ Full policy: `../ai-lab-vault/EXECUTION.md`
 
 ## Project
 
-Local Vedic chart app. Agent layer in `agent/`. Public installers: Chart edition.
+Local Vedic chart app. Agent layer in `agent/`. Public installers: **Lite** (no LLM) and **Advisor** (Ornith 9B via Ollama). See `docs/ADVISOR.md`.
 
 ## Verify
 

@@ -12,7 +12,7 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + **lit
 ## Now (model ship — local only)
 
 - [ ] Expand Jyotish train set (qwen or ornith track) toward 500+ rows
-- [ ] Export Jyotish seeds via training-data-scout
+- [x] Export Jyotish seeds via training-data-scout
 - [ ] Pass/fail eval gate on finetuned tag before claiming domain specialist
 
 ## Later — Advisor without Ollama (product direction)

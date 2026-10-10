@@ -13,7 +13,7 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + **lit
 
 - [ ] Expand Jyotish train set (qwen or ornith track) toward 500+ rows
 - [x] Export Jyotish seeds via training-data-scout
-- [ ] Pass/fail eval gate on finetuned tag before claiming domain specialist
+- [ ] Pass/fail eval gate on finetuned tag before claiming domain specialist (LoRA start is `qwen-finetune/config/lora-decision.yaml`; rank choice waits on Decision Index slices — `docs/eval/README.md`)
 
 ## Later — Advisor without Ollama (product direction)
 

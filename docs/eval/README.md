@@ -105,6 +105,22 @@ Before bundling weights in a desktop installer:
 
 Fail any guardrail or chart-invention check → **do not embed**.
 
+## LoRA rank gate (separate from the keyword gate)
+
+The advisor train default is `qwen-finetune/config/lora-decision.yaml`: attention projections only, rank 16, mlx scale 2.0, learning rate 1e-4, 1–3 epochs. Full rule: `qwen-finetune/docs/LORA_STRATEGY.md`.
+
+A later local sweep trains ranks 8, 16, 32, and 64 on the same data and **keeps the lowest rank** that meets the quality bar on both:
+
+| Slice | What it is | Where it lives today |
+|-------|------------|----------------------|
+| Held-out, same distribution | Rows not used for the update | `qwen-finetune/data/valid.jsonl` (8 rows) |
+| Private / same-skill, including rephrasings | Held-out items from the trained decision skill | **Not tagged** in this 40-item file |
+| New-domain (OOD) | Decision tasks outside the trained skills | **Not tagged** in this 40-item file |
+
+Private/same-skill and new-domain dominate the Decision Index. This JSONL is the embed keyword/rubric gate above. Passing it does **not** select a LoRA rank. Do not invent slice labels for the current 40 rows.
+
+Training remains next-token loss. A separate classification head is only for a future task that emits a probability over a closed set of options.
+
 ## Adding items
 
 - Keep total **20–50** for this file; grow a `jyotish-advisor-eval-v2.jsonl` if needed.

@@ -70,3 +70,4 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + **lit
 - [x] Dual edition: **Lite** (no LLM) + **Advisor** (Ornith via Ollama) — digest, auto report, Q&A, dual downloads
 - [x] Dual local HTTPS: Lite `:8443` + Advisor `:8444` (`scripts/serve-https.sh both`)
 - [x] Capture product rec: ship weights via first-run/external host, not Ollama-required forever / not multi‑GB in Pages
+- [x] Decision-model training tree is `qwen-finetune/` and gitignored; landing stub for the consulting suite (`docs/index.html#consulting`)

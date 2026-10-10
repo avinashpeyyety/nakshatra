@@ -9,6 +9,10 @@ Local-first Vedic birth chart app. Two public installers:
 
 See [ADVISOR.md](ADVISOR.md) for Advisor setup.
 
+## Decision consulting (not shipped)
+
+Not available. No installer and no hosted service. A later local suite is planned for decision-model consulting. Lite and Advisor are the only public downloads. The training tree stays off this repository.
+
 ## Quick reference
 
 | Tab / area | Purpose |

@@ -5,7 +5,7 @@
 | Work type | Executor |
 |-----------|----------|
 | App code (Python, agent/, packaging) | **Grok Build Composer 2.5** |
-| Embedded advisor model training | **Local** — `../qwen-finetune` (primary ship track) |
+| Embedded advisor model training | **Local** — `qwen-finetune/` in this tree, **gitignored** (not in the public repo or installers). Lab path `../qwen-finetune` is a symlink here. |
 | Ornith experiments | **Local** — `../ornith-finetune` (research only) |
 
 Check credits: `../ai-lab-vault/05-cost/COST-LOG.md`  
@@ -15,7 +15,7 @@ Full policy: `../ai-lab-vault/EXECUTION.md`
 
 1. Read `NEXT.md` — **item 1 only**
 2. Chart edition ships **without cloud API keys** — keep public builds local-first
-3. Never commit `credentials/`, `.env`, user chart data
+3. Never commit `credentials/`, `.env`, user chart data, or `qwen-finetune/` (no `git add -f`)
 
 ## Project
 

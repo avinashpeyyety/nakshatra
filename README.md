@@ -18,6 +18,8 @@ Public installers ship two builds:
 
 Data stays on your computer. Details: [docs/ADVISOR.md](docs/ADVISOR.md).
 
+The decision-model training tree (`qwen-finetune/`) lives in this project on disk and is **gitignored**. It is not in the public repository or the installers. The [landing page](https://avinashpeyyety.github.io/nakshatra/#consulting) has a stub for that future consulting suite. There is no download for it.
+
 ---
 
 ## Install

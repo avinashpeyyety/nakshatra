@@ -27,3 +27,7 @@ dist/
 
 # local TLS
 agent/certs/
+
+# Decision-model training. Local only — weights, data, venv, and adapters.
+# Do not force-add. The public landing stub is docs/index.html#consulting.
+/qwen-finetune/

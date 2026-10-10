@@ -107,7 +107,7 @@ Fail any guardrail or chart-invention check → **do not embed**.
 
 ## LoRA rank gate (separate from the keyword gate)
 
-The advisor train default is `qwen-finetune/config/lora-decision.yaml`: attention projections only, rank 16, mlx scale 2.0, learning rate 1e-4, 1–3 epochs. Full rule: `qwen-finetune/docs/LORA_STRATEGY.md`.
+The advisor train default is the local directory `qwen-finetune/config/lora-decision.yaml` (attention projections only, rank 16, mlx scale 2.0, learning rate 1e-4, 1–3 epochs). That directory is gitignored and is not in the public repository. Full rule, on a machine that has the tree: `qwen-finetune/docs/LORA_STRATEGY.md`.
 
 A later local sweep trains ranks 8, 16, 32, and 64 on the same data and **keeps the lowest rank** that meets the quality bar on both:
 

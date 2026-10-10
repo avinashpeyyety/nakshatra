@@ -11,7 +11,11 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + **lit
 
 ## Now (model ship — local only)
 
-- [ ] Expand Jyotish train set (qwen or ornith track) toward 500+ rows
+- [ ] Expand the Jyotish train set in `qwen-finetune/` toward 500+ rows, then keep `iters` inside 1–3 epochs (`qwen-finetune/scripts/check_lora_strategy.py`)
+- [ ] Curate a classical Jyotish URL allowlist in `training-data-scout/config/seeds.yaml` (public-domain, robots-ok). Wikipedia presets are already crawled. Do not invent a large list ad hoc.
+- [ ] Add a Wikipedia path allowlist in the scout before raising `max_depth` above 0
+- [ ] Re-train from the scout export with `qwen-finetune/config/lora-decision.yaml` (local MLX only, not Grok)
+- [ ] Rank ablation 8/16/32/64 on the same data; keep the lowest rank that passes private/same-skill and new-domain (slices not tagged yet — `qwen-finetune/docs/LORA_STRATEGY.md`)
 - [x] Export Jyotish seeds via training-data-scout
 - [ ] Pass/fail eval gate on finetuned tag before claiming domain specialist (LoRA start is `qwen-finetune/config/lora-decision.yaml`; rank choice waits on Decision Index slices — `docs/eval/README.md`)
 

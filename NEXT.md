@@ -7,7 +7,7 @@ After any code/docs change: commit → `./scripts/ship_iterate.sh` (push + **lit
 ## Now (app — use Grok Build)
 
 - [ ] Smoke Advisor report against live Ollama `ornith:9b` on a sample chart (when Ollama is running)
-- [ ] Polish report markdown rendering in UI (optional)
+- [x] Polish report markdown rendering in UI (optional) — 2026-11-05: safe local markdown for Advisor report + chat (headings/lists/code/spacing); no chart-math change
 
 ## Now (model ship — local only)
 

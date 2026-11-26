@@ -1,30 +1,92 @@
 /* ==========================================================================
-   Nakshatra Chakram — Formidable Metallic Cosmic Dial Stylesheet
+   Nakshatra Chakram — Formidable Metallic Cosmic Observatory Stylesheet
+   Dual Theme: Obsidian Forge (Dark) & Daylight Brass Observatory (Light)
    ========================================================================== */
 
 :root {
   --void: #05060b;
-  --obsidian: #0a0c14;
-  --gunmetal: #131722;
-  --gunmetal-hi: #1b2131;
-  --steel: #272f42;
+  --bg-grad-1: rgba(28, 36, 62, 0.42);
+  --bg-grad-2: rgba(84, 54, 24, 0.16);
+  --bg-grad-3: rgba(16, 20, 36, 0.55);
+  --topbar-bg-1: rgba(14, 17, 26, 0.94);
+  --topbar-bg-2: rgba(8, 10, 16, 0.84);
+  --mod-bg-1: rgba(23, 28, 41, 0.94);
+  --mod-bg-2: rgba(12, 15, 23, 0.97);
+  --mod-bg-3: rgba(9, 11, 17, 0.99);
+  --mod-inset-hi: rgba(242, 212, 140, 0.14);
+  --mod-inset-lo: rgba(0, 0, 0, 0.65);
+  --recess-1: #06080e;
+  --recess-2: #0b0e17;
+  --input-bg: #070910;
+  --btn-bg-1: #1d2333;
+  --btn-bg-2: #111520;
+  --btn-text: #c8c4b8;
+  --btn-border: rgba(154, 166, 194, 0.24);
+  --btn-accent-1: #2b2213;
+  --btn-accent-2: #18130b;
+  --btn-active-1: #f1d184;
+  --btn-active-2: #c8943c;
+  --btn-active-text: #161006;
   --brass: #d4a650;
   --brass-bright: #f2d48c;
-  --brass-dim: #7d5d28;
   --amber: #f0a83a;
   --crimson: #ff6238;
-  --crimson-deep: #7a1c12;
   --text: #ece6d8;
+  --text-strong: #f6ebd4;
   --muted: #98948b;
   --muted-cool: #8893aa;
   --border-brass: rgba(212, 166, 80, 0.28);
   --border-strong: rgba(235, 194, 114, 0.52);
-  --border-steel: rgba(130, 148, 184, 0.18);
-  --shadow-deep: 0 22px 60px rgba(0, 0, 0, 0.72);
+  --border-steel: rgba(130, 148, 184, 0.20);
+  --shadow-mod: 0 12px 30px rgba(0, 0, 0, 0.56);
+  --dial-shadow: drop-shadow(0 24px 52px rgba(0, 0, 0, 0.82)) drop-shadow(0 0 28px rgba(212, 166, 80, 0.09));
+  --star-opacity: 0.65;
   --font-display: "Cinzel", Georgia, serif;
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-dev: "Noto Sans Devanagari", sans-serif;
+}
+
+/* Daylight Observatory — Jaipur Brass, Warm Ivory Parchment & Antique Bronze */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --void: #ebe2d0;
+  --bg-grad-1: rgba(255, 250, 238, 0.78);
+  --bg-grad-2: rgba(204, 162, 86, 0.22);
+  --bg-grad-3: rgba(178, 152, 112, 0.28);
+  --topbar-bg-1: rgba(250, 244, 232, 0.96);
+  --topbar-bg-2: rgba(239, 229, 210, 0.94);
+  --mod-bg-1: rgba(253, 249, 240, 0.96);
+  --mod-bg-2: rgba(244, 236, 220, 0.97);
+  --mod-bg-3: rgba(236, 226, 206, 0.98);
+  --mod-inset-hi: rgba(255, 255, 255, 0.85);
+  --mod-inset-lo: rgba(126, 94, 40, 0.16);
+  --recess-1: #efe6d4;
+  --recess-2: #f8f2e4;
+  --input-bg: #fcf8ee;
+  --btn-bg-1: #f7f0e1;
+  --btn-bg-2: #e5d8be;
+  --btn-text: #3b2f1d;
+  --btn-border: rgba(132, 98, 42, 0.34);
+  --btn-accent-1: #eedcb5;
+  --btn-accent-2: #dbc08a;
+  --btn-active-1: #a4711c;
+  --btn-active-2: #754d0c;
+  --btn-active-text: #fff9ec;
+  --brass: #8b5f15;
+  --brass-bright: #6e480a;
+  --amber: #a85c06;
+  --crimson: #c23514;
+  --text: #271f14;
+  --text-strong: #17120b;
+  --muted: #655744;
+  --muted-cool: #665b4a;
+  --border-brass: rgba(138, 98, 34, 0.34);
+  --border-strong: rgba(145, 98, 22, 0.65);
+  --border-steel: rgba(126, 102, 64, 0.28);
+  --shadow-mod: 0 10px 26px rgba(82, 58, 24, 0.14);
+  --dial-shadow: drop-shadow(0 18px 34px rgba(68, 48, 20, 0.34)) drop-shadow(0 0 18px rgba(176, 132, 54, 0.18));
+  --star-opacity: 0;
 }
 
 *,
@@ -43,18 +105,19 @@ html {
 body {
   font-family: var(--font-sans);
   background:
-    radial-gradient(ellipse 68% 58% at 36% 42%, rgba(28, 36, 62, 0.42) 0%, transparent 66%),
-    radial-gradient(ellipse 52% 48% at 72% 18%, rgba(84, 54, 24, 0.16) 0%, transparent 62%),
-    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(16, 20, 36, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 68% 58% at 36% 42%, var(--bg-grad-1) 0%, transparent 66%),
+    radial-gradient(ellipse 52% 48% at 72% 18%, var(--bg-grad-2) 0%, transparent 62%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, var(--bg-grad-3) 0%, transparent 70%),
     var(--void);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.48;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.2s ease;
 }
 
-/* Subtle cosmic starfield texture fixed behind viewport */
+/* Subtle cosmic starfield texture behind Dark mode viewport */
 body::before {
   content: "";
   position: fixed;
@@ -70,7 +133,8 @@ body::before {
     radial-gradient(1px 1px at 91% 63%, rgba(255, 224, 168, 0.3), transparent),
     radial-gradient(1.2px 1.2px at 7% 87%, rgba(190, 206, 245, 0.3), transparent);
   background-size: 480px 480px;
-  opacity: 0.65;
+  opacity: var(--star-opacity);
+  transition: opacity 0.25s ease;
 }
 
 /* ==========================================================================
@@ -83,76 +147,78 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.44rem 1.3rem;
-  background: linear-gradient(180deg, rgba(14, 17, 26, 0.94) 0%, rgba(8, 10, 16, 0.84) 100%);
+  gap: 0.85rem;
+  padding: 0.38rem 1.25rem;
+  background: linear-gradient(180deg, var(--topbar-bg-1) 0%, var(--topbar-bg-2) 100%);
   border-bottom: 1px solid var(--border-brass);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
 }
 
 .topbar-brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.65rem;
 }
 
 .brand-sigil {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--brass-bright);
-  background: radial-gradient(circle at 35% 30%, #2a3142, #0d1018);
+  background: radial-gradient(circle at 35% 30%, var(--btn-bg-1), var(--recess-1));
   border: 1.5px solid var(--brass);
-  box-shadow: 0 0 12px rgba(212, 166, 80, 0.25), inset 0 1px 2px rgba(255, 240, 200, 0.35);
+  box-shadow: 0 0 10px rgba(212, 166, 80, 0.22);
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: linear-gradient(180deg, #fae2a6 0%, #d4a650 56%, #99712e 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brass-bright);
 }
 
 .brand-sub {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--muted-cool);
-  padding: 0.14rem 0.46rem;
+  padding: 0.12rem 0.44rem;
   border-radius: 3px;
   border: 1px solid var(--border-steel);
-  background: rgba(15, 19, 30, 0.85);
+  background: var(--recess-1);
 }
 
-.topbar-telemetry {
+.topbar-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.42rem;
 }
 
 .telemetry-pill {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 0.6rem;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--muted-cool);
-  padding: 0.16rem 0.52rem;
+  padding: 0.16rem 0.48rem;
   border-radius: 3px;
-  border: 1px solid rgba(212, 166, 80, 0.2);
-  background: rgba(12, 15, 24, 0.78);
+  border: 1px solid var(--border-brass);
+  background: var(--recess-1);
+}
+
+.topbar-btn {
+  padding: 0.2rem 0.56rem !important;
+  font-size: 0.62rem !important;
 }
 
 /* ==========================================================================
-   Main Cosmic Observatory Workspace (Full Viewport)
+   Main Cosmic Observatory Workspace
    ========================================================================== */
 
 .cosmic-hero {
@@ -160,12 +226,27 @@ body::before {
   z-index: 2;
   max-width: 1420px;
   margin: 0 auto;
-  padding: 0.45rem 1.3rem 0.55rem;
-  min-height: calc(100vh - 42px);
+  padding: 0.38rem 1.25rem 0.45rem;
+  min-height: calc(100vh - 38px);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 422px;
-  gap: 1.15rem;
+  grid-template-columns: minmax(0, 1fr) 426px;
+  gap: 1.1rem;
   align-items: center;
+}
+
+/* Zen / Fullscreen Cinema Mode */
+body.is-zen .cosmic-topbar {
+  display: none;
+}
+
+body.is-zen .cosmic-hero {
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  padding: 0.45rem 1rem 3.4rem;
+}
+
+body.is-zen .cosmic-console {
+  display: none;
 }
 
 /* Left Column: Formidable Metallic Dial Stage */
@@ -185,15 +266,14 @@ body::before {
   justify-content: center;
 }
 
-/* Ambient metallic corona behind the forged astrolabe */
 .dial-stage::before {
   content: "";
   position: absolute;
-  width: min(92%, 690px);
+  width: min(90%, 690px);
   aspect-ratio: 1;
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(212, 166, 80, 0.11) 0%, rgba(44, 62, 108, 0.12) 48%, transparent 72%);
+    radial-gradient(circle, rgba(212, 166, 80, 0.11) 0%, rgba(44, 62, 108, 0.10) 48%, transparent 72%);
   filter: blur(18px);
   pointer-events: none;
   z-index: 0;
@@ -203,119 +283,240 @@ body::before {
   position: relative;
   z-index: 1;
   display: block;
-  cursor: crosshair;
+  cursor: grab;
   border-radius: 50%;
-  filter: drop-shadow(0 24px 52px rgba(0, 0, 0, 0.82)) drop-shadow(0 0 28px rgba(212, 166, 80, 0.09));
+  filter: var(--dial-shadow);
   user-select: none;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
-/* Single-row engraved legend strip beneath the dial */
+#cosmicDialCanvas.is-cranking {
+  cursor: grabbing;
+}
+
+/* Zero-Obstruction Docked Footer Rail (swaps seamlessly between Legend & Hover Telemetry) */
+.dial-footer-rail {
+  width: 100%;
+  max-width: 790px;
+  min-height: 24px;
+  margin-top: 0.34rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dial-legend {
-  margin-top: 0.36rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.28rem 0.78rem;
+  gap: 0.24rem 0.72rem;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   color: var(--muted-cool);
   letter-spacing: 0.03em;
+}
+
+.dial-legend[hidden],
+.dial-telemetry-bar[hidden] {
+  display: none;
+}
+
+.dial-telemetry-bar {
+  width: 100%;
+  padding: 0.22rem 0.68rem;
+  border-radius: 5px;
+  background: linear-gradient(180deg, var(--mod-bg-1), var(--mod-bg-2));
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.tel-badge {
+  font-weight: 700;
+  color: var(--brass-bright);
+  letter-spacing: 0.06em;
+  margin-right: 0.28rem;
+}
+
+.tel-sep {
+  opacity: 0.45;
+  margin: 0 0.16rem;
+}
+
+.tel-gan {
+  padding: 0.02rem 0.28rem;
+  border-radius: 3px;
+  background: rgba(255, 92, 42, 0.2);
+  border: 1px solid rgba(255, 108, 58, 0.65);
+  color: var(--crimson);
+  font-weight: 700;
+  font-size: 0.58rem;
+}
+
+.tel-live {
+  color: var(--amber);
+  font-weight: 700;
 }
 
 .legend-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.28rem;
 }
 
 .legend-swatch {
   width: 8px;
   height: 8px;
   border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(128, 128, 128, 0.35);
 }
 
 .sw-agni     { background: #b84e35; }
 .sw-prithvi  { background: #468a62; }
 .sw-vayu     { background: #b59540; }
 .sw-jala     { background: #4778b0; }
-.sw-gandanta { background: #ff6238; box-shadow: 0 0 6px rgba(255, 98, 56, 0.65); }
+.sw-gandanta { background: #ff6238; box-shadow: 0 0 6px rgba(255, 98, 56, 0.55); }
 
-/* Floating Inspector HUD Tooltip */
-.dial-tooltip {
+/* Click-to-Pin Compact Lore Card (tucked cleanly at top-left edge, never on hover) */
+.pinned-lore {
   position: absolute;
-  z-index: 20;
-  width: 268px;
-  pointer-events: none;
-  padding: 0.6rem 0.76rem;
-  border-radius: 6px;
-  background: linear-gradient(165deg, rgba(16, 20, 31, 0.97), rgba(8, 10, 16, 0.98));
+  top: 8px;
+  left: 8px;
+  z-index: 15;
+  width: 248px;
+  padding: 0.55rem 0.72rem;
+  border-radius: 7px;
+  background: linear-gradient(165deg, var(--mod-bg-1), var(--mod-bg-3));
   border: 1px solid var(--border-strong);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 238, 196, 0.16);
+  box-shadow: var(--shadow-mod);
   backdrop-filter: blur(8px);
 }
 
-.dial-tooltip[hidden] {
+.pinned-lore[hidden] {
   display: none;
 }
 
-.dial-tooltip .tt-head {
-  font-family: var(--font-display);
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--brass-bright);
-  margin-bottom: 0.22rem;
-  line-height: 1.3;
-}
-
-.dial-tooltip .tt-num {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+.pinned-lore-close {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  border: none;
+  background: transparent;
   color: var(--muted-cool);
-  font-weight: 600;
-  margin-left: 0.25rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  padding: 2px 4px;
 }
 
-.dial-tooltip .tt-meta {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--text);
-  margin-bottom: 0.2rem;
-}
-
-.dial-tooltip .tt-sub {
-  font-size: 0.72rem;
-  color: var(--muted);
-  line-height: 1.35;
-}
-
-.dial-tooltip .tt-sub b {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.dial-tooltip .tt-gandanta {
-  display: inline-block;
-  padding: 0.04rem 0.32rem;
-  border-radius: 3px;
-  background: rgba(255, 92, 42, 0.22);
-  border: 1px solid rgba(255, 112, 64, 0.65);
-  color: #ff9c78;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-
-.dial-tooltip .tt-live {
-  margin-top: 0.32rem;
-  padding-top: 0.28rem;
-  border-top: 1px solid rgba(212, 166, 80, 0.22);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+.pinned-lore-close:hover {
   color: var(--brass-bright);
+}
+
+.lore-head {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brass-bright);
+  padding-right: 1rem;
+  margin-bottom: 0.34rem;
+  line-height: 1.28;
+}
+
+.lore-num {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--muted-cool);
+  margin-left: 0.2rem;
+}
+
+.lore-grid {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 0.16rem 0.4rem;
+  font-size: 0.67rem;
+  line-height: 1.32;
+}
+
+.lore-grid span {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  color: var(--muted-cool);
+  padding-top: 1px;
+}
+
+.lore-grid b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lore-warn {
+  margin-top: 0.34rem;
+  padding: 0.2rem 0.38rem;
+  border-radius: 4px;
+  background: rgba(255, 92, 42, 0.16);
+  border: 1px solid rgba(255, 108, 58, 0.5);
+  color: var(--crimson);
+  font-size: 0.63rem;
+}
+
+.lore-live {
+  margin-top: 0.32rem;
+  padding-top: 0.24rem;
+  border-top: 1px solid var(--border-brass);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--amber);
+}
+
+/* Floating Zen Cinema Dock */
+.zen-dock {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.36rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--mod-bg-1), var(--mod-bg-3));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-mod);
+  backdrop-filter: blur(10px);
+}
+
+.zen-dock[hidden] {
+  display: none;
+}
+
+.zen-date {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.zen-meta {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--brass-bright);
+  white-space: nowrap;
+}
+
+.zen-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.24rem;
 }
 
 /* ==========================================================================
@@ -325,29 +526,27 @@ body::before {
 .cosmic-console {
   display: flex;
   flex-direction: column;
-  gap: 0.44rem;
+  gap: 0.38rem;
   min-width: 0;
 }
 
 .console-module {
   position: relative;
-  background:
-    linear-gradient(170deg, rgba(23, 28, 41, 0.94) 0%, rgba(12, 15, 23, 0.97) 58%, rgba(9, 11, 17, 0.99) 100%);
+  background: linear-gradient(170deg, var(--mod-bg-1) 0%, var(--mod-bg-2) 58%, var(--mod-bg-3) 100%);
   border: 1px solid var(--border-brass);
   border-radius: 8px;
-  padding: 0.5rem 0.74rem;
+  padding: 0.44rem 0.7rem;
   box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.56),
-    inset 0 1px 0 rgba(242, 212, 140, 0.14),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.65);
+    var(--shadow-mod),
+    inset 0 1px 0 var(--mod-inset-hi),
+    inset 0 -1px 0 var(--mod-inset-lo);
 }
 
-/* Subtle metallic rivet accents in top corners */
 .console-module::before,
 .console-module::after {
   content: "";
   position: absolute;
-  top: 6px;
+  top: 5px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -356,109 +555,112 @@ body::before {
   pointer-events: none;
 }
 
-.console-module::before { left: 7px; }
-.console-module::after  { right: 7px; }
+.console-module::before { left: 6px; }
+.console-module::after  { right: 6px; }
 
 .module-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.34rem;
-  padding-bottom: 0.22rem;
-  border-bottom: 1px solid rgba(212, 166, 80, 0.16);
+  margin-bottom: 0.28rem;
+  padding-bottom: 0.18rem;
+  border-bottom: 1px solid var(--border-brass);
 }
 
 .module-label {
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--brass);
 }
 
 .module-readout {
   font-family: var(--font-mono);
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   color: var(--muted-cool);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .chrono-age {
   color: var(--brass-bright);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* --- Module 1: Bidirectional Solar Chronometer --- */
+/* --- Module 1: Bidirectional Solar Chronometer & Epoch Lifespan Rail --- */
 
 .chrono-display {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.45rem;
-  padding: 0.28rem 0.54rem;
-  margin-bottom: 0.36rem;
+  gap: 0.4rem;
+  padding: 0.24rem 0.5rem;
+  margin-bottom: 0.3rem;
   border-radius: 5px;
-  background: linear-gradient(180deg, #06080e 0%, #0b0e17 100%);
-  border: 1px solid rgba(130, 148, 184, 0.22);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.85);
+  background: linear-gradient(180deg, var(--recess-1) 0%, var(--recess-2) 100%);
+  border: 1px solid var(--border-steel);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.28);
 }
 
 .chrono-main {
   display: flex;
   flex-direction: column;
-  gap: 0.02rem;
+  gap: 0.01rem;
+  min-width: 0;
 }
 
 .chrono-date {
   font-family: var(--font-mono);
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  color: #f6ebd4;
-  letter-spacing: 0.06em;
+  color: var(--text-strong);
+  letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
 }
 
 .chrono-doy {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.61rem;
   font-weight: 600;
   color: var(--amber);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .jump-date-input {
-  width: 126px;
-  padding: 0.24rem 0.4rem;
+  width: 122px;
+  flex-shrink: 0;
+  padding: 0.2rem 0.36rem;
   border-radius: 4px;
-  border: 1px solid rgba(212, 166, 80, 0.3);
-  background: rgba(14, 18, 28, 0.95);
+  border: 1px solid var(--border-brass);
+  background: var(--input-bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .jump-date-input:focus {
   border-color: var(--brass-bright);
-  box-shadow: 0 0 0 2px rgba(212, 166, 80, 0.18);
 }
 
 .scrubber-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-bottom: 0.38rem;
+  gap: 0.42rem;
+  margin-bottom: 0.32rem;
 }
 
 .scrubber-tick {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.59rem;
   color: var(--muted-cool);
   white-space: nowrap;
 }
@@ -471,29 +673,54 @@ body::before {
   height: 16px;
 }
 
+/* Colored Life-Epoch bands rendered right onto the Lifespan Scrubber Rail */
+.timeline-epochs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 7px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.epoch-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+}
+
+.epoch-band.ep-sadesati       { background: rgba(110, 134, 245, 0.58); }
+.epoch-band.ep-saturn-return  { background: rgba(196, 118, 255, 0.65); }
+.epoch-band.ep-jupiter-return { background: rgba(245, 198, 66, 0.52); }
+
 .today-mark {
   position: absolute;
-  top: 1px;
-  bottom: 1px;
+  top: 0;
+  bottom: 0;
   width: 2px;
   background: var(--brass-bright);
   border-radius: 2px;
   box-shadow: 0 0 6px rgba(242, 212, 140, 0.8);
   pointer-events: none;
   transform: translateX(-50%);
-  z-index: 1;
+  z-index: 2;
 }
 
 #timeline-scrubber {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
   height: 5px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #2a2114 0%, #3d311a 50%, #1b2234 100%);
-  border: 1px solid rgba(212, 166, 80, 0.28);
+  background: rgba(145, 128, 96, 0.25);
+  border: 1px solid var(--border-brass);
   outline: none;
   cursor: pointer;
 }
@@ -501,33 +728,33 @@ body::before {
 #timeline-scrubber::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fae3a7, #b88430 68%, #4d3510);
   border: 1.5px solid #fff0c8;
-  box-shadow: 0 0 10px rgba(240, 168, 58, 0.55);
+  box-shadow: 0 0 8px rgba(240, 168, 58, 0.55);
   cursor: grab;
 }
 
 #timeline-scrubber::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fae3a7, #b88430 68%, #4d3510);
   border: 1.5px solid #fff0c8;
-  box-shadow: 0 0 10px rgba(240, 168, 58, 0.55);
+  box-shadow: 0 0 8px rgba(240, 168, 58, 0.55);
   cursor: grab;
 }
 
 .mech-row {
   display: grid;
-  gap: 0.32rem;
+  gap: 0.28rem;
 }
 
 .mech-row-6 {
   grid-template-columns: repeat(6, 1fr);
-  margin-bottom: 0.34rem;
+  margin-bottom: 0.28rem;
 }
 
 .mech-row-3 {
@@ -540,35 +767,35 @@ body::before {
 
 .mech-btn {
   appearance: none;
-  border: 1px solid rgba(154, 166, 194, 0.24);
+  border: 1px solid var(--btn-border);
   border-radius: 5px;
-  padding: 0.3rem 0.42rem;
+  padding: 0.26rem 0.38rem;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #c8c4b8;
-  background: linear-gradient(180deg, #1d2333 0%, #111520 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.45);
+  color: var(--btn-text);
+  background: linear-gradient(180deg, var(--btn-bg-1) 0%, var(--btn-bg-2) 100%);
+  box-shadow: inset 0 1px 0 var(--mod-inset-hi), 0 1px 3px rgba(0, 0, 0, 0.22);
   cursor: pointer;
   transition: border-color 0.14s, color 0.14s, background 0.14s, box-shadow 0.14s, transform 0.08s;
   white-space: nowrap;
 }
 
 .mech-btn-sm {
-  padding: 0.24rem 0.2rem;
-  font-size: 0.61rem;
+  padding: 0.21rem 0.18rem;
+  font-size: 0.59rem;
   letter-spacing: 0.03em;
 }
 
 .mech-btn-xs {
-  padding: 0.18rem 0.44rem;
-  font-size: 0.6rem;
+  padding: 0.16rem 0.4rem;
+  font-size: 0.58rem;
 }
 
 .mech-btn:hover:not(:disabled) {
-  border-color: rgba(212, 166, 80, 0.62);
+  border-color: var(--border-strong);
   color: var(--brass-bright);
 }
 
@@ -577,200 +804,269 @@ body::before {
 }
 
 .mech-btn:disabled {
-  opacity: 0.34;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .mech-btn.is-active {
-  color: #161006;
+  color: var(--btn-active-text);
   border-color: var(--brass-bright);
-  background: linear-gradient(180deg, #f1d184 0%, #c8943c 100%);
-  box-shadow: 0 0 14px rgba(212, 166, 80, 0.32), inset 0 1px 0 rgba(255, 250, 232, 0.72);
+  background: linear-gradient(180deg, var(--btn-active-1) 0%, var(--btn-active-2) 100%);
+  box-shadow: 0 0 12px rgba(212, 166, 80, 0.28);
 }
 
 .mech-btn-accent {
   color: var(--brass-bright);
-  border-color: rgba(212, 166, 80, 0.48);
-  background: linear-gradient(180deg, #2b2213 0%, #18130b 100%);
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, var(--btn-accent-1) 0%, var(--btn-accent-2) 100%);
 }
 
-.mech-btn-accent:hover:not(:disabled) {
-  border-color: var(--brass-bright);
-  box-shadow: 0 0 14px rgba(240, 168, 58, 0.25);
-}
-
-/* --- Module 2: Sidereal Ayanamsa Clutch --- */
+/* --- Module 2: Ayanamsa Clutch & Drishti Optical Lens --- */
 
 .ayanamsa-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.05rem;
-  padding: 0.34rem 0.4rem;
+  gap: 0.02rem;
+  padding: 0.26rem 0.36rem;
 }
 
 .ayanamsa-btn small {
-  font-size: 0.55rem;
+  font-size: 0.53rem;
   opacity: 0.78;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
 
-/* --- Module 3: Double / Triple Transit Annunciator & Log --- */
+/* --- Module 3: Gochara Convergences, Vimshottari Dasha & Life Epochs --- */
 
 .conv-nav {
   display: flex;
   align-items: center;
-  gap: 0.28rem;
+  gap: 0.26rem;
+}
+
+.dasha-strip {
+  padding: 0.28rem 0.48rem;
+  margin-bottom: 0.28rem;
+  border-radius: 5px;
+  background: linear-gradient(180deg, var(--recess-1), var(--recess-2));
+  border: 1px solid var(--border-brass);
+}
+
+.dasha-strip[hidden] {
+  display: none;
+}
+
+.dasha-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+}
+
+.dasha-tag {
+  font-size: 0.54rem;
+  letter-spacing: 0.09em;
+  color: var(--muted-cool);
+  font-weight: 700;
+}
+
+.dasha-lords {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dasha-sep {
+  opacity: 0.45;
+  margin: 0 0.12rem;
+}
+
+.dasha-pct {
+  font-size: 0.58rem;
+  color: var(--muted-cool);
+}
+
+.dasha-bar {
+  height: 3px;
+  margin-top: 0.22rem;
+  border-radius: 99px;
+  background: rgba(140, 148, 175, 0.2);
+  overflow: hidden;
+}
+
+.dasha-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brass), var(--amber));
+}
+
+.epoch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+  margin-top: 0.24rem;
+}
+
+.epoch-pill {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.06rem 0.34rem;
+  border-radius: 3px;
+}
+
+.epoch-pill.ep-sadesati {
+  background: rgba(98, 124, 240, 0.2);
+  border: 1px solid rgba(118, 146, 255, 0.62);
+  color: #9cb4ff;
+}
+
+:root[data-theme="light"] .epoch-pill.ep-sadesati {
+  color: #2d45a6;
+}
+
+.epoch-pill.ep-ashtama,
+.epoch-pill.ep-saturn-return {
+  background: rgba(180, 108, 245, 0.2);
+  border: 1px solid rgba(196, 128, 255, 0.6);
+  color: #d6a4ff;
+}
+
+:root[data-theme="light"] .epoch-pill.ep-saturn-return,
+:root[data-theme="light"] .epoch-pill.ep-ashtama {
+  color: #6b2aa6;
+}
+
+.epoch-pill.ep-jupiter-return {
+  background: rgba(240, 188, 56, 0.2);
+  border: 1px solid rgba(242, 198, 72, 0.65);
+  color: var(--amber);
 }
 
 .annunciator-box {
-  padding: 0.38rem 0.56rem;
+  padding: 0.32rem 0.52rem;
   border-radius: 6px;
-  background: linear-gradient(180deg, #070910 0%, #0d1019 100%);
-  border: 1px solid rgba(130, 148, 184, 0.24);
-  margin-bottom: 0.32rem;
+  background: linear-gradient(180deg, var(--recess-1) 0%, var(--recess-2) 100%);
+  border: 1px solid var(--border-steel);
+  margin-bottom: 0.26rem;
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 
 .annunciator-box.is-double {
-  border-color: rgba(255, 212, 59, 0.75);
-  background: linear-gradient(180deg, rgba(56, 40, 10, 0.65) 0%, rgba(18, 14, 8, 0.92) 100%);
-  box-shadow: 0 0 22px rgba(255, 196, 46, 0.22), inset 0 0 14px rgba(255, 212, 59, 0.12);
+  border-color: rgba(235, 184, 38, 0.78);
+  background: linear-gradient(180deg, rgba(196, 146, 24, 0.2) 0%, var(--recess-2) 100%);
+  box-shadow: 0 0 18px rgba(235, 184, 38, 0.18);
 }
 
 .annunciator-box.is-triple {
-  border-color: rgba(255, 104, 56, 0.88);
-  background: linear-gradient(180deg, rgba(78, 22, 14, 0.72) 0%, rgba(22, 10, 10, 0.94) 100%);
-  box-shadow: 0 0 26px rgba(255, 92, 46, 0.34), inset 0 0 16px rgba(255, 108, 56, 0.18);
+  border-color: rgba(235, 86, 44, 0.88);
+  background: linear-gradient(180deg, rgba(198, 54, 24, 0.22) 0%, var(--recess-2) 100%);
+  box-shadow: 0 0 22px rgba(235, 86, 44, 0.24);
 }
 
 @keyframes flashDouble {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 212, 59, 0.85); }
-  50%  { box-shadow: 0 0 28px 6px rgba(255, 212, 59, 0.45); }
-  100% { box-shadow: 0 0 18px 0 rgba(255, 196, 46, 0.22); }
+  0%   { box-shadow: 0 0 0 0 rgba(255, 212, 59, 0.82); }
+  50%  { box-shadow: 0 0 24px 5px rgba(255, 212, 59, 0.42); }
+  100% { box-shadow: 0 0 16px 0 rgba(255, 196, 46, 0.18); }
 }
 
 @keyframes flashTriple {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 92, 46, 0.95); }
-  45%  { box-shadow: 0 0 36px 8px rgba(255, 98, 56, 0.62); }
-  100% { box-shadow: 0 0 24px 0 rgba(255, 92, 46, 0.32); }
+  0%   { box-shadow: 0 0 0 0 rgba(255, 92, 46, 0.92); }
+  45%  { box-shadow: 0 0 30px 7px rgba(255, 98, 56, 0.56); }
+  100% { box-shadow: 0 0 20px 0 rgba(255, 92, 46, 0.24); }
 }
 
 @keyframes flashPada {
-  0%   { box-shadow: 0 0 0 0 rgba(132, 196, 255, 0.75); }
-  100% { box-shadow: 0 0 12px 0 rgba(132, 196, 255, 0.15); }
+  0%   { box-shadow: 0 0 0 0 rgba(132, 196, 255, 0.72); }
+  100% { box-shadow: 0 0 10px 0 rgba(132, 196, 255, 0.14); }
 }
 
 .annunciator-box.flash-double { animation: flashDouble 0.9s ease-out; }
-.annunciator-box.flash-triple { animation: flashTriple 1.15s ease-out; }
+.annunciator-box.flash-triple { animation: flashTriple 1.1s ease-out; }
 .annunciator-box.flash-pada   { animation: flashPada 0.7s ease-out; }
 
 .ann-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
-  margin-bottom: 0.16rem;
+  margin-bottom: 0.12rem;
 }
 
 .ann-badge {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   color: var(--brass-bright);
 }
 
-.annunciator-box.is-triple .ann-badge {
-  color: #ff946b;
-}
-
-.annunciator-box.is-double .ann-badge {
-  color: #ffe066;
-}
+.annunciator-box.is-triple .ann-badge { color: var(--crimson); }
+.annunciator-box.is-double .ann-badge { color: var(--amber); }
 
 .ann-text {
-  font-size: 0.73rem;
+  font-size: 0.71rem;
   color: var(--text);
-  line-height: 1.32;
+  line-height: 1.28;
 }
 
 .transit-log {
   list-style: none;
-  max-height: 68px;
+  max-height: 54px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding-right: 0.18rem;
+  gap: 0.18rem;
+  padding-right: 0.15rem;
 }
 
-.transit-log::-webkit-scrollbar {
-  width: 4px;
-}
-
-.transit-log::-webkit-scrollbar-thumb {
-  background: rgba(212, 166, 80, 0.35);
-  border-radius: 4px;
-}
+.transit-log::-webkit-scrollbar { width: 4px; }
+.transit-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 
 .transit-log .log-empty {
-  font-size: 0.69rem;
+  font-size: 0.66rem;
   color: var(--muted-cool);
   font-style: italic;
-  padding: 0.14rem 0.1rem;
+  padding: 0.1rem;
 }
 
 .transit-log .log-item {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
-  gap: 0.34rem;
-  padding: 0.2rem 0.38rem;
+  gap: 0.3rem;
+  padding: 0.16rem 0.34rem;
   border-radius: 4px;
-  background: rgba(10, 13, 21, 0.85);
-  border: 1px solid rgba(130, 148, 184, 0.14);
-  font-size: 0.67rem;
+  background: var(--recess-1);
+  border: 1px solid var(--border-steel);
+  font-size: 0.65rem;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.14s;
 }
 
-.transit-log .log-item:hover {
-  border-color: var(--border-strong);
-  background: rgba(28, 32, 46, 0.92);
-}
+.transit-log .log-item:hover { border-color: var(--border-strong); }
 
 .transit-log .log-tag {
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: 0.54rem;
   font-weight: 700;
-  padding: 0.06rem 0.28rem;
+  padding: 0.04rem 0.26rem;
   border-radius: 3px;
-  letter-spacing: 0.05em;
 }
 
-.log-item.tier-triple .log-tag {
-  background: rgba(255, 92, 46, 0.24);
-  color: #ff9c78;
-  border: 1px solid rgba(255, 108, 62, 0.65);
-}
-
-.log-item.tier-double .log-tag {
-  background: rgba(255, 206, 56, 0.2);
-  color: #ffe070;
-  border: 1px solid rgba(255, 212, 68, 0.55);
-}
-
-.log-item.tier-pada .log-tag {
-  background: rgba(106, 174, 245, 0.18);
-  color: #9ed0ff;
-  border: 1px solid rgba(116, 184, 255, 0.48);
-}
+.log-item.tier-triple .log-tag { background: rgba(235, 86, 44, 0.2); color: var(--crimson); border: 1px solid rgba(235, 86, 44, 0.55); }
+.log-item.tier-double .log-tag { background: rgba(235, 184, 38, 0.2); color: var(--amber); border: 1px solid rgba(235, 184, 38, 0.55); }
+.log-item.tier-pada .log-tag   { background: rgba(88, 152, 232, 0.18); color: #6caeff; border: 1px solid rgba(88, 152, 232, 0.45); }
+:root[data-theme="light"] .log-item.tier-pada .log-tag { color: #245ca8; }
 
 .transit-log .log-date {
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: 0.61rem;
   color: var(--muted-cool);
   white-space: nowrap;
 }
@@ -782,95 +1078,87 @@ body::before {
   white-space: nowrap;
 }
 
-/* --- Module 4: Birth Details & Natal Lock Chamber --- */
+/* --- Module 4: Natal Lock Chamber --- */
 
 .natal-status {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text);
-  margin-bottom: 0.32rem;
-  line-height: 1.32;
+  margin-bottom: 0.26rem;
+  line-height: 1.28;
 }
 
 .lock-pill {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.59rem;
+  font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.07em;
-  padding: 0.08rem 0.34rem;
+  padding: 0.06rem 0.3rem;
   border-radius: 3px;
-  margin-right: 0.3rem;
+  margin-right: 0.26rem;
   background: rgba(212, 166, 80, 0.22);
-  border: 1px solid rgba(235, 194, 114, 0.65);
+  border: 1px solid var(--border-strong);
   color: var(--brass-bright);
   vertical-align: middle;
 }
 
 .lock-pill.is-sky {
   background: rgba(110, 140, 198, 0.16);
-  border-color: rgba(130, 160, 218, 0.42);
-  color: #b4c8f0;
+  border-color: var(--border-steel);
+  color: var(--muted-cool);
 }
 
 .birth-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap: 0.3rem;
-  margin-bottom: 0.28rem;
+  gap: 0.26rem;
+  margin-bottom: 0.24rem;
 }
 
 .birth-field {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.08rem;
 }
 
-.birth-field.full {
-  grid-column: 1 / -1;
-}
+.birth-field.full { grid-column: 1 / -1; }
 
 .birth-field label {
   font-family: var(--font-mono);
-  font-size: 0.57rem;
-  letter-spacing: 0.08em;
+  font-size: 0.55rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted-cool);
 }
 
 .birth-field input {
   width: 100%;
-  padding: 0.26rem 0.46rem;
+  padding: 0.22rem 0.42rem;
   border-radius: 4px;
-  border: 1px solid rgba(145, 162, 198, 0.24);
-  background: #070910;
+  border: 1px solid var(--border-steel);
+  background: var(--input-bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.71rem;
+  font-size: 0.69rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.birth-field input:focus {
-  border-color: var(--brass);
-  box-shadow: 0 0 0 2px rgba(212, 166, 80, 0.16);
-}
+.birth-field input:focus { border-color: var(--brass); }
 
 .birth-actions {
   display: flex;
   align-items: center;
-  gap: 0.32rem;
-  margin-top: 0.3rem;
+  gap: 0.28rem;
+  margin-top: 0.24rem;
 }
 
-.birth-actions .btn-lock {
-  flex: 1;
-}
+.birth-actions .btn-lock { flex: 1; }
 
 .birth-error {
   min-height: 0;
-  margin-top: 0.14rem;
-  font-size: 0.67rem;
-  color: #ff8c70;
+  margin-top: 0.12rem;
+  font-size: 0.65rem;
+  color: var(--crimson);
 }
 
 /* --- Module 5: Collapsible Live 9-Graha Ephemeris Drawer --- */
@@ -884,47 +1172,43 @@ body::before {
   user-select: none;
 }
 
-.ephem-module summary::-webkit-details-marker {
-  display: none;
-}
+.ephem-module summary::-webkit-details-marker { display: none; }
 
 .ephem-chevron {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--brass);
   transition: transform 0.18s ease;
 }
 
-.ephem-module[open] .ephem-chevron {
-  transform: rotate(180deg);
-}
+.ephem-module[open] .ephem-chevron { transform: rotate(180deg); }
 
 .ephem-table-wrap {
-  margin-top: 0.45rem;
-  border-top: 1px solid rgba(212, 166, 80, 0.18);
-  padding-top: 0.35rem;
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--border-brass);
+  padding-top: 0.3rem;
 }
 
 .ephem-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.69rem;
+  font-size: 0.67rem;
 }
 
 .ephem-table th {
   text-align: left;
   font-family: var(--font-mono);
-  font-size: 0.59rem;
-  letter-spacing: 0.08em;
+  font-size: 0.57rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted-cool);
-  padding: 0.18rem 0.2rem;
-  border-bottom: 1px solid rgba(145, 162, 198, 0.16);
+  padding: 0.16rem 0.18rem;
+  border-bottom: 1px solid var(--border-steel);
 }
 
 .ephem-table td {
-  padding: 0.2rem 0.2rem;
-  border-bottom: 1px solid rgba(145, 162, 198, 0.08);
+  padding: 0.18rem 0.18rem;
+  border-bottom: 1px solid rgba(145, 162, 198, 0.1);
   color: var(--text);
   white-space: nowrap;
 }
@@ -932,32 +1216,25 @@ body::before {
 .ephem-table td.mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: #dcd5c5;
 }
 
-.p-dot {
-  font-weight: 700;
-  margin-right: 0.18rem;
-}
-
-.retro-tag {
-  margin-left: 0.18rem;
-  font-family: var(--font-mono);
-  font-size: 0.61rem;
-  color: #ff9a72;
-  font-weight: 700;
-}
+.p-dot { font-weight: 700; margin-right: 0.16rem; }
+.retro-tag { margin-left: 0.15rem; font-family: var(--font-mono); font-size: 0.58rem; color: var(--crimson); font-weight: 700; }
+.dig-tag { margin-left: 0.15rem; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; }
+.dig-exalted { color: #38c982; }
+.dig-own { color: var(--amber); }
+.dig-debilitated { color: var(--crimson); }
 
 .pada-pill {
   display: inline-block;
-  padding: 0.02rem 0.24rem;
-  margin-left: 0.16rem;
+  padding: 0.02rem 0.22rem;
+  margin-left: 0.14rem;
   border-radius: 3px;
   font-family: var(--font-mono);
-  font-size: 0.59rem;
+  font-size: 0.57rem;
   color: var(--brass-bright);
   background: rgba(212, 166, 80, 0.14);
-  border: 1px solid rgba(212, 166, 80, 0.28);
+  border: 1px solid var(--border-brass);
 }
 
 /* ==========================================================================
@@ -968,7 +1245,7 @@ body::before {
   .cosmic-hero {
     grid-template-columns: 1fr;
     min-height: auto;
-    gap: 0.9rem;
+    gap: 0.85rem;
   }
 
   .cosmic-console {
@@ -979,28 +1256,15 @@ body::before {
 }
 
 @media (max-width: 640px) {
-  .cosmic-topbar {
-    padding: 0.5rem 0.85rem;
-  }
-
-  .brand-sub,
-  .topbar-telemetry {
-    display: none;
-  }
-
-  .cosmic-hero {
-    padding: 0.55rem 0.72rem 1rem;
-  }
-
-  .mech-row-6 {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .cosmic-topbar { padding: 0.45rem 0.8rem; }
+  .brand-sub, .telemetry-pill { display: none; }
+  .cosmic-hero { padding: 0.5rem 0.65rem 1rem; }
+  .mech-row-6 { grid-template-columns: repeat(3, 1fr); }
+  .zen-meta { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .annunciator-box.flash-double,
   .annunciator-box.flash-triple,
-  .annunciator-box.flash-pada {
-    animation: none;
-  }
+  .annunciator-box.flash-pada { animation: none; }
 }

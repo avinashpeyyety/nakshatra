@@ -19,8 +19,10 @@
   let master = null;
   let droneNodes = null;
   let droneGain = null;
+  let mode = "off"; // "off" | "mech" | "full"
   let enabled = false;
   let lastTickAt = 0;
+  let lastRatchetAt = 0;
   let lastAlertAt = 0;
 
   function ensureCtx() {
@@ -91,25 +93,42 @@
     droneNodes = null;
   }
 
-  function setEnabled(on) {
-    enabled = Boolean(on);
-    try { localStorage.setItem(STORAGE_KEY, enabled ? "1" : "0"); } catch (_) {}
+  function setMode(nextMode) {
+    const valid = (nextMode === "mech" || nextMode === "full") ? nextMode : "off";
+    mode = valid;
+    enabled = (mode !== "off");
+    try { localStorage.setItem(STORAGE_KEY, mode); } catch (_) {}
     if (enabled) {
       const c = ensureCtx();
-      if (!c) return false;
-      startDrone();
+      if (!c) { mode = "off"; enabled = false; return mode; }
+      if (mode === "full") startDrone();
+      else stopDrone();
       const t = c.currentTime;
       master.gain.cancelScheduledValues(t);
       master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), t);
-      master.gain.exponentialRampToValueAtTime(0.65, t + 0.35);
+      master.gain.exponentialRampToValueAtTime(0.65, t + 0.30);
     } else if (ctx && master) {
       const t = ctx.currentTime;
       master.gain.cancelScheduledValues(t);
       master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), t);
-      master.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-      setTimeout(() => { if (!enabled) stopDrone(); }, 300);
+      master.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      setTimeout(() => { if (!enabled) stopDrone(); }, 280);
     }
-    return enabled;
+    return mode;
+  }
+
+  function cycleMode() {
+    if (mode === "off") return setMode("mech");
+    if (mode === "mech") return setMode("full");
+    return setMode("off");
+  }
+
+  function getMode() {
+    return mode;
+  }
+
+  function setEnabled(on) {
+    return setMode(on ? "full" : "off") !== "off";
   }
 
   function isEnabled() {
@@ -248,6 +267,17 @@
     });
   }
 
+  /** Crisp brass ratchet click when hand-cranking the astrolabe dial */
+  function playRatchet() {
+    if (!enabled || !ctx) return;
+    const nowMs = performance.now();
+    if (nowMs - lastRatchetAt < 55) return;
+    lastRatchetAt = nowMs;
+    const t = ctx.currentTime;
+    noiseClick(t, 0.018, 1520, 6.2, 0.085);
+    partialTone(t, 165, 0.032, 0.04, "triangle", 118);
+  }
+
   /** Exact Slow-Planet Pada Conjunction: delicate astrolabe chime */
   function playPadaHit() {
     if (!enabled) return;
@@ -262,9 +292,13 @@
   }
 
   root.CosmicAudio = {
+    setMode,
+    cycleMode,
+    getMode,
     setEnabled,
     isEnabled,
     playTick,
+    playRatchet,
     playAyanamsaClutch,
     playNatalLock,
     playDoubleTransit,

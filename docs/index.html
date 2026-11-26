@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nakshatra Chakram — 108-Pada Cosmic Transit Dial</title>
-  <meta name="description" content="Enigmatic 108-Pada Vedic Jyotish cosmic dial with built-in Lahiri & B.V. Raman ayanamsas, natal planetary lock, bidirectional time travel back to birth, and Double/Triple transit alerts." />
+  <meta name="description" content="Enigmatic 108-Pada Vedic Jyotish cosmic dial with built-in Lahiri & B.V. Raman ayanamsas, Vimshottari Dasha, Sade Sati epochs, real lunar phases & eclipses, and Double/Triple transit alerts." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cosmic-dial.css?v=3" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=4" />
 </head>
 <body>
   <header class="cosmic-topbar">
@@ -17,9 +17,10 @@
       <span class="brand-title">Nakshatra Chakram</span>
       <span class="brand-sub">108-Pada Sidereal Engine</span>
     </div>
-    <div class="topbar-telemetry" aria-label="Engine status">
-      <span class="telemetry-pill">Built-In Ephemeris</span>
+    <div class="topbar-actions">
       <span class="telemetry-pill">100% In-Browser · Private</span>
+      <button id="btn-theme" type="button" class="mech-btn topbar-btn" title="Switch between Night Obsidian and Daylight Brass observatory themes">☀ DAY</button>
+      <button id="btn-zen" type="button" class="mech-btn topbar-btn" title="Toggle fullscreen Zen cinema view (Esc to exit)">⛶ ZEN</button>
     </div>
   </header>
 
@@ -28,17 +29,26 @@
     <div class="dial-column">
       <div class="dial-stage">
         <canvas id="cosmicDialCanvas" width="680" height="680" aria-label="108 Nakshatra Padas, 27 Nakshatras, 12 Rasis, and live planetary transits"></canvas>
-        <div id="dial-tooltip" class="dial-tooltip" role="tooltip" hidden></div>
+
+        <!-- Click-to-Pin Compact Lore Drawer (Never opens on hover; zero dial obstruction) -->
+        <div id="pinned-lore" class="pinned-lore" role="region" aria-label="Pinned celestial lore" hidden>
+          <button id="pinned-lore-close" type="button" class="pinned-lore-close" aria-label="Close lore card">✕</button>
+          <div id="pinned-lore-body"></div>
+        </div>
       </div>
 
-      <div class="dial-legend" aria-label="Zodiac alloy and symbol legend">
-        <span class="legend-chip"><span class="legend-swatch sw-agni"></span>Agni</span>
-        <span class="legend-chip"><span class="legend-swatch sw-prithvi"></span>Prithvi</span>
-        <span class="legend-chip"><span class="legend-swatch sw-vayu"></span>Vayu</span>
-        <span class="legend-chip"><span class="legend-swatch sw-jala"></span>Jala</span>
-        <span class="legend-chip"><span class="legend-swatch sw-gandanta"></span>Gandanta</span>
-        <span class="legend-chip">℞ Retrograde</span>
-        <span class="legend-chip">Hover dial to inspect 108 Padas</span>
+      <!-- Zero-Obstruction Docked Hover Telemetry / Legend Strip -->
+      <div class="dial-footer-rail">
+        <div id="dial-telemetry-bar" class="dial-telemetry-bar" role="status" aria-live="polite" hidden></div>
+        <div id="dial-legend" class="dial-legend" aria-label="Zodiac alloy and interaction legend">
+          <span class="legend-chip"><span class="legend-swatch sw-agni"></span>Agni</span>
+          <span class="legend-chip"><span class="legend-swatch sw-prithvi"></span>Prithvi</span>
+          <span class="legend-chip"><span class="legend-swatch sw-vayu"></span>Vayu</span>
+          <span class="legend-chip"><span class="legend-swatch sw-jala"></span>Jala</span>
+          <span class="legend-chip"><span class="legend-swatch sw-gandanta"></span>Gandanta</span>
+          <span class="legend-chip">℞ Retro</span>
+          <span class="legend-chip">Drag dial to crank · Click to pin lore</span>
+        </div>
       </div>
     </div>
 
@@ -63,6 +73,7 @@
         <div class="scrubber-row">
           <span id="tl-start" class="scrubber-tick">1950</span>
           <div class="scrubber-track-wrap">
+            <div id="timeline-epochs" class="timeline-epochs" aria-hidden="true"></div>
             <span id="timeline-today-mark" class="today-mark" title="Today"></span>
             <input id="timeline-scrubber" type="range" min="0" max="10000" value="5000" aria-label="Bidirectional lifespan timeline scrubber" />
           </div>
@@ -78,10 +89,10 @@
           <button type="button" class="mech-btn mech-btn-sm" data-step="+1y" title="Jump forward 1 year">+1Y</button>
         </div>
 
-        <div class="mech-row mech-row-3" style="margin-bottom:0.32rem;">
+        <div class="mech-row mech-row-3" style="margin-bottom:0.28rem;">
           <button id="btn-play" type="button" class="mech-btn is-active" title="Play or pause transit simulation">❚❚ PAUSE</button>
           <button id="btn-rev" type="button" class="mech-btn" title="Reverse or forward time playback">FWD ▶</button>
-          <button id="btn-sound" type="button" class="mech-btn" title="Enable cosmic machine audio and transit gongs">🔇 SOUND</button>
+          <button id="btn-sound" type="button" class="mech-btn" title="Cycle soundscape: Mute → Clockwork → Cosmic Drone">🔇 MUTE</button>
         </div>
 
         <div class="mech-row mech-row-3" role="group" aria-label="Transit speed">
@@ -91,13 +102,13 @@
         </div>
       </div>
 
-      <!-- 2. Built-In Sidereal Ayanamsa Clutch -->
+      <!-- 2. Built-In Sidereal Ayanamsa Clutch & Drishti Optical Lens -->
       <div class="console-module">
         <div class="module-head">
-          <span class="module-label">Ayanamsa Clutch</span>
+          <span class="module-label">Ayanamsa &amp; Drishti Lens</span>
           <span id="ayanamsa-readout" class="module-readout">Lahiri · 24° 14′ 45″</span>
         </div>
-        <div class="mech-row mech-row-2" role="group" aria-label="Ayanamsa system">
+        <div class="mech-row mech-row-2" style="margin-bottom:0.28rem;" role="group" aria-label="Ayanamsa system">
           <button type="button" class="mech-btn ayanamsa-btn is-active" data-ayanamsa="lahiri">
             <span>LAHIRI</span>
             <small>Chitrapaksha</small>
@@ -107,27 +118,34 @@
             <small>Surya Siddhanta</small>
           </button>
         </div>
+        <div class="mech-row mech-row-3" role="group" aria-label="Drishti optical lens">
+          <button type="button" class="mech-btn mech-btn-sm is-active" data-lens="convergences" title="Show Double & Triple transit aspect arcs">CONVERGENCE</button>
+          <button type="button" class="mech-btn mech-btn-sm" data-lens="all" title="Show full Vedic special Graha Drishti web">ALL DRISHTI</button>
+          <button type="button" class="mech-btn mech-btn-sm" data-lens="resonance" title="Highlight exact degree hits onto locked Natal pins">RESONANCE</button>
+        </div>
       </div>
 
-      <!-- 3. Double & Triple Transit Convergence Annunciator -->
+      <!-- 3. Gochara Convergences, Live Vimshottari Dasha & Life Epochs -->
       <div class="console-module">
         <div class="module-head">
-          <span class="module-label">Gochara Convergences</span>
+          <span class="module-label">Gochara &amp; Dasha</span>
           <div class="conv-nav">
             <button id="btn-prev-transit" type="button" class="mech-btn mech-btn-accent mech-btn-xs" title="Scan backward to previous Double or Triple transit">⏮ PREV</button>
             <button id="btn-next-transit" type="button" class="mech-btn mech-btn-accent mech-btn-xs" title="Scan forward to next Double or Triple transit">NEXT ⏭</button>
           </div>
         </div>
 
+        <div id="dasha-strip" class="dasha-strip" hidden></div>
+
         <div id="transit-annunciator" class="annunciator-box" aria-live="polite">
           <div class="ann-top">
             <span id="ann-badge" class="ann-badge">○ MONITORING GOCHARA</span>
           </div>
-          <div id="ann-text" class="ann-text">Enter birth details to lock natal pins &amp; track personal Double / Triple transits</div>
+          <div id="ann-text" class="ann-text">Lock birth details to track personal Double / Triple transits &amp; Dasha</div>
         </div>
 
         <ul id="transit-log-list" class="transit-log" aria-label="Detected major transit log">
-          <li class="log-empty">No Double or Triple convergence crossed yet — scrub time or use Prev / Next.</li>
+          <li class="log-empty">Scrub timeline or press Prev / Next to locate Double &amp; Triple convergences.</li>
         </ul>
       </div>
 
@@ -135,7 +153,7 @@
       <div class="console-module">
         <div class="module-head">
           <span class="module-label">Natal Lock Chamber</span>
-          <span class="module-readout">Local Only · Never Uploaded</span>
+          <span class="module-readout">Sade Sati · Vimshottari</span>
         </div>
 
         <div id="natal-lock-status" class="natal-status">
@@ -192,8 +210,22 @@
     </aside>
   </main>
 
-  <script src="jyotish-engine.js?v=3" defer></script>
-  <script src="cosmic-audio.js?v=3" defer></script>
-  <script src="cosmic-dial.js?v=3" defer></script>
+  <!-- Translucent Floating Zen Cinema Dock -->
+  <div id="zen-dock" class="zen-dock" hidden>
+    <span id="zen-date" class="zen-date">-- --- ----</span>
+    <span id="zen-meta" class="zen-meta"></span>
+    <div class="zen-controls">
+      <button id="zen-play" type="button" class="mech-btn mech-btn-xs is-active">❚❚</button>
+      <button type="button" class="mech-btn mech-btn-xs" data-speed="day">D</button>
+      <button type="button" class="mech-btn mech-btn-xs is-active" data-speed="week">W</button>
+      <button type="button" class="mech-btn mech-btn-xs" data-speed="month">M</button>
+      <button id="zen-theme" type="button" class="mech-btn mech-btn-xs">☀ DAY</button>
+      <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent">✕ EXIT</button>
+    </div>
+  </div>
+
+  <script src="jyotish-engine.js?v=4" defer></script>
+  <script src="cosmic-audio.js?v=4" defer></script>
+  <script src="cosmic-dial.js?v=4" defer></script>
 </body>
 </html>

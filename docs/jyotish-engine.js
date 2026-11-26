@@ -532,11 +532,16 @@
    * When `natal` is locked, prioritizes Natal Lagna, Natal Moon, Natal Sun, and key Houses (1, 4, 5, 7, 9, 10, 11).
    * When `natal` is null (Cosmic Sky Mode), detects zodiac-wide Rasis receiving simultaneous Double/Triple Drishti.
    */
-  function analyzeTransits(transitSnap, natalSnap) {
+  function analyzeTransits(transitSnap, natalSnap, dashaInfo = null) {
     const juR = transitSnap.details.Jupiter.rasiIdx;
     const saR = transitSnap.details.Saturn.rasiIdx;
     const raR = transitSnap.details.Rahu.rasiIdx;
     const keR = transitSnap.details.Ketu.rasiIdx;
+    const activeDashaLords = new Set();
+    if (dashaInfo && !dashaInfo.isPreBirth) {
+      if (dashaInfo.maha) activeDashaLords.add(dashaInfo.maha.lord);
+      if (dashaInfo.antar) activeDashaLords.add(dashaInfo.antar.lord);
+    }
 
     const triples = [];
     const doubles = [];
@@ -582,6 +587,9 @@
         const kHit = aspectsTargetRasi("Ketu", keR, t.rasiIdx);
         const rasi = RASIS[t.rasiIdx];
         const targetText = `${t.labels.slice(0, 2).join(" / ")} · ${rasi.sanskrit}`;
+        const natalOccupants = PLANETS.filter((p) => natalSnap.details[p.id] && natalSnap.details[p.id].rasiIdx === t.rasiIdx).map((p) => p.id);
+        const dashaHit = activeDashaLords.has(rasi.ruler) || natalOccupants.some((id) => activeDashaLords.has(id));
+        const dashaSuffix = dashaHit ? " ★ DASHA" : "";
 
         if (rHit || kHit) {
           const nodeName = rHit ? "Rahu" : "Ketu";
@@ -591,14 +599,15 @@
             key: `T:${t.rasiIdx}:${juR}:${saR}:${nodeName}:${nodeR}`,
             rasiIdx: t.rasiIdx,
             targetLabel: targetText,
-            priority: t.priority + 5,
+            dashaActivated: dashaHit,
+            priority: t.priority + 5 + (dashaHit ? 4 : 0),
             planets: ["Jupiter", "Saturn", nodeName],
             aspects: [
               { planet: "Jupiter", fromRasi: juR, label: getAspectLabel("Jupiter", juR, t.rasiIdx) },
               { planet: "Saturn",  fromRasi: saR, label: getAspectLabel("Saturn",  saR, t.rasiIdx) },
               { planet: nodeName,  fromRasi: nodeR, label: getAspectLabel(nodeName, nodeR, t.rasiIdx) },
             ],
-            summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} · ${PLANET_MAP[nodeName].sym} ${RASIS[nodeR].sanskrit} → ${targetText}`,
+            summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} · ${PLANET_MAP[nodeName].sym} ${RASIS[nodeR].sanskrit} → ${targetText}${dashaSuffix}`,
           });
         } else {
           doubles.push({
@@ -606,13 +615,14 @@
             key: `D:${t.rasiIdx}:${juR}:${saR}`,
             rasiIdx: t.rasiIdx,
             targetLabel: targetText,
-            priority: t.priority,
+            dashaActivated: dashaHit,
+            priority: t.priority + (dashaHit ? 3 : 0),
             planets: ["Jupiter", "Saturn"],
             aspects: [
               { planet: "Jupiter", fromRasi: juR, label: getAspectLabel("Jupiter", juR, t.rasiIdx) },
               { planet: "Saturn",  fromRasi: saR, label: getAspectLabel("Saturn",  saR, t.rasiIdx) },
             ],
-            summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} → ${targetText}`,
+            summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} → ${targetText}${dashaSuffix}`,
           });
         }
       }
@@ -714,6 +724,337 @@
 
   function findPrevConvergence(startJD, natalSnap, ayanamsaMode = "lahiri", maxDays = 1825, minJD = null) {
     return findConvergence(startJD, natalSnap, ayanamsaMode, -1, maxDays, minJD);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Planetary Dignity, Vimshottari Dasha, Life Epochs, Panchanga & Drishti Web
+  // ---------------------------------------------------------------------------
+
+  const DIGNITY_TABLE = {
+    Sun:     { exalted: 0,  debilitated: 6,  own: [4] },
+    Moon:    { exalted: 1,  debilitated: 7,  own: [3] },
+    Mars:    { exalted: 9,  debilitated: 3,  own: [0, 7] },
+    Mercury: { exalted: 5,  debilitated: 11, own: [2, 5] },
+    Jupiter: { exalted: 3,  debilitated: 9,  own: [8, 11] },
+    Venus:   { exalted: 11, debilitated: 5,  own: [1, 6] },
+    Saturn:  { exalted: 6,  debilitated: 0,  own: [9, 10] },
+    Rahu:    { exalted: 1,  debilitated: 7,  own: [10] },
+    Ketu:    { exalted: 7,  debilitated: 1,  own: [7] },
+  };
+
+  function getDignity(planetId, rasiIdx) {
+    const row = DIGNITY_TABLE[planetId];
+    if (!row) return { code: "neutral", label: "Neutral", mark: "" };
+    if (rasiIdx === row.exalted) return { code: "exalted", label: "Uchcha · Exalted", mark: "↑" };
+    if (rasiIdx === row.debilitated) return { code: "debilitated", label: "Neecha · Debilitated", mark: "↓" };
+    if (row.own.includes(rasiIdx)) return { code: "own", label: "Swakshetra · Own", mark: "★" };
+    return { code: "neutral", label: "Neutral", mark: "" };
+  }
+
+  const VIM_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+  const VIM_YEARS = { Ketu: 7, Venus: 20, Sun: 6, Moon: 10, Mars: 7, Rahu: 18, Jupiter: 16, Saturn: 19, Mercury: 17 };
+  const YEAR_DAYS = 365.2425;
+
+  /**
+   * Compute active Vimshottari Mahadasha, Antardasha, and Pratyantardasha at targetJD
+   * directly from exact natal sidereal Moon longitude & birth JD.
+   */
+  function computeVimshottariDasha(natalMoonDeg, natalJD, targetJD) {
+    if (!Number.isFinite(natalMoonDeg) || !Number.isFinite(natalJD)) return null;
+    if (targetJD < natalJD - 0.01) {
+      return { isPreBirth: true, maha: null, antar: null, pratyantar: null };
+    }
+    const nakSpan = 360 / 27;
+    const normMoon = norm360(natalMoonDeg);
+    const nakIdx = Math.floor(normMoon / nakSpan) % 27;
+    const elapsedFrac = (normMoon - nakIdx * nakSpan) / nakSpan;
+    const startLordIdx = nakIdx % 9;
+    const firstLord = VIM_ORDER[startLordIdx];
+    const firstStartJD = natalJD - elapsedFrac * VIM_YEARS[firstLord] * YEAR_DAYS;
+
+    // Wrap smoothly across 120-year cycles if user scrolls past age 120
+    const cycleDays = 120 * YEAR_DAYS;
+    const offsetFromFirst = targetJD - firstStartJD;
+    const cycles = Math.floor(offsetFromFirst / cycleDays);
+    let cursor = firstStartJD + cycles * cycleDays;
+
+    let maha = null;
+    for (let i = 0; i < 9; i++) {
+      const idx = (startLordIdx + i) % 9;
+      const lord = VIM_ORDER[idx];
+      const dur = VIM_YEARS[lord] * YEAR_DAYS;
+      if (targetJD >= cursor && targetJD < cursor + dur) {
+        maha = {
+          lord,
+          idx,
+          startJD: cursor,
+          endJD: cursor + dur,
+          frac: Math.max(0, Math.min(1, (targetJD - cursor) / dur)),
+        };
+        break;
+      }
+      cursor += dur;
+    }
+    if (!maha) return null;
+
+    // Antardasha (Bhukti)
+    let adCursor = maha.startJD;
+    const mdDur = maha.endJD - maha.startJD;
+    let antar = null;
+    for (let i = 0; i < 9; i++) {
+      const idx = (maha.idx + i) % 9;
+      const lord = VIM_ORDER[idx];
+      const dur = mdDur * (VIM_YEARS[lord] / 120);
+      if (targetJD >= adCursor && targetJD < adCursor + dur) {
+        antar = {
+          lord,
+          idx,
+          startJD: adCursor,
+          endJD: adCursor + dur,
+          frac: Math.max(0, Math.min(1, (targetJD - adCursor) / dur)),
+        };
+        break;
+      }
+      adCursor += dur;
+    }
+    if (!antar) antar = { lord: maha.lord, idx: maha.idx, startJD: maha.startJD, endJD: maha.endJD, frac: 0 };
+
+    // Pratyantardasha
+    let pdCursor = antar.startJD;
+    const adDur = antar.endJD - antar.startJD;
+    let pratyantar = null;
+    for (let i = 0; i < 9; i++) {
+      const idx = (antar.idx + i) % 9;
+      const lord = VIM_ORDER[idx];
+      const dur = adDur * (VIM_YEARS[lord] / 120);
+      if (targetJD >= pdCursor && targetJD < pdCursor + dur) {
+        pratyantar = {
+          lord,
+          idx,
+          startJD: pdCursor,
+          endJD: pdCursor + dur,
+          frac: Math.max(0, Math.min(1, (targetJD - pdCursor) / dur)),
+        };
+        break;
+      }
+      pdCursor += dur;
+    }
+    if (!pratyantar) pratyantar = { lord: antar.lord, idx: antar.idx, startJD: antar.startJD, endJD: antar.endJD, frac: 0 };
+
+    return { isPreBirth: false, maha, antar, pratyantar };
+  }
+
+  /**
+   * Detect active life epochs at a single instant: Sade Sati, Ashtama Shani, Saturn/Jupiter Return.
+   */
+  function getActiveLifeEpoch(transitSnap, natalSnap) {
+    if (!transitSnap || !natalSnap) return { badges: [], sadeSatiPhase: null, sadeSatiRasis: [] };
+    const moonR = natalSnap.details.Moon.rasiIdx;
+    const natSatR = natalSnap.details.Saturn.rasiIdx;
+    const natJupR = natalSnap.details.Jupiter.rasiIdx;
+    const trSatR = transitSnap.details.Saturn.rasiIdx;
+    const trJupR = transitSnap.details.Jupiter.rasiIdx;
+    const satFromMoon = ((trSatR - moonR) % 12 + 12) % 12; // 0 = 1st, 11 = 12th, 1 = 2nd, 7 = 8th
+
+    const badges = [];
+    let sadeSatiPhase = null;
+    const sadeSatiRasis = [(moonR + 11) % 12, moonR, (moonR + 1) % 12];
+
+    if (satFromMoon === 11) {
+      sadeSatiPhase = "Rising";
+      badges.push({ type: "sadesati", label: "♄ SADE SATI · RISING (12th from ☽)" });
+    } else if (satFromMoon === 0) {
+      sadeSatiPhase = "Peak";
+      badges.push({ type: "sadesati", label: "♄ SADE SATI · PEAK (Janma Shani)" });
+    } else if (satFromMoon === 1) {
+      sadeSatiPhase = "Setting";
+      badges.push({ type: "sadesati", label: "♄ SADE SATI · SETTING (2nd from ☽)" });
+    } else if (satFromMoon === 7) {
+      badges.push({ type: "ashtama", label: "♄ ASHTAMA SHANI (8th from ☽)" });
+    }
+
+    if (trSatR === natSatR) {
+      badges.push({ type: "saturn-return", label: "♄ SATURN RETURN" });
+    }
+    if (trJupR === natJupR) {
+      badges.push({ type: "jupiter-return", label: "♃ JUPITER RETURN" });
+    }
+    return { badges, sadeSatiPhase, sadeSatiRasis };
+  }
+
+  /**
+   * Scan lifespan [minJD, maxJD] at 20-day resolution to produce timeline epoch bands.
+   */
+  function computeLifeEpochs(natalSnap, minJD, maxJD, ayanamsaMode = "lahiri") {
+    if (!natalSnap || maxJD <= minJD) return [];
+    const moonR = natalSnap.details.Moon.rasiIdx;
+    const natSatR = natalSnap.details.Saturn.rasiIdx;
+    const natJupR = natalSnap.details.Jupiter.rasiIdx;
+    const stepDays = 20;
+    const bands = [];
+    const open = { sadesati: null, saturnReturn: null, jupiterReturn: null };
+
+    const closeBand = (kind, endJD) => {
+      if (open[kind]) {
+        open[kind].endJD = endJD;
+        bands.push(open[kind]);
+        open[kind] = null;
+      }
+    };
+
+    for (let jd = minJD; jd <= maxJD; jd += stepDays) {
+      const ayan = getAyanamsa(jd, ayanamsaMode);
+      const trop = computeTropical(jd);
+      const satR = Math.floor(norm360(trop.Saturn - ayan) / 30) % 12;
+      const jupR = Math.floor(norm360(trop.Jupiter - ayan) / 30) % 12;
+      const fromMoon = ((satR - moonR) % 12 + 12) % 12;
+      const isAfterFirstOrbitJup = (jd - minJD) > 365 * 8;
+      const isAfterFirstOrbitSat = (jd - minJD) > 365 * 22;
+      const inSS = (fromMoon === 11 || fromMoon === 0 || fromMoon === 1);
+      const inSR = isAfterFirstOrbitSat && (satR === natSatR);
+      const inJR = isAfterFirstOrbitJup && (jupR === natJupR);
+
+      if (inSS) { if (!open.sadesati) open.sadesati = { type: "sadesati", startJD: jd, endJD: jd, label: "Sade Sati" }; }
+      else closeBand("sadesati", jd);
+
+      if (inSR) { if (!open.saturnReturn) open.saturnReturn = { type: "saturn-return", startJD: jd, endJD: jd, label: "Saturn Return" }; }
+      else closeBand("saturnReturn", jd);
+
+      if (inJR) { if (!open.jupiterReturn) open.jupiterReturn = { type: "jupiter-return", startJD: jd, endJD: jd, label: "Jupiter Return" }; }
+      else closeBand("jupiterReturn", jd);
+    }
+    closeBand("sadesati", maxJD);
+    closeBand("saturnReturn", maxJD);
+    closeBand("jupiterReturn", maxJD);
+    return bands;
+  }
+
+  const TITHI_NAMES = [
+    "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami",
+    "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami",
+    "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Purnima",
+  ];
+  const VARA_NAMES = [
+    "Ravivara", "Somavara", "Mangalavara", "Budhavara",
+    "Guruvara", "Shukravara", "Shanivara",
+  ];
+
+  /**
+   * Compute live Vedic Panchanga (Tithi, Paksha, Vara, Moon Illumination & Solar/Lunar Eclipses).
+   */
+  function computePanchanga(transitSnap, jd) {
+    const sunDeg = transitSnap.positions.Sun;
+    const moonDeg = transitSnap.positions.Moon;
+    const rahuDeg = transitSnap.positions.Rahu;
+    const ketuDeg = transitSnap.positions.Ketu;
+
+    const elong = norm360(moonDeg - sunDeg); // 0=New Moon, 180=Full Moon
+    const phaseFrac = elong / 360;
+    const illumination = (1 - Math.cos(elong * DEG)) / 2; // 0..1
+    const tithiIndex = Math.floor(elong / 12) % 30; // 0..29
+    const paksha = tithiIndex < 15 ? "Shukla" : "Krishna";
+    const tithiInPaksha = tithiIndex % 15;
+    let tithiName = TITHI_NAMES[tithiInPaksha];
+    if (tithiIndex === 29) tithiName = "Amavasya";
+    else if (tithiIndex === 14) tithiName = "Purnima";
+
+    const varaIdx = ((Math.floor(jd + 1.5) % 7) + 7) % 7;
+    const vara = VARA_NAMES[varaIdx];
+
+    const sunNodeDist = Math.min(angDiff(sunDeg, rahuDeg), angDiff(sunDeg, ketuDeg));
+    const moonNodeDist = Math.min(angDiff(moonDeg, rahuDeg), angDiff(moonDeg, ketuDeg));
+    const sunMoonSep = angDiff(sunDeg, moonDeg);
+
+    let eclipse = null;
+    if (sunMoonSep <= 9.5 && sunNodeDist <= 16.5) {
+      eclipse = { type: "solar", label: "SURYA GRAHAN · SOLAR ECLIPSE", planet: "Sun", deg: sunDeg };
+    } else if (Math.abs(sunMoonSep - 180) <= 9.5 && moonNodeDist <= 13.5) {
+      eclipse = { type: "lunar", label: "CHANDRA GRAHAN · LUNAR ECLIPSE", planet: "Moon", deg: moonDeg };
+    }
+
+    return {
+      elong,
+      phaseFrac,
+      illumination,
+      paksha,
+      tithiNum: tithiIndex + 1,
+      tithiName,
+      tithiFull: (tithiName === "Purnima" || tithiName === "Amavasya") ? tithiName : `${paksha} ${tithiName}`,
+      isPurnima: tithiIndex === 14,
+      isAmavasya: tithiIndex === 29,
+      vara,
+      eclipse,
+    };
+  }
+
+  /**
+   * Compute all live special Vedic Graha Drishti rays (Mars, Jupiter, Saturn, Rahu, Ketu) for optical lens.
+   */
+  function computeAllDrishtiRays(transitSnap) {
+    const rays = [];
+    const casters = [
+      { id: "Jupiter", offsets: [4, 6, 8] },
+      { id: "Saturn",  offsets: [2, 6, 9] },
+      { id: "Mars",    offsets: [3, 6, 7] },
+      { id: "Rahu",    offsets: [4, 8] },
+      { id: "Ketu",    offsets: [4, 8] },
+    ];
+    for (const c of casters) {
+      const fromDeg = transitSnap.positions[c.id];
+      const fromR = transitSnap.details[c.id].rasiIdx;
+      for (const off of c.offsets) {
+        const toR = (fromR + off) % 12;
+        rays.push({
+          planet: c.id,
+          fromDeg,
+          toRasiIdx: toR,
+          toDeg: toR * 30 + 15,
+          aspectNum: off + 1,
+          color: PLANET_MAP[c.id].color,
+        });
+      }
+    }
+    return rays;
+  }
+
+  /**
+   * Compute exact degree-level harmonic resonances (<= orbDeg) between live transiting and locked natal planets.
+   */
+  function computeNatalResonances(transitSnap, natalSnap, orbDeg = 2.5) {
+    if (!transitSnap || !natalSnap) return [];
+    const hits = [];
+    const natalKeys = ["Lagna", ...PLANETS.map((p) => p.id)];
+    for (const tp of PLANETS) {
+      const tDeg = transitSnap.positions[tp.id];
+      for (const nk of natalKeys) {
+        const nDeg = natalSnap.positions[nk];
+        if (nDeg === undefined) continue;
+        const diff = angDiff(tDeg, nDeg);
+        if (diff <= orbDeg) {
+          hits.push({
+            transit: tp.id,
+            natal: nk,
+            tDeg,
+            nDeg,
+            orb: diff,
+            type: "conjunction",
+            color: tp.color,
+          });
+        } else if (Math.abs(diff - 180) <= orbDeg * 0.85 && tp.slow) {
+          hits.push({
+            transit: tp.id,
+            natal: nk,
+            tDeg,
+            nDeg,
+            orb: Math.abs(diff - 180),
+            type: "opposition",
+            color: tp.color,
+          });
+        }
+      }
+    }
+    hits.sort((a, b) => a.orb - b.orb);
+    return hits;
   }
 
   // ---------------------------------------------------------------------------
@@ -874,6 +1215,13 @@
     findConvergence,
     findNextConvergence,
     findPrevConvergence,
+    getDignity,
+    computeVimshottariDasha,
+    getActiveLifeEpoch,
+    computeLifeEpochs,
+    computePanchanga,
+    computeAllDrishtiRays,
+    computeNatalResonances,
     findCity,
   };
 })(typeof window !== "undefined" ? window : globalThis);

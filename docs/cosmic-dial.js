@@ -1,14 +1,16 @@
 /**
- * Nakshatra Chakram — Formidable Metallic Cosmic Dial Renderer & Interactive Controller
+ * Nakshatra Chakram — Formidable Metallic Cosmic Dial Renderer & Interactive Observatory
  *
- * 60 FPS high-DPI canvas cosmic astrolabe displaying:
- *   - Counter-rotating machined brass/iron gears driven by solar motion
- *   - All 108 Nakshatra Padas (3°20′ etched metallic cells with Gandanta seams & Pada numerals)
- *   - All 27 Nakshatras (Devanagari + English curved engravings & ruler patina)
- *   - All 9 Transiting Navagrahas with orbital motion trails, Solar Meridian Beam & retrograde halos
- *   - All 12 Rasis with elemental metallic alloys (Agni, Prithvi, Vayu, Jala) & Roman Bhava markers
- *   - Locked Natal Planetary Pins (riveted brass markers + radial Pada anchor hairlines)
- *   - Double & Triple Transit Drishti energy arcs, shockwaves, annunciator, and Web Audio gongs/bells
+ * Features:
+ *   - Obsidian Forge (Dark) & Daylight Brass/Ivory (Light) forged-metal canvas palettes
+ *   - All 108 Nakshatra Padas, 27 Nakshatras (Devanagari + English), 12 elemental metallic Rasis
+ *   - Counter-rotating machined involute gears + drifting ambient starlight dust
+ *   - True rendered Lunar Phase (Purnima/Amavasya), Vedic Panchanga (Tithi/Vara) & Eclipse Corona
+ *   - Live Vimshottari Mahadasha / Antardasha / Pratyantardasha + sovereign planetary halos
+ *   - Lifespan Epoch bands (Sade Sati, Ashtama Shani, Saturn Return, Jupiter Return)
+ *   - 3-Way Drishti Optical Lens (Convergences / All Vedic Rays / Natal Degree Resonance)
+ *   - Zero-obstruction Docked Hover Telemetry + Click-to-Pin Lore Card + Grab-and-Spin Dial Cranking
+ *   - Bidirectional Lifespan Time Travel (Birth Date <-> Today <-> Future) + Fullscreen Zen Mode
  */
 (function () {
   "use strict";
@@ -21,26 +23,156 @@
   const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 
-  // Patinated metallic alloy palettes per Nakshatra Vimshottari ruler
-  const RULER_METAL = {
-    Ketu:    { fill: "#1b1126", rim: "#7d4ea8" },
-    Venus:   { fill: "#211221", rim: "#b55284" },
-    Sun:     { fill: "#26180c", rim: "#cc8632" },
-    Moon:    { fill: "#161c28", rim: "#8599b8" },
-    Mars:    { fill: "#281110", rim: "#c44b3b" },
-    Rahu:    { fill: "#121329", rim: "#6c63c9" },
-    Jupiter: { fill: "#221d0c", rim: "#cca635" },
-    Saturn:  { fill: "#101824", rim: "#5b79a3" },
-    Mercury: { fill: "#0e1f1a", rim: "#3d9c7e" },
-  };
+  // ---------------------------------------------------------------------------
+  // Dual Horological Canvas Palettes (Obsidian Forge vs. Solar Ivory & Brass)
+  // ---------------------------------------------------------------------------
 
-  // Patinated metallic alloy palettes per Vedic Element (Agni, Prithvi, Vayu, Jala)
-  const ELEM_ALLOY = [
-    { top: "#2c1412", bot: "#170908", rim: "#a64d36", text: "#f2b89b", glow: "rgba(235,105,65,0.45)" }, // Agni (Fire)
-    { top: "#12241b", bot: "#09140e", rim: "#4b8a66", text: "#a8e0be", glow: "rgba(92,190,130,0.40)" }, // Prithvi (Earth)
-    { top: "#262112", bot: "#141109", rim: "#a88c42", text: "#f0da9c", glow: "rgba(230,190,90,0.42)" }, // Vayu (Air)
-    { top: "#101d30", bot: "#08101c", rim: "#4975a8", text: "#a9ccf2", glow: "rgba(95,160,235,0.42)" }, // Jala (Water)
-  ];
+  const THEMES = {
+    dark: {
+      isLight: false,
+      gear1: ["#3a2c16", "#8c682b", "#4a3514"],
+      gear1Stroke: "rgba(240,206,132,0.28)",
+      gear2Fill: "rgba(38,44,58,0.85)",
+      gear2Stroke: "rgba(160,175,205,0.16)",
+      bezelStops: ["#2b3040", "#151923", "#0c0e15", "#262018"],
+      brassStops: ["#e5c173", "#8f692c", "#f2d692", "#66481a", "#cfa355"],
+      rivetStops: ["#f3d796", "#8c6628", "#2a1e0c"],
+      tickMajor: "rgba(235,198,118,0.85)",
+      tickFive: "rgba(198,162,92,0.45)",
+      tickMinor: "rgba(160,145,115,0.22)",
+      padaEven: "#11141e",
+      padaOdd: "#151926",
+      padaRasiLine: "rgba(232, 190, 108, 0.72)",
+      padaNakLine: "rgba(196, 158, 92, 0.42)",
+      padaLine: "rgba(130, 145, 175, 0.19)",
+      padaNum: "rgba(182,175,160,0.68)",
+      padaNumGan: "rgba(255,152,102,0.88)",
+      gandantaFill: "rgba(255, 86, 36, 0.14)",
+      gandantaLine: "rgba(255, 108, 56, 0.85)",
+      nakStroke: "rgba(202, 168, 98, 0.26)",
+      nakDev: "rgba(232, 214, 178, 0.84)",
+      nakEng: "rgba(218, 178, 102, 0.94)",
+      trackStops: ["#070910", "#0d111b", "#080a12"],
+      trackGroove: "rgba(180, 160, 120, 0.09)",
+      trackSpoke: "rgba(208, 170, 96, 0.16)",
+      rasiName: "rgba(235,214,172,0.90)",
+      bhavaTop: "#ffd43b",
+      bhavaOther: "rgba(218,184,114,0.65)",
+      natalStops: ["#0b0d14", "#121622", "#090b12"],
+      natalSpoke: "rgba(212,172,96,0.14)",
+      natalPinBg: "#1c1710",
+      natalLagnaBg: "#112824",
+      natalPinRim: "#e3ba64",
+      coreStops: ["#141928", "#080a12", "#04050a"],
+      coreGear1Fill: "rgba(184, 142, 66, 0.09)",
+      coreGear1Stroke: "rgba(220, 180, 102, 0.14)",
+      coreGear2Fill: "rgba(120, 145, 190, 0.07)",
+      coreGear2Stroke: "rgba(165, 190, 230, 0.10)",
+      hubScrim0: "rgba(6, 8, 14, 0.88)",
+      hubScrim1: "rgba(6, 8, 14, 0.70)",
+      hubScrim2: "rgba(6, 8, 14, 0.0)",
+      hubCrest: "rgba(218, 178, 102, 0.82)",
+      hubDate: "#f5ecd8",
+      hubDoy: "#e6b85c",
+      hubSun: "rgba(235, 224, 200, 0.86)",
+      hubSub: "rgba(165, 178, 202, 0.76)",
+      yearArc: "#e6b85c",
+      yearArcTriple: "#ff7849",
+      orbDark: "#181512",
+      orbGlyph: "#08090f",
+      orbRim: "rgba(255,244,218,0.68)",
+      dustColor: "238, 206, 138",
+      rulerMetal: {
+        Ketu:    { fill: "#1b1126", rim: "#7d4ea8" },
+        Venus:   { fill: "#211221", rim: "#b55284" },
+        Sun:     { fill: "#26180c", rim: "#cc8632" },
+        Moon:    { fill: "#161c28", rim: "#8599b8" },
+        Mars:    { fill: "#281110", rim: "#c44b3b" },
+        Rahu:    { fill: "#121329", rim: "#6c63c9" },
+        Jupiter: { fill: "#221d0c", rim: "#cca635" },
+        Saturn:  { fill: "#101824", rim: "#5b79a3" },
+        Mercury: { fill: "#0e1f1a", rim: "#3d9c7e" },
+      },
+      elemAlloy: [
+        { top: "#2c1412", bot: "#170908", rim: "#a64d36", text: "#f2b89b" }, // Agni
+        { top: "#12241b", bot: "#09140e", rim: "#4b8a66", text: "#a8e0be" }, // Prithvi
+        { top: "#262112", bot: "#141109", rim: "#a88c42", text: "#f0da9c" }, // Vayu
+        { top: "#101d30", bot: "#08101c", rim: "#4975a8", text: "#a9ccf2" }, // Jala
+      ],
+    },
+    light: {
+      isLight: true,
+      gear1: ["#7d5e2b", "#c8a156", "#6b4d1e"],
+      gear1Stroke: "rgba(92,64,22,0.45)",
+      gear2Fill: "rgba(116,104,88,0.68)",
+      gear2Stroke: "rgba(74,62,48,0.28)",
+      bezelStops: ["#d8c6a3", "#b89c68", "#8d703d", "#b5965e"],
+      brassStops: ["#7d5a20", "#caa256", "#634414", "#e3c47e", "#7a561e"],
+      rivetStops: ["#fff2cc", "#a67c32", "#473210"],
+      tickMajor: "rgba(66,46,16,0.92)",
+      tickFive: "rgba(88,64,26,0.58)",
+      tickMinor: "rgba(102,80,44,0.32)",
+      padaEven: "#f7f1e3",
+      padaOdd: "#ede4cf",
+      padaRasiLine: "rgba(130, 88, 22, 0.85)",
+      padaNakLine: "rgba(142, 102, 40, 0.52)",
+      padaLine: "rgba(130, 112, 82, 0.28)",
+      padaNum: "rgba(62,48,28,0.82)",
+      padaNumGan: "rgba(186,46,16,0.96)",
+      gandantaFill: "rgba(218, 62, 24, 0.16)",
+      gandantaLine: "rgba(202, 52, 18, 0.92)",
+      nakStroke: "rgba(138, 102, 42, 0.36)",
+      nakDev: "#2d2214",
+      nakEng: "#6d4b12",
+      trackStops: ["#dfd5c2", "#ece4d4", "#d6cab4"],
+      trackGroove: "rgba(112, 88, 48, 0.15)",
+      trackSpoke: "rgba(128, 92, 34, 0.25)",
+      rasiName: "#2a2013",
+      bhavaTop: "#a34600",
+      bhavaOther: "rgba(86,62,24,0.78)",
+      natalStops: ["#e8decb", "#f3ecdc", "#ddd2bd"],
+      natalSpoke: "rgba(128,94,38,0.22)",
+      natalPinBg: "#2a2117",
+      natalLagnaBg: "#12423a",
+      natalPinRim: "#b5852c",
+      coreStops: ["#fdfaf2", "#f3ead6", "#e4d7bc"],
+      coreGear1Fill: "rgba(146, 108, 42, 0.11)",
+      coreGear1Stroke: "rgba(132, 94, 34, 0.22)",
+      coreGear2Fill: "rgba(106, 98, 86, 0.08)",
+      coreGear2Stroke: "rgba(102, 92, 76, 0.18)",
+      hubScrim0: "rgba(251, 247, 238, 0.90)",
+      hubScrim1: "rgba(246, 239, 224, 0.72)",
+      hubScrim2: "rgba(246, 239, 224, 0.0)",
+      hubCrest: "#875c16",
+      hubDate: "#1c160e",
+      hubDoy: "#9e5c0a",
+      hubSun: "#33281a",
+      hubSub: "#5e5344",
+      yearArc: "#b57a1c",
+      yearArcTriple: "#c93818",
+      orbDark: "#241e16",
+      orbGlyph: "#0b0907",
+      orbRim: "rgba(44,32,16,0.75)",
+      dustColor: "145, 106, 44",
+      rulerMetal: {
+        Ketu:    { fill: "#ebe3f0", rim: "#7c4da6" },
+        Venus:   { fill: "#f2e3ea", rim: "#a84476" },
+        Sun:     { fill: "#f5ead6", rim: "#bf741b" },
+        Moon:    { fill: "#e4ebf4", rim: "#5675a6" },
+        Mars:    { fill: "#f4e1de", rim: "#b53e2d" },
+        Rahu:    { fill: "#e5e6f4", rim: "#5a51b8" },
+        Jupiter: { fill: "#f4eed6", rim: "#ad861a" },
+        Saturn:  { fill: "#e2e8f0", rim: "#466894" },
+        Mercury: { fill: "#e0efe8", rim: "#2a8567" },
+      },
+      elemAlloy: [
+        { top: "#edd5cb", bot: "#e2bfb2", rim: "#9c3e26", text: "#702412" }, // Agni
+        { top: "#d4e6da", bot: "#bfd8c8", rim: "#2f734d", text: "#1a4d32" }, // Prithvi
+        { top: "#f0e5c2", bot: "#e3d3a2", rim: "#8f6e18", text: "#5c4408" }, // Vayu
+        { top: "#d0dfef", bot: "#bad0e8", rim: "#2d5d94", text: "#163b66" }, // Jala
+      ],
+    },
+  };
 
   // Speed presets (simulated days per real-world second)
   const SPEED_MAP = {
@@ -49,41 +181,70 @@
     month: { daysPerSec: 30.0, label: "1 MONTH / SEC" },
   };
 
+  // Deterministic ambient cosmic dust motes orbiting outside the bezel
+  const DUST_MOTES = Array.from({ length: 42 }, (_, i) => ({
+    angle: (i * 137.508) % 360,
+    radFrac: 1.035 + ((i * 37) % 100) / 1450,
+    size: 0.7 + ((i * 19) % 10) * 0.14,
+    speed: (i % 2 === 0 ? 1 : -1) * (0.002 + ((i * 11) % 7) * 0.0007),
+    phase: i * 0.7,
+  }));
+
   // ---------------------------------------------------------------------------
   // Application State
   // ---------------------------------------------------------------------------
 
   const state = {
+    theme: "dark",             // "dark" | "light"
+    zen: false,
+    lens: "convergences",      // "convergences" | "all" | "resonance"
     ayanamsa: "lahiri",        // "lahiri" | "raman"
     speed: "week",             // "day" | "week" | "month"
     playing: true,
     direction: 1,              // 1 forward, -1 reverse
     simJD: JE.dateToJD(new Date()),
     lastCheckedDay: Math.floor(JE.dateToJD(new Date())),
-    birthInput: null,          // { name, date, time, city, lat, lon, tz }
-    natalJD: null,             // exact birth Julian Day when locked
+    birthInput: null,          // { date, time, city, lat, lon, tz }
+    natalJD: null,             // exact birth JD when locked
     natal: null,               // computeSiderealSnapshot result
     transit: null,             // current computeSiderealSnapshot result
+    dasha: null,               // computeVimshottariDasha result
+    panchanga: null,           // computePanchanga result
+    epochs: [],                // lifespan epoch bands
+    activeEpoch: { badges: [], sadeSatiPhase: null, sadeSatiRasis: [] },
     analysis: { triples: [], doubles: [], padaHits: [] },
     activeEventKeys: new Set(),
     eventLog: [],
-    shockwaves: [],            // { rasiIdx, tier, bornAt, color }
-    trails: {},                // planetId -> [{ deg }]
-    hovered: null,             // { type: "pada"|"nak"|"rasi"|"planet", data, x, y }
-    zenithDeg: 15,             // smooth animated top degree
+    shockwaves: [],
+    trails: {},
+    hovered: null,             // { type, data, telemetryHtml, loreHtml }
+    pinned: null,              // pinned lore object (on click)
+    zenithDeg: 15,
     targetZenithDeg: 15,
     gearAngle: 0,
     lastFrameMs: performance.now(),
     lastUiUpdateMs: 0,
   };
 
-  // Cached offscreen forged-metal static dial
   let staticCanvas = null;
   let staticCacheKey = "";
   let canvas = null;
   let ctx = null;
   let canvasSize = 680;
   let dpr = 1;
+
+  // Grab-and-Spin cranking state
+  const crank = {
+    active: false,
+    moved: false,
+    wasPlaying: false,
+    startX: 0,
+    startY: 0,
+    lastAngle: 0,
+    accumDeg: 0,
+  };
+
+  const $ = (id) => document.getElementById(id);
 
   // ---------------------------------------------------------------------------
   // Geometry Helpers
@@ -103,30 +264,26 @@
     const dy = my - cy;
     const dist = Math.hypot(dx, dy);
     const a = Math.atan2(dy, dx);
-    // Inverse of: a = -(deg - zenith)*DEG - PI/2
     const deg = JE.norm360(state.zenithDeg - (a + Math.PI / 2) / DEG);
-    return { deg, dist };
+    return { deg, dist, a };
   }
 
   function drawWedge(c, cx, cy, r1, r2, sDeg, eDeg) {
     const a1 = dToRad(sDeg);
     const a2 = dToRad(eDeg);
     c.beginPath();
-    // Since angles go counter-clockwise as sidereal deg increases, anticlockwise = true for outer arc
     c.arc(cx, cy, r2, a1, a2, true);
     c.arc(cx, cy, r1, a2, a1, false);
     c.closePath();
   }
 
   function drawArcLabel(c, text, cx, cy, r, midDeg, font, fill) {
-    const { x, y, a } = polar(cx, cy, r, midDeg);
-    let rot = a + Math.PI / 2;
-    const normRot = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    if (normRot > Math.PI / 2 && normRot < (3 * Math.PI) / 2) {
-      rot += Math.PI;
-    }
+    const p = polar(cx, cy, r, midDeg);
+    let rot = p.a + Math.PI / 2;
+    const normA = ((p.a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    if (normA > 0 && normA < Math.PI) rot += Math.PI;
     c.save();
-    c.translate(x, y);
+    c.translate(p.x, p.y);
     c.rotate(rot);
     c.font = font;
     c.fillStyle = fill;
@@ -136,25 +293,25 @@
     c.restore();
   }
 
-  function drawGear(c, cx, cy, outerR, innerR, teeth, toothDepth, angle, fillStyle, strokeStyle) {
+  function drawGear(c, cx, cy, outerR, innerR, teeth, toothDepth, angleRad, fillStyle, strokeStyle) {
+    const step = (Math.PI * 2) / teeth;
     c.save();
     c.translate(cx, cy);
-    c.rotate(angle);
+    c.rotate(angleRad);
     c.beginPath();
-    const step = (Math.PI * 2) / teeth;
     for (let i = 0; i < teeth; i++) {
       const a0 = i * step;
       const a1 = a0 + step * 0.22;
-      const a2 = a0 + step * 0.30;
-      const a3 = a0 + step * 0.62;
-      const a4 = a0 + step * 0.70;
-      const rLow = outerR - toothDepth;
-      if (i === 0) c.moveTo(Math.cos(a0) * rLow, Math.sin(a0) * rLow);
-      else c.lineTo(Math.cos(a0) * rLow, Math.sin(a0) * rLow);
-      c.lineTo(Math.cos(a1) * rLow, Math.sin(a1) * rLow);
+      const a2 = a0 + step * 0.34;
+      const a3 = a0 + step * 0.66;
+      const a4 = a0 + step * 0.78;
+      const rBase = outerR - toothDepth;
+      if (i === 0) c.moveTo(Math.cos(a0) * rBase, Math.sin(a0) * rBase);
+      else c.lineTo(Math.cos(a0) * rBase, Math.sin(a0) * rBase);
+      c.lineTo(Math.cos(a1) * rBase, Math.sin(a1) * rBase);
       c.lineTo(Math.cos(a2) * outerR, Math.sin(a2) * outerR);
       c.lineTo(Math.cos(a3) * outerR, Math.sin(a3) * outerR);
-      c.lineTo(Math.cos(a4) * rLow, Math.sin(a4) * rLow);
+      c.lineTo(Math.cos(a4) * rBase, Math.sin(a4) * rBase);
     }
     c.closePath();
     if (innerR > 0) {
@@ -172,13 +329,14 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Offscreen Forged Metallic Static Dial Builder (Rebuilt on resize/rotation)
+  // Offscreen Forged Metallic Static Dial Builder (Theme-Aware)
   // ---------------------------------------------------------------------------
 
   function ensureStaticLayer(size, pixelRatio) {
+    const T = THEMES[state.theme] || THEMES.dark;
     const zKey = state.zenithDeg.toFixed(2);
     const natKey = state.natal ? `${state.natal.details.Lagna ? state.natal.details.Lagna.rasiIdx : -1}` : "sky";
-    const key = `${size}:${pixelRatio}:${zKey}:${natKey}:${state.ayanamsa}`;
+    const key = `${state.theme}:${size}:${pixelRatio}:${zKey}:${natKey}:${state.ayanamsa}`;
     if (staticCanvas && staticCacheKey === key) return staticCanvas;
 
     if (!staticCanvas) staticCanvas = document.createElement("canvas");
@@ -189,33 +347,32 @@
 
     const cx = size / 2;
     const cy = size / 2;
-    const R = size * 0.468; // leave crisp margin for protruding outer gear teeth & glow
+    const R = size * 0.468;
 
-    // 1. Heavy Gunmetal Outer Bezel Rim (R * 0.945 -> R * 1.00)
+    // 1. Heavy Gunmetal / Antique Brass Outer Bezel
     const rimGrad = sc.createRadialGradient(cx - R * 0.2, cy - R * 0.25, R * 0.65, cx, cy, R * 1.01);
-    rimGrad.addColorStop(0, "#2b3040");
-    rimGrad.addColorStop(0.55, "#151923");
-    rimGrad.addColorStop(0.88, "#0c0e15");
-    rimGrad.addColorStop(1, "#262018");
+    rimGrad.addColorStop(0, T.bezelStops[0]);
+    rimGrad.addColorStop(0.55, T.bezelStops[1]);
+    rimGrad.addColorStop(0.88, T.bezelStops[2]);
+    rimGrad.addColorStop(1, T.bezelStops[3]);
     sc.beginPath();
     sc.arc(cx, cy, R, 0, Math.PI * 2);
     sc.fillStyle = rimGrad;
     sc.fill();
 
-    // Chamfered Brass Outer Ring
     const brassRing = sc.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-    brassRing.addColorStop(0, "#e5c173");
-    brassRing.addColorStop(0.28, "#8f692c");
-    brassRing.addColorStop(0.52, "#f2d692");
-    brassRing.addColorStop(0.76, "#66481a");
-    brassRing.addColorStop(1, "#cfa355");
+    brassRing.addColorStop(0, T.brassStops[0]);
+    brassRing.addColorStop(0.28, T.brassStops[1]);
+    brassRing.addColorStop(0.52, T.brassStops[2]);
+    brassRing.addColorStop(0.76, T.brassStops[3]);
+    brassRing.addColorStop(1, T.brassStops[4]);
     sc.beginPath();
     sc.arc(cx, cy, R - 1.5, 0, Math.PI * 2);
     sc.strokeStyle = brassRing;
     sc.lineWidth = 3;
     sc.stroke();
 
-    // 36 Machined Brass Perimeter Rivets + 360 Vernier Degree Ticks
+    // 36 Rivets + 360 Vernier Ticks
     for (let deg = 0; deg < 360; deg++) {
       const isMajor = deg % 30 === 0;
       const isTen = deg % 10 === 0;
@@ -226,16 +383,16 @@
       sc.beginPath();
       sc.moveTo(p1.x, p1.y);
       sc.lineTo(p2.x, p2.y);
-      sc.strokeStyle = isMajor ? "rgba(235,198,118,0.85)" : (isFive ? "rgba(198,162,92,0.45)" : "rgba(160,145,115,0.22)");
+      sc.strokeStyle = isMajor ? T.tickMajor : (isFive ? T.tickFive : T.tickMinor);
       sc.lineWidth = isMajor ? 1.5 : 0.8;
       sc.stroke();
 
       if (isTen) {
         const rv = polar(cx, cy, R * 0.976, deg + 5);
         const rg = sc.createRadialGradient(rv.x - 1, rv.y - 1, 0.4, rv.x, rv.y, 2.8);
-        rg.addColorStop(0, "#f3d796");
-        rg.addColorStop(0.55, "#8c6628");
-        rg.addColorStop(1, "#2a1e0c");
+        rg.addColorStop(0, T.rivetStops[0]);
+        rg.addColorStop(0.55, T.rivetStops[1]);
+        rg.addColorStop(1, T.rivetStops[2]);
         sc.beginPath();
         sc.arc(rv.x, rv.y, 2.4, 0, Math.PI * 2);
         sc.fillStyle = rg;
@@ -243,31 +400,28 @@
       }
     }
 
-    // 2. Ring 1: All 108 Nakshatra Padas (R * 0.842 -> R * 0.940)
+    // 2. Ring 1: All 108 Nakshatra Padas
     const rPadaIn = R * 0.842;
     const rPadaOut = R * 0.940;
     const padaFont = `600 ${Math.max(6.5, size * 0.0112).toFixed(1)}px "JetBrains Mono", monospace`;
 
     for (let i = 0; i < 108; i++) {
       const p = JE.PADAS[i];
-      const rm = RULER_METAL[p.nak.ruler];
+      const rm = T.rulerMetal[p.nak.ruler];
       drawWedge(sc, cx, cy, rPadaIn, rPadaOut, p.startDeg, p.endDeg);
-      sc.fillStyle = (i % 2 === 0) ? "#11141e" : "#151926";
+      sc.fillStyle = (i % 2 === 0) ? T.padaEven : T.padaOdd;
       sc.fill();
 
-      // Subtle outer accent band tinted by Nakshatra ruler
       drawWedge(sc, cx, cy, rPadaOut - R * 0.014, rPadaOut, p.startDeg, p.endDeg);
-      sc.fillStyle = rm.rim + "44";
+      sc.fillStyle = rm.rim + (T.isLight ? "66" : "44");
       sc.fill();
 
-      // Gandanta ember seam (Revati 4 / Ashwini 1, Ashlesha 4 / Magha 1, Jyeshtha 4 / Mula 1)
       if (p.isGandanta) {
         drawWedge(sc, cx, cy, rPadaIn, rPadaOut, p.startDeg, p.endDeg);
-        sc.fillStyle = "rgba(255, 86, 36, 0.14)";
+        sc.fillStyle = T.gandantaFill;
         sc.fill();
       }
 
-      // Pada divider line
       const lineStart = polar(cx, cy, rPadaIn, p.startDeg);
       const lineEnd = polar(cx, cy, rPadaOut, p.startDeg);
       const isNakBoundary = (i % 4 === 0);
@@ -275,24 +429,20 @@
       sc.beginPath();
       sc.moveTo(lineStart.x, lineStart.y);
       sc.lineTo(lineEnd.x, lineEnd.y);
-      sc.strokeStyle = isRasiBoundary
-        ? "rgba(232, 190, 108, 0.72)"
-        : (isNakBoundary ? "rgba(196, 158, 92, 0.42)" : "rgba(130, 145, 175, 0.19)");
+      sc.strokeStyle = isRasiBoundary ? T.padaRasiLine : (isNakBoundary ? T.padaNakLine : T.padaLine);
       sc.lineWidth = isRasiBoundary ? 1.4 : (isNakBoundary ? 0.95 : 0.55);
       sc.stroke();
 
-      // Engraved Pada numeral (1, 2, 3, 4)
-      drawArcLabel(sc, String(p.padaNum), cx, cy, (rPadaIn + rPadaOut) * 0.494, p.midDeg, padaFont, p.isGandanta ? "rgba(255,152,102,0.85)" : "rgba(182,175,160,0.68)");
+      drawArcLabel(sc, String(p.padaNum), cx, cy, (rPadaIn + rPadaOut) * 0.494, p.midDeg, padaFont, p.isGandanta ? T.padaNumGan : T.padaNum);
     }
 
-    // Metallic groove between 108-Pada ring and 27-Nakshatra ring
     sc.beginPath();
     sc.arc(cx, cy, rPadaOut, 0, Math.PI * 2);
-    sc.strokeStyle = "rgba(218,176,98,0.55)";
+    sc.strokeStyle = brassRing;
     sc.lineWidth = 1.4;
     sc.stroke();
 
-    // 3. Ring 2: The 27 Nakshatras (R * 0.718 -> R * 0.842)
+    // 3. Ring 2: 27 Nakshatras
     const rNakIn = R * 0.718;
     const rNakOut = rPadaIn;
     const nakEngFont = `700 ${Math.max(7.2, size * 0.0122).toFixed(1)}px "Cinzel", serif`;
@@ -303,84 +453,78 @@
       const sDeg = i * (360 / 27);
       const eDeg = (i + 1) * (360 / 27);
       const mid = (sDeg + eDeg) / 2;
-      const rm = RULER_METAL[nak.ruler];
+      const rm = T.rulerMetal[nak.ruler];
 
       drawWedge(sc, cx, cy, rNakIn, rNakOut, sDeg, eDeg);
       sc.fillStyle = rm.fill;
       sc.fill();
-      sc.strokeStyle = "rgba(202, 168, 98, 0.26)";
+      sc.strokeStyle = T.nakStroke;
       sc.lineWidth = 0.85;
       sc.stroke();
 
-      // Engraved Nakshatra Devanagari (outer) + Short/Clean English (inner)
-      drawArcLabel(sc, nak.dev, cx, cy, rNakIn + (rNakOut - rNakIn) * 0.68, mid, nakDevFont, "rgba(232, 214, 178, 0.82)");
-      drawArcLabel(sc, nak.short.toUpperCase(), cx, cy, rNakIn + (rNakOut - rNakIn) * 0.31, mid, nakEngFont, "rgba(218, 178, 102, 0.92)");
+      drawArcLabel(sc, nak.dev, cx, cy, rNakIn + (rNakOut - rNakIn) * 0.68, mid, nakDevFont, T.nakDev);
+      drawArcLabel(sc, nak.short.toUpperCase(), cx, cy, rNakIn + (rNakOut - rNakIn) * 0.31, mid, nakEngFont, T.nakEng);
     }
 
-    // Incandescent Gandanta fault radial notches at 0°, 120°, 240°
     for (const gDeg of [0, 120, 240]) {
       const a = polar(cx, cy, rNakIn, gDeg);
       const b = polar(cx, cy, rPadaOut, gDeg);
       sc.beginPath();
       sc.moveTo(a.x, a.y);
       sc.lineTo(b.x, b.y);
-      sc.strokeStyle = "rgba(255, 108, 56, 0.82)";
+      sc.strokeStyle = T.gandantaLine;
       sc.lineWidth = 1.8;
       sc.stroke();
     }
 
-    // Brass dividing ring between Nakshatras & Transit Track
     sc.beginPath();
     sc.arc(cx, cy, rNakIn, 0, Math.PI * 2);
     sc.strokeStyle = brassRing;
     sc.lineWidth = 2.0;
     sc.stroke();
 
-    // 4. Ring 3: Recessed Machined Orbital Channel for Transiting Navagrahas (R * 0.562 -> R * 0.718)
+    // 4. Ring 3: Recessed Orbital Channel for Transiting Navagrahas
     const rTransIn = R * 0.562;
     const rTransOut = rNakIn;
     const trackGrad = sc.createRadialGradient(cx, cy, rTransIn, cx, cy, rTransOut);
-    trackGrad.addColorStop(0, "#070910");
-    trackGrad.addColorStop(0.5, "#0d111b");
-    trackGrad.addColorStop(1, "#080a12");
+    trackGrad.addColorStop(0, T.trackStops[0]);
+    trackGrad.addColorStop(0.5, T.trackStops[1]);
+    trackGrad.addColorStop(1, T.trackStops[2]);
     sc.beginPath();
     sc.arc(cx, cy, rTransOut, 0, Math.PI * 2);
     sc.arc(cx, cy, rTransIn, 0, Math.PI * 2, true);
     sc.fillStyle = trackGrad;
     sc.fill("evenodd");
 
-    // Subtle concentric lathe grooves inside the orbital trough
     for (const frac of [0.60, 0.64, 0.68]) {
       sc.beginPath();
       sc.arc(cx, cy, R * frac, 0, Math.PI * 2);
-      sc.strokeStyle = "rgba(180, 160, 120, 0.09)";
+      sc.strokeStyle = T.trackGroove;
       sc.lineWidth = 0.8;
       sc.stroke();
     }
-    // Rasi radial spokes faintly etched across the orbital trough
     for (let i = 0; i < 12; i++) {
       const p1 = polar(cx, cy, rTransIn, i * 30);
       const p2 = polar(cx, cy, rTransOut, i * 30);
       sc.beginPath();
       sc.moveTo(p1.x, p1.y);
       sc.lineTo(p2.x, p2.y);
-      sc.strokeStyle = "rgba(208, 170, 96, 0.16)";
+      sc.strokeStyle = T.trackSpoke;
       sc.lineWidth = 0.9;
       sc.stroke();
     }
 
-    // 5. Ring 4: The 12 Rasis — Elemental Metallic Plates (R * 0.422 -> R * 0.562)
+    // 5. Ring 4: The 12 Rasis (Elemental Metallic / Mineral Enamel Plates)
     const rRasiIn = R * 0.422;
     const rRasiOut = rTransIn;
-    const rasiGlyphFont = `600 ${Math.max(12, size * 0.022).toFixed(1)}px "DM Sans", sans-serif`;
     const rasiNameFont = `700 ${Math.max(7.2, size * 0.012).toFixed(1)}px "Cinzel", serif`;
-    const rasiDevFont = `500 ${Math.max(7, size * 0.0115).toFixed(1)}px "Noto Sans Devanagari", sans-serif`;
+    const rasiDevFont = `600 ${Math.max(7, size * 0.0115).toFixed(1)}px "Noto Sans Devanagari", sans-serif`;
     const bhavaFont = `700 ${Math.max(7, size * 0.011).toFixed(1)}px "Cinzel", serif`;
     const lagnaIdx = (state.natal && state.natal.details.Lagna) ? state.natal.details.Lagna.rasiIdx : null;
 
     for (let i = 0; i < 12; i++) {
       const rasi = JE.RASIS[i];
-      const ea = ELEM_ALLOY[rasi.elIdx];
+      const ea = T.elemAlloy[rasi.elIdx];
       const sDeg = i * 30;
       const eDeg = sDeg + 30;
       const mid = sDeg + 15;
@@ -391,31 +535,28 @@
       rg.addColorStop(1, ea.top);
       sc.fillStyle = rg;
       sc.fill();
-      sc.strokeStyle = ea.rim + "99";
+      sc.strokeStyle = ea.rim + (T.isLight ? "bb" : "99");
       sc.lineWidth = 1.25;
       sc.stroke();
 
-      // Element inner highlight arc
       drawWedge(sc, cx, cy, rRasiOut - R * 0.012, rRasiOut, sDeg, eDeg);
-      sc.fillStyle = ea.rim + "40";
+      sc.fillStyle = ea.rim + "44";
       sc.fill();
 
       drawArcLabel(sc, `${rasi.glyph} ${rasi.dev}`, cx, cy, rRasiIn + (rRasiOut - rRasiIn) * 0.67, mid, rasiDevFont, ea.text);
-      drawArcLabel(sc, rasi.sanskrit.toUpperCase(), cx, cy, rRasiIn + (rRasiOut - rRasiIn) * 0.34, mid, rasiNameFont, "rgba(235,214,172,0.88)");
+      drawArcLabel(sc, rasi.sanskrit.toUpperCase(), cx, cy, rRasiIn + (rRasiOut - rRasiIn) * 0.34, mid, rasiNameFont, T.rasiName);
 
-      // When natal chart is locked, etch Roman Bhava numeral (I..XII) cleanly inside each Rasi plate
       if (lagnaIdx !== null) {
         const bhavaNum = ((i - lagnaIdx) % 12 + 12) % 12;
         const bp = polar(cx, cy, rRasiIn + R * 0.022, sDeg + 5.5);
         sc.font = bhavaFont;
-        sc.fillStyle = bhavaNum === 0 ? "#ffd43b" : "rgba(218,184,114,0.62)";
+        sc.fillStyle = bhavaNum === 0 ? T.bhavaTop : T.bhavaOther;
         sc.textAlign = "center";
         sc.textBaseline = "middle";
         sc.fillText(ROMAN[bhavaNum], bp.x, bp.y);
       }
     }
 
-    // Brass Structural Ring separating Rasis & Natal Track
     sc.beginPath();
     sc.arc(cx, cy, rRasiOut, 0, Math.PI * 2);
     sc.strokeStyle = brassRing;
@@ -423,16 +564,16 @@
     sc.stroke();
     sc.beginPath();
     sc.arc(cx, cy, rRasiIn, 0, Math.PI * 2);
-    sc.strokeStyle = "rgba(208,168,94,0.65)";
+    sc.strokeStyle = brassRing;
     sc.lineWidth = 1.5;
     sc.stroke();
 
-    // 6. Ring 5: Recessed Locked Natal Pin Track (R * 0.305 -> R * 0.422)
+    // 6. Ring 5: Recessed Locked Natal Pin Track
     const rNatalIn = R * 0.305;
     const natalGrad = sc.createRadialGradient(cx, cy, rNatalIn, cx, cy, rRasiIn);
-    natalGrad.addColorStop(0, "#0b0d14");
-    natalGrad.addColorStop(0.5, "#121622");
-    natalGrad.addColorStop(1, "#090b12");
+    natalGrad.addColorStop(0, T.natalStops[0]);
+    natalGrad.addColorStop(0.5, T.natalStops[1]);
+    natalGrad.addColorStop(1, T.natalStops[2]);
     sc.beginPath();
     sc.arc(cx, cy, rRasiIn, 0, Math.PI * 2);
     sc.arc(cx, cy, rNatalIn, 0, Math.PI * 2, true);
@@ -445,25 +586,24 @@
       sc.beginPath();
       sc.moveTo(p1.x, p1.y);
       sc.lineTo(p2.x, p2.y);
-      sc.strokeStyle = "rgba(212,172,96,0.14)";
+      sc.strokeStyle = T.natalSpoke;
       sc.lineWidth = 0.8;
       sc.stroke();
     }
 
-    // Inner obsidian core rim
     sc.beginPath();
     sc.arc(cx, cy, rNatalIn, 0, Math.PI * 2);
     sc.strokeStyle = brassRing;
     sc.lineWidth = 2.2;
     sc.stroke();
 
-    // Subtle radial metallic specular sweep across the whole forged disk
+    // Subtle diagonal metallic specular sweep across forged disk
     const sheen = sc.createLinearGradient(cx - R, cy - R, cx + R * 0.9, cy + R * 0.9);
-    sheen.addColorStop(0, "rgba(255, 240, 200, 0.06)");
-    sheen.addColorStop(0.32, "rgba(255, 255, 255, 0.0)");
-    sheen.addColorStop(0.52, "rgba(240, 205, 130, 0.045)");
-    sheen.addColorStop(0.75, "rgba(0, 0, 0, 0.08)");
-    sheen.addColorStop(1, "rgba(255, 224, 160, 0.04)");
+    sheen.addColorStop(0, T.isLight ? "rgba(255, 250, 236, 0.22)" : "rgba(255, 240, 200, 0.06)");
+    sheen.addColorStop(0.35, "rgba(255, 255, 255, 0.0)");
+    sheen.addColorStop(0.55, T.isLight ? "rgba(180, 140, 68, 0.06)" : "rgba(240, 205, 130, 0.045)");
+    sheen.addColorStop(0.78, T.isLight ? "rgba(80, 58, 22, 0.06)" : "rgba(0, 0, 0, 0.08)");
+    sheen.addColorStop(1, T.isLight ? "rgba(255, 246, 224, 0.14)" : "rgba(255, 224, 160, 0.04)");
     sc.beginPath();
     sc.arc(cx, cy, R, 0, Math.PI * 2);
     sc.fillStyle = sheen;
@@ -479,6 +619,7 @@
 
   function renderFrame(nowMs) {
     if (!ctx || !state.transit) return;
+    const T = THEMES[state.theme] || THEMES.dark;
     const size = canvasSize;
     const cx = size / 2;
     const cy = size / 2;
@@ -487,22 +628,38 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size, size);
 
+    // 0. Subtle drifting cosmic dust motes orbiting outside the bezel
+    for (const m of DUST_MOTES) {
+      const ang = (m.angle + nowMs * m.speed) * DEG;
+      const rr = R * m.radFrac;
+      const alpha = (0.18 + 0.22 * Math.sin(nowMs * 0.0014 + m.phase)) * (T.isLight ? 0.65 : 1);
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr, m.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${T.dustColor}, ${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
     // 1. Animated Counter-Rotating Machined Gears Peering Behind the Bezel
     const gGrad1 = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.055);
-    gGrad1.addColorStop(0, "#3a2c16");
-    gGrad1.addColorStop(0.6, "#8c682b");
-    gGrad1.addColorStop(1, "#4a3514");
-    drawGear(ctx, cx, cy, R * 1.045, R * 0.94, 72, R * 0.036, state.gearAngle * 0.4, gGrad1, "rgba(240,206,132,0.28)");
+    gGrad1.addColorStop(0, T.gear1[0]);
+    gGrad1.addColorStop(0.6, T.gear1[1]);
+    gGrad1.addColorStop(1, T.gear1[2]);
+    drawGear(ctx, cx, cy, R * 1.045, R * 0.94, 72, R * 0.036, state.gearAngle * 0.4, gGrad1, T.gear1Stroke);
+    drawGear(ctx, cx, cy, R * 1.022, R * 0.94, 54, R * 0.025, -state.gearAngle * 0.65, T.gear2Fill, T.gear2Stroke);
 
-    // Subtle secondary dark iron gear
-    drawGear(ctx, cx, cy, R * 1.022, R * 0.94, 54, R * 0.025, -state.gearAngle * 0.65, "rgba(38,44,58,0.85)", "rgba(160,175,205,0.16)");
+    const hasTriple = state.analysis.triples.length > 0;
+    const hasDouble = state.analysis.doubles.length > 0;
+    const eclipse = state.panchanga ? state.panchanga.eclipse : null;
 
     // Outer ambient cosmic aura around the heavy chassis
     const aura = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.08);
-    const hasTriple = state.analysis.triples.length > 0;
-    const hasDouble = state.analysis.doubles.length > 0;
     aura.addColorStop(0, "rgba(0,0,0,0)");
-    aura.addColorStop(0.75, hasTriple ? "rgba(255, 92, 54, 0.14)" : (hasDouble ? "rgba(240, 186, 68, 0.11)" : "rgba(120, 145, 200, 0.06)"));
+    aura.addColorStop(
+      0.75,
+      eclipse ? "rgba(232, 76, 38, 0.16)"
+        : (hasTriple ? "rgba(255, 92, 54, 0.14)"
+          : (hasDouble ? "rgba(240, 186, 68, 0.11)" : "rgba(120, 145, 200, 0.05)"))
+    );
     aura.addColorStop(1, "rgba(0,0,0,0)");
     ctx.beginPath();
     ctx.arc(cx, cy, R * 1.08, 0, Math.PI * 2);
@@ -513,22 +670,21 @@
     const bg = ensureStaticLayer(size, dpr);
     ctx.drawImage(bg, 0, 0, size, size);
 
-    // 3. Center Obsidian Chronometer Glass Dome + Internal Rotating Brass Orrery Gear
+    // 3. Center Chronometer Glass Dome + Internal Rotating Brass Escapement Gears
     const rCore = R * 0.303;
     const coreGrad = ctx.createRadialGradient(cx - rCore * 0.25, cy - rCore * 0.25, rCore * 0.05, cx, cy, rCore);
-    coreGrad.addColorStop(0, "#141928");
-    coreGrad.addColorStop(0.65, "#080a12");
-    coreGrad.addColorStop(1, "#04050a");
+    coreGrad.addColorStop(0, T.coreStops[0]);
+    coreGrad.addColorStop(0.65, T.coreStops[1]);
+    coreGrad.addColorStop(1, T.coreStops[2]);
     ctx.beginPath();
     ctx.arc(cx, cy, rCore, 0, Math.PI * 2);
     ctx.fillStyle = coreGrad;
     ctx.fill();
 
-    // Subtle internal animated brass escapement gears visible under obsidian glass
-    drawGear(ctx, cx, cy, rCore * 0.92, rCore * 0.72, 36, rCore * 0.075, -state.gearAngle * 1.2, "rgba(184, 142, 66, 0.09)", "rgba(220, 180, 102, 0.14)");
-    drawGear(ctx, cx, cy, rCore * 0.64, rCore * 0.46, 24, rCore * 0.065, state.gearAngle * 2.1, "rgba(120, 145, 190, 0.07)", "rgba(165, 190, 230, 0.10)");
+    drawGear(ctx, cx, cy, rCore * 0.92, rCore * 0.72, 36, rCore * 0.075, -state.gearAngle * 1.2, T.coreGear1Fill, T.coreGear1Stroke);
+    drawGear(ctx, cx, cy, rCore * 0.64, rCore * 0.46, 24, rCore * 0.065, state.gearAngle * 2.1, T.coreGear2Fill, T.coreGear2Stroke);
 
-    // 4. Illuminate Occupied 108-Pada Cells & Hovered Cell
+    // 4. Illuminate Occupied 108-Pada Cells & Clean Non-Obstructing Hover Highlight
     const rPadaIn = R * 0.842;
     const rPadaOut = R * 0.940;
     const occupiedPadas = new Map();
@@ -539,25 +695,89 @@
     for (const [pid, col] of occupiedPadas.entries()) {
       const p = JE.PADAS[pid];
       drawWedge(ctx, cx, cy, rPadaIn, rPadaOut, p.startDeg, p.endDeg);
-      ctx.fillStyle = col + "38";
+      ctx.fillStyle = col + (T.isLight ? "44" : "38");
       ctx.fill();
       ctx.strokeStyle = col + "cc";
       ctx.lineWidth = 1.2;
       ctx.stroke();
     }
 
-    if (state.hovered && state.hovered.type === "pada") {
-      const hp = state.hovered.data;
-      drawWedge(ctx, cx, cy, rPadaIn, rPadaOut, hp.startDeg, hp.endDeg);
-      ctx.fillStyle = "rgba(255, 224, 130, 0.28)";
-      ctx.fill();
-      ctx.strokeStyle = "#ffe082";
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
+    // Subtle hairline sector highlight on hover (ZERO floating popup obstruction!)
+    if (state.hovered) {
+      const h = state.hovered;
+      const hiStroke = T.isLight ? "#8f5900" : "#ffe082";
+      const hiFill = T.isLight ? "rgba(184, 128, 22, 0.22)" : "rgba(255, 224, 130, 0.22)";
+      if (h.type === "pada") {
+        drawWedge(ctx, cx, cy, rPadaIn, rPadaOut, h.data.startDeg, h.data.endDeg);
+        ctx.fillStyle = hiFill; ctx.fill();
+        ctx.strokeStyle = hiStroke; ctx.lineWidth = 1.8; ctx.stroke();
+      } else if (h.type === "nak") {
+        const sD = h.data.idx * (360 / 27);
+        drawWedge(ctx, cx, cy, R * 0.718, rPadaIn, sD, sD + 360 / 27);
+        ctx.fillStyle = hiFill; ctx.fill();
+        ctx.strokeStyle = hiStroke; ctx.lineWidth = 1.6; ctx.stroke();
+      } else if (h.type === "rasi") {
+        const sD = h.data.idx * 30;
+        drawWedge(ctx, cx, cy, R * 0.422, R * 0.562, sD, sD + 30);
+        ctx.fillStyle = hiFill; ctx.fill();
+        ctx.strokeStyle = hiStroke; ctx.lineWidth = 1.8; ctx.stroke();
+      }
     }
 
-    // 5. Illuminate Active Double / Triple Transit Rasis & Draw Drishti Energy Arcs!
+    // 4b. Sade Sati Subtle Lunar-Indigo Shroud on Moon's 12th/1st/2nd Rasis when active
     const pulse = 0.55 + 0.45 * Math.sin(nowMs * 0.0055);
+    if (state.activeEpoch && state.activeEpoch.sadeSatiPhase) {
+      for (const sr of state.activeEpoch.sadeSatiRasis) {
+        drawWedge(ctx, cx, cy, R * 0.422, R * 0.562, sr * 30, sr * 30 + 30);
+        ctx.fillStyle = T.isLight
+          ? `rgba(74, 88, 176, ${(0.12 + 0.06 * pulse).toFixed(3)})`
+          : `rgba(104, 128, 232, ${(0.11 + 0.07 * pulse).toFixed(3)})`;
+        ctx.fill();
+        ctx.strokeStyle = T.isLight ? "rgba(74, 88, 176, 0.7)" : "rgba(130, 158, 255, 0.58)";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      }
+    }
+
+    // 5. Drishti Optical Lens Layer (Convergences / All Vedic Rays / Natal Resonance)
+    if (state.lens === "all") {
+      const rays = JE.computeAllDrishtiRays(state.transit);
+      for (const r of rays) {
+        const srcPt = polar(cx, cy, R * 0.565, r.fromDeg);
+        const tgtPt = polar(cx, cy, R * 0.422, r.toDeg);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(srcPt.x, srcPt.y);
+        ctx.quadraticCurveTo(cx, cy, tgtPt.x, tgtPt.y);
+        ctx.strokeStyle = r.color + (T.isLight ? "88" : "58");
+        ctx.lineWidth = 1.15;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    if (state.lens === "resonance" && state.natal) {
+      const resHits = JE.computeNatalResonances(state.transit, state.natal, 2.8);
+      for (const rh of resHits) {
+        const tPt = polar(cx, cy, R * 0.57, rh.tDeg);
+        const nPt = polar(cx, cy, R * 0.40, rh.nDeg);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(tPt.x, tPt.y);
+        if (rh.type === "opposition") ctx.quadraticCurveTo(cx, cy, nPt.x, nPt.y);
+        else ctx.lineTo(nPt.x, nPt.y);
+        ctx.strokeStyle = rh.type === "conjunction"
+          ? (T.isLight ? "#b56400" : "#ffe066")
+          : (T.isLight ? "#9e2d48" : "#ff85a2");
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = rh.color;
+        ctx.shadowBlur = 9;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Always illuminate Double / Triple Transit Rasis & draw Convergence Arcs (strongest in convergences lens)
     const activeEvents = [...state.analysis.triples, ...state.analysis.doubles].slice(0, 3);
     for (const ev of activeEvents) {
       const isTriple = ev.tier === "triple";
@@ -565,78 +785,95 @@
       const eDeg = sDeg + 30;
       const targetMid = sDeg + 15;
 
-      // Glowing activated Rasi plate
       drawWedge(ctx, cx, cy, R * 0.422, R * 0.562, sDeg, eDeg);
       ctx.fillStyle = isTriple
-        ? `rgba(255, 96, 52, ${(0.18 + 0.16 * pulse).toFixed(3)})`
-        : `rgba(248, 198, 72, ${(0.14 + 0.12 * pulse).toFixed(3)})`;
+        ? `rgba(${T.isLight ? "214, 62, 24" : "255, 96, 52"}, ${(0.16 + 0.14 * pulse).toFixed(3)})`
+        : `rgba(${T.isLight ? "204, 146, 22" : "248, 198, 72"}, ${(0.14 + 0.11 * pulse).toFixed(3)})`;
       ctx.fill();
-      ctx.strokeStyle = isTriple ? "#ff7849" : "#ffd43b";
+      ctx.strokeStyle = isTriple ? (T.isLight ? "#c43814" : "#ff7849") : (T.isLight ? "#a87008" : "#ffd43b");
       ctx.lineWidth = isTriple ? 2.4 : 1.8;
       ctx.stroke();
 
-      // Radiant Drishti energy beams from transiting Jupiter / Saturn / Rahu-Ketu -> Target Rasi!
-      const tgtPt = polar(cx, cy, R * 0.422, targetMid);
-      for (const asp of ev.aspects) {
-        const pDeg = state.transit.positions[asp.planet];
-        const pMeta = JE.PLANET_MAP[asp.planet];
-        const srcPt = polar(cx, cy, R * 0.565, pDeg);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(srcPt.x, srcPt.y);
-        // Curve gently through the obsidian aspect chamber
-        ctx.quadraticCurveTo(cx, cy, tgtPt.x, tgtPt.y);
-        ctx.strokeStyle = isTriple
-          ? (asp.planet === "Jupiter" ? "rgba(255,212,59,0.75)" : (asp.planet === "Saturn" ? "rgba(148,185,240,0.72)" : "rgba(200,130,255,0.80)"))
-          : (asp.planet === "Jupiter" ? "rgba(255,212,59,0.58)" : "rgba(148,185,240,0.56)");
-        ctx.lineWidth = isTriple ? 2.1 : 1.5;
-        ctx.shadowColor = pMeta.color;
-        ctx.shadowBlur = isTriple ? 12 : 7;
-        ctx.stroke();
-        ctx.restore();
+      if (state.lens === "convergences") {
+        const tgtPt = polar(cx, cy, R * 0.422, targetMid);
+        for (const asp of ev.aspects) {
+          const pDeg = state.transit.positions[asp.planet];
+          const pMeta = JE.PLANET_MAP[asp.planet];
+          const srcPt = polar(cx, cy, R * 0.565, pDeg);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(srcPt.x, srcPt.y);
+          ctx.quadraticCurveTo(cx, cy, tgtPt.x, tgtPt.y);
+          if (T.isLight) {
+            ctx.strokeStyle = asp.planet === "Jupiter" ? "rgba(176,118,8,0.82)" : (asp.planet === "Saturn" ? "rgba(48,86,154,0.80)" : "rgba(128,46,168,0.84)");
+          } else {
+            ctx.strokeStyle = isTriple
+              ? (asp.planet === "Jupiter" ? "rgba(255,212,59,0.75)" : (asp.planet === "Saturn" ? "rgba(148,185,240,0.72)" : "rgba(200,130,255,0.80)"))
+              : (asp.planet === "Jupiter" ? "rgba(255,212,59,0.58)" : "rgba(148,185,240,0.56)");
+          }
+          ctx.lineWidth = isTriple ? 2.1 : 1.5;
+          ctx.shadowColor = pMeta.color;
+          ctx.shadowBlur = T.isLight ? 4 : (isTriple ? 12 : 7);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
     }
 
-    // Expanding shockwaves on newly triggered Double/Triple transits
+    // Eclipse Nodal Axis & Corona Flash during Surya / Chandra Grahan
+    if (eclipse) {
+      const rPt = polar(cx, cy, R * 0.562, state.transit.positions.Rahu);
+      const kPt = polar(cx, cy, R * 0.562, state.transit.positions.Ketu);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(rPt.x, rPt.y);
+      ctx.lineTo(kPt.x, kPt.y);
+      ctx.strokeStyle = eclipse.type === "solar" ? "rgba(255, 110, 42, 0.52)" : "rgba(210, 72, 92, 0.52)";
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Expanding shockwaves
     for (let i = state.shockwaves.length - 1; i >= 0; i--) {
       const sw = state.shockwaves[i];
       const age = (nowMs - sw.bornAt) / 2200;
-      if (age >= 1) {
-        state.shockwaves.splice(i, 1);
-        continue;
-      }
+      if (age >= 1) { state.shockwaves.splice(i, 1); continue; }
       const rad = R * (0.30 + age * 0.72);
       const alpha = (1 - age) * (sw.tier === "triple" ? 0.72 : 0.52);
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-      ctx.strokeStyle = sw.tier === "triple" ? `rgba(255, 118, 68, ${alpha.toFixed(3)})` : `rgba(255, 212, 82, ${alpha.toFixed(3)})`;
+      ctx.strokeStyle = sw.tier === "triple"
+        ? `rgba(${T.isLight ? "196, 56, 20" : "255, 118, 68"}, ${alpha.toFixed(3)})`
+        : `rgba(${T.isLight ? "178, 120, 12" : "255, 212, 82"}, ${alpha.toFixed(3)})`;
       ctx.lineWidth = (1 - age) * (sw.tier === "triple" ? 4.5 : 3.0);
       ctx.stroke();
       ctx.restore();
     }
 
-    // 6. Radiant Solar Meridian Beam (visually tracks Sun darting across the 365-day zodiac)
+    // 6. Radiant Solar Meridian Beam
     const sunDeg = state.transit.positions.Sun;
     const sunIn = polar(cx, cy, R * 0.562, sunDeg);
     const sunOut = polar(cx, cy, R * 0.945, sunDeg);
     ctx.save();
     const beamGrad = ctx.createLinearGradient(sunIn.x, sunIn.y, sunOut.x, sunOut.y);
-    beamGrad.addColorStop(0, "rgba(255, 188, 60, 0.08)");
-    beamGrad.addColorStop(0.45, "rgba(255, 200, 72, 0.55)");
-    beamGrad.addColorStop(1, "rgba(255, 226, 130, 0.95)");
+    beamGrad.addColorStop(0, T.isLight ? "rgba(196, 124, 16, 0.14)" : "rgba(255, 188, 60, 0.08)");
+    beamGrad.addColorStop(0.45, T.isLight ? "rgba(214, 134, 14, 0.65)" : "rgba(255, 200, 72, 0.55)");
+    beamGrad.addColorStop(1, T.isLight ? "rgba(184, 96, 6, 0.96)" : "rgba(255, 226, 130, 0.95)");
     ctx.beginPath();
     ctx.moveTo(sunIn.x, sunIn.y);
     ctx.lineTo(sunOut.x, sunOut.y);
     ctx.strokeStyle = beamGrad;
     ctx.lineWidth = 2.0;
     ctx.shadowColor = "#ffb636";
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = T.isLight ? 4 : 10;
     ctx.stroke();
     ctx.restore();
 
-    // 7. Locked Natal Planetary Pins (Inner Recessed Track R * 0.305 -> R * 0.422)
+    // 7. Locked Natal Planetary Pins (Inner Recessed Track)
     if (state.natal) {
       const natalKeys = ["Lagna", "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"]
         .filter((k) => state.natal.positions[k] !== undefined);
@@ -647,26 +884,24 @@
         const pt = polar(cx, cy, item.r, item.deg);
         const rimPt = polar(cx, cy, R * 0.842, item.deg);
 
-        // Subtle golden anchor wire from locked natal pin out to its exact Pada!
         ctx.beginPath();
         ctx.moveTo(pt.x, pt.y);
         ctx.lineTo(rimPt.x, rimPt.y);
         ctx.strokeStyle = item.id === "Lagna" || item.id === "Moon"
-          ? "rgba(255, 214, 102, 0.22)"
-          : "rgba(218, 184, 114, 0.09)";
+          ? (T.isLight ? "rgba(146, 98, 18, 0.32)" : "rgba(255, 214, 102, 0.22)")
+          : (T.isLight ? "rgba(128, 96, 44, 0.14)" : "rgba(218, 184, 114, 0.09)");
         ctx.setLineDash([3, 5]);
         ctx.lineWidth = 0.9;
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Machined riveted ivory-brass natal pin
         const pinR = Math.max(7.2, size * 0.0125);
         ctx.save();
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, pinR, 0, Math.PI * 2);
-        ctx.fillStyle = item.id === "Lagna" ? "#112824" : "#1c1710";
+        ctx.fillStyle = item.id === "Lagna" ? T.natalLagnaBg : T.natalPinBg;
         ctx.fill();
-        ctx.strokeStyle = item.id === "Lagna" ? "#63e6be" : "#e3ba64";
+        ctx.strokeStyle = item.id === "Lagna" ? "#45c49e" : T.natalPinRim;
         ctx.lineWidth = 1.6;
         ctx.stroke();
 
@@ -679,14 +914,13 @@
       }
     }
 
-    // 8. Live Transiting Planets + Luminous Velocity Comet Trails (R * 0.562 -> R * 0.718)
+    // 8. Live Transiting Planets + Orbital Trails + Sovereign Dasha Halos + Real Moon Phase
     const transitPlaced = stackPlanets(
       JE.PLANETS.map((p) => ({ id: p.id, deg: state.transit.positions[p.id] })),
       [R * 0.640, R * 0.684, R * 0.596],
       10
     );
 
-    // Draw orbital motion trails first
     for (const item of transitPlaced) {
       const trail = state.trails[item.id];
       if (!trail || trail.length < 2) continue;
@@ -701,14 +935,16 @@
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
-        ctx.strokeStyle = meta.color + Math.round(frac * 95).toString(16).padStart(2, "0");
+        ctx.strokeStyle = meta.color + Math.round(frac * (T.isLight ? 140 : 95)).toString(16).padStart(2, "0");
         ctx.lineWidth = 1.1 + frac * 2.2;
         ctx.stroke();
       }
     }
 
-    // Draw transiting planet medallions
+    const mdLord = (state.dasha && !state.dasha.isPreBirth && state.dasha.maha) ? state.dasha.maha.lord : null;
+    const adLord = (state.dasha && !state.dasha.isPreBirth && state.dasha.antar) ? state.dasha.antar.lord : null;
     const orbR = Math.max(9.5, size * 0.0168);
+
     for (const item of transitPlaced) {
       const meta = JE.PLANET_MAP[item.id];
       const retro = state.transit.retrograde[item.id];
@@ -716,7 +952,6 @@
       const tickIn = polar(cx, cy, R * 0.718, item.deg);
       const tickOut = polar(cx, cy, R * 0.732, item.deg);
 
-      // Precision brass index needle touching the Nakshatra border
       ctx.beginPath();
       ctx.moveTo(tickIn.x, tickIn.y);
       ctx.lineTo(tickOut.x, tickOut.y);
@@ -725,107 +960,211 @@
       ctx.stroke();
 
       ctx.save();
-      // Retrograde violet-amber halo
-      if (retro && item.id !== "Rahu" && item.id !== "Ketu") {
+
+      // Hover reticle on planet
+      if (state.hovered && state.hovered.type === "planet" && state.hovered.data.id === item.id) {
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, orbR + 3.5, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255, 136, 92, 0.72)";
-        ctx.setLineDash([2.5, 2.5]);
-        ctx.lineWidth = 1.4;
+        ctx.arc(pt.x, pt.y, orbR + 6.5, 0, Math.PI * 2);
+        ctx.strokeStyle = T.isLight ? "#8f5900" : "#ffe082";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Sovereign Vimshottari Mahadasha (MD) / Antardasha (AD) Halo
+      if (item.id === mdLord) {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, orbR + 5.2, 0, Math.PI * 2);
+        ctx.strokeStyle = T.isLight ? "rgba(176, 114, 0, 0.92)" : "rgba(255, 218, 92, 0.92)";
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = "#ffd43b";
+        ctx.shadowBlur = T.isLight ? 4 : 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      } else if (item.id === adLord) {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, orbR + 4.0, 0, Math.PI * 2);
+        ctx.strokeStyle = T.isLight ? "rgba(70, 110, 175, 0.85)" : "rgba(165, 205, 255, 0.82)";
+        ctx.setLineDash([3, 2]);
+        ctx.lineWidth = 1.3;
         ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // Jewel-set metallic medallion
-      ctx.shadowColor = meta.glow;
-      ctx.shadowBlur = item.id === "Sun" || meta.slow ? 13 : 8;
-      const og = ctx.createRadialGradient(pt.x - orbR * 0.3, pt.y - orbR * 0.3, 1, pt.x, pt.y, orbR);
-      og.addColorStop(0, "#fff8e8");
-      og.addColorStop(0.32, meta.color);
-      og.addColorStop(1, "#181512");
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, orbR, 0, Math.PI * 2);
-      ctx.fillStyle = og;
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      // Eclipse Umbral Corona around eclipsed Sun or Moon
+      if (eclipse && eclipse.planet === item.id) {
+        const eclGrad = ctx.createRadialGradient(pt.x, pt.y, orbR * 0.7, pt.x, pt.y, orbR * 2.1);
+        eclGrad.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+        eclGrad.addColorStop(0.52, eclipse.type === "solar" ? "rgba(255, 130, 42, 0.85)" : "rgba(218, 62, 72, 0.80)");
+        eclGrad.addColorStop(1, "rgba(255, 90, 30, 0)");
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, orbR * 2.1, 0, Math.PI * 2);
+        ctx.fillStyle = eclGrad;
+        ctx.fill();
+      }
 
-      ctx.strokeStyle = "rgba(255,244,218,0.65)";
-      ctx.lineWidth = 1.1;
-      ctx.stroke();
+      // Retrograde dashed halo
+      if (retro && item.id !== "Rahu" && item.id !== "Ketu") {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, orbR + 3.2, 0, Math.PI * 2);
+        ctx.strokeStyle = T.isLight ? "rgba(198, 64, 24, 0.82)" : "rgba(255, 136, 92, 0.72)";
+        ctx.setLineDash([2.5, 2.5]);
+        ctx.lineWidth = 1.35;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-      ctx.font = `700 ${Math.max(10, size * 0.0175).toFixed(1)}px "DM Sans", sans-serif`;
-      ctx.fillStyle = "#08090f";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(meta.sym, pt.x, pt.y + 0.5);
+      // Medallion Body — True Lunar Phase rendering for Moon, jewel-set orb for others
+      if (item.id === "Moon" && state.panchanga) {
+        drawMoonPhaseMedallion(ctx, pt.x, pt.y, orbR, state.panchanga, T);
+      } else {
+        ctx.shadowColor = meta.glow;
+        ctx.shadowBlur = T.isLight ? 4 : (item.id === "Sun" || meta.slow ? 13 : 8);
+        const og = ctx.createRadialGradient(pt.x - orbR * 0.3, pt.y - orbR * 0.3, 1, pt.x, pt.y, orbR);
+        og.addColorStop(0, "#fff8e8");
+        og.addColorStop(0.35, meta.color);
+        og.addColorStop(1, T.orbDark);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, orbR, 0, Math.PI * 2);
+        ctx.fillStyle = og;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = T.orbRim;
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
 
+        ctx.font = `700 ${Math.max(10, size * 0.0175).toFixed(1)}px "DM Sans", sans-serif`;
+        ctx.fillStyle = T.orbGlyph;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(meta.sym, pt.x, pt.y + 0.5);
+      }
+
+      // Retrograde micro-tag
       if (retro && item.id !== "Rahu" && item.id !== "Ketu") {
         ctx.font = `700 ${Math.max(6.5, size * 0.010).toFixed(1)}px "JetBrains Mono", monospace`;
-        ctx.fillStyle = "#ff9b70";
+        ctx.fillStyle = T.isLight ? "#b83610" : "#ff9b70";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         ctx.fillText("℞", pt.x + orbR * 0.92, pt.y - orbR * 0.85);
       }
       ctx.restore();
     }
 
-    // 9. Central Mechanical Chronometer Readout (Date + Day of Year + Sun Pada + Ayanamsa)
+    // 9. Central Mechanical Chronometer Readout
     const curDate = JE.jdToDate(state.simJD);
     const { doy, daysInYear, year } = JE.dayOfYearUtc(curDate);
     const dateLine = `${String(curDate.getUTCDate()).padStart(2, "0")} ${MONTHS[curDate.getUTCMonth()]} ${year}`;
     const sunDet = state.transit.details.Sun;
 
-    // Subtle dark scrim behind hub text so bright Drishti arcs never obscure the date/ayanamsa
-    const hubScrim = ctx.createRadialGradient(cx, cy, rCore * 0.1, cx, cy, rCore * 0.84);
-    hubScrim.addColorStop(0, "rgba(6, 8, 14, 0.86)");
-    hubScrim.addColorStop(0.72, "rgba(6, 8, 14, 0.68)");
-    hubScrim.addColorStop(1, "rgba(6, 8, 14, 0.0)");
+    const hubScrim = ctx.createRadialGradient(cx, cy, rCore * 0.1, cx, cy, rCore * 0.85);
+    hubScrim.addColorStop(0, T.hubScrim0);
+    hubScrim.addColorStop(0.74, T.hubScrim1);
+    hubScrim.addColorStop(1, T.hubScrim2);
     ctx.beginPath();
-    ctx.arc(cx, cy, rCore * 0.84, 0, Math.PI * 2);
+    ctx.arc(cx, cy, rCore * 0.85, 0, Math.PI * 2);
     ctx.fillStyle = hubScrim;
     ctx.fill();
 
-    // 365-Day curved brass progress ring inside the obsidian dome
-    const rYearArc = rCore * 0.87;
+    // 365-Day curved brass progress ring
+    const rYearArc = rCore * 0.88;
     const yearFrac = (doy - 1) / daysInYear;
     ctx.beginPath();
     ctx.arc(cx, cy, rYearArc, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * yearFrac);
-    ctx.strokeStyle = hasTriple ? "#ff7849" : "#e6b85c";
+    ctx.strokeStyle = (eclipse || hasTriple) ? T.yearArcTriple : T.yearArc;
     ctx.lineWidth = 2.6;
     ctx.stroke();
 
-    // Inner text hierarchy
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // Top tiny crest or live convergence flash
-    if (hasTriple || hasDouble) {
-      ctx.font = `700 ${Math.max(8, size * 0.0125).toFixed(1)}px "JetBrains Mono", monospace`;
-      ctx.fillStyle = hasTriple ? "#ff7b54" : "#ffd43b";
-      ctx.fillText(hasTriple ? "✦ TRIPLE TRANSIT" : "◆ DOUBLE TRANSIT", cx, cy - rCore * 0.48);
+    if (eclipse) {
+      ctx.font = `700 ${Math.max(7.5, size * 0.0115).toFixed(1)}px "JetBrains Mono", monospace`;
+      ctx.fillStyle = T.yearArcTriple;
+      ctx.fillText(eclipse.type === "solar" ? "◐ SURYA GRAHAN" : "● CHANDRA GRAHAN", cx, cy - rCore * 0.50);
+    } else if (hasTriple || hasDouble) {
+      ctx.font = `700 ${Math.max(7.8, size * 0.0122).toFixed(1)}px "JetBrains Mono", monospace`;
+      ctx.fillStyle = hasTriple ? T.yearArcTriple : (T.isLight ? "#a36800" : "#ffd43b");
+      ctx.fillText(hasTriple ? "✦ TRIPLE TRANSIT" : "◆ DOUBLE TRANSIT", cx, cy - rCore * 0.50);
     } else {
-      ctx.font = `600 ${Math.max(7.5, size * 0.0115).toFixed(1)}px "Cinzel", serif`;
-      ctx.fillStyle = "rgba(218, 178, 102, 0.78)";
-      ctx.fillText(state.natal ? "NATAL LOCKED" : "NAKSHATRA CHAKRAM", cx, cy - rCore * 0.48);
+      ctx.font = `600 ${Math.max(7.4, size * 0.0112).toFixed(1)}px "Cinzel", serif`;
+      ctx.fillStyle = T.hubCrest;
+      ctx.fillText(state.natal ? "NATAL LOCKED" : "NAKSHATRA CHAKRAM", cx, cy - rCore * 0.50);
     }
 
-    // Large crisp Date
-    ctx.font = `700 ${Math.max(13, size * 0.0245).toFixed(1)}px "JetBrains Mono", monospace`;
-    ctx.fillStyle = "#f5ecd8";
-    ctx.fillText(dateLine, cx, cy - rCore * 0.16);
+    // Large Crisp Date
+    ctx.font = `700 ${Math.max(13, size * 0.024).toFixed(1)}px "JetBrains Mono", monospace`;
+    ctx.fillStyle = T.hubDate;
+    ctx.fillText(dateLine, cx, cy - rCore * 0.19);
 
     // Day-of-Year Grain Counter
-    ctx.font = `600 ${Math.max(9.5, size * 0.0155).toFixed(1)}px "JetBrains Mono", monospace`;
-    ctx.fillStyle = "#e6b85c";
-    ctx.fillText(`DAY ${String(doy).padStart(3, "0")} / ${daysInYear}`, cx, cy + rCore * 0.11);
+    ctx.font = `600 ${Math.max(9.2, size * 0.015).toFixed(1)}px "JetBrains Mono", monospace`;
+    ctx.fillStyle = T.hubDoy;
+    ctx.fillText(`DAY ${String(doy).padStart(3, "0")} / ${daysInYear}`, cx, cy + rCore * 0.08);
 
-    // Sun's live Nakshatra · Pada
-    ctx.font = `500 ${Math.max(8.5, size * 0.0132).toFixed(1)}px "DM Sans", sans-serif`;
-    ctx.fillStyle = "rgba(235, 224, 200, 0.82)";
-    ctx.fillText(`☉ ${sunDet.nak.name} · P${sunDet.padaNum}`, cx, cy + rCore * 0.35);
+    // Sun Nakshatra + Live Tithi
+    ctx.font = `500 ${Math.max(8, size * 0.0124).toFixed(1)}px "DM Sans", sans-serif`;
+    ctx.fillStyle = T.hubSun;
+    ctx.fillText(`☉ ${sunDet.nak.name} · P${sunDet.padaNum}`, cx, cy + rCore * 0.30);
 
-    // Active Ayanamsa readout
-    ctx.font = `600 ${Math.max(7.5, size * 0.0115).toFixed(1)}px "JetBrains Mono", monospace`;
-    ctx.fillStyle = "rgba(165, 178, 202, 0.72)";
-    ctx.fillText(`${state.ayanamsa.toUpperCase()} ${JE.fmtDM(state.transit.ayanamsa)}`, cx, cy + rCore * 0.56);
+    // Panchanga Tithi & Ayanamsa
+    const tithiStr = state.panchanga ? state.panchanga.tithiFull : "";
+    ctx.font = `600 ${Math.max(7, size * 0.0106).toFixed(1)}px "JetBrains Mono", monospace`;
+    ctx.fillStyle = T.hubSub;
+    ctx.fillText(`${tithiStr} · ${state.ayanamsa.toUpperCase()}`, cx, cy + rCore * 0.52);
+  }
+
+  /** Render true illuminated Lunar Phase directly on the Moon's orbital medallion */
+  function drawMoonPhaseMedallion(c, x, y, r, panch, T) {
+    // Purnima / Amavasya aura
+    if (panch.isPurnima) {
+      c.shadowColor = "rgba(225, 240, 255, 0.9)";
+      c.shadowBlur = T.isLight ? 6 : 16;
+    }
+    // Dark lunar base
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.fillStyle = "#161b28";
+    c.fill();
+    c.shadowBlur = 0;
+
+    // Illuminated limb via analytical phase terminator
+    const phase = panch.phaseFrac; // 0=New, 0.25=FirstQ, 0.5=Full, 0.75=LastQ
+    c.save();
+    c.beginPath();
+    c.arc(x, y, r - 0.8, 0, Math.PI * 2);
+    c.clip();
+
+    const waxing = phase <= 0.5;
+    const k = Math.cos(phase * Math.PI * 2); // 1 at New, 0 at Quarter, -1 at Full
+    const termRx = Math.abs(k) * r;
+
+    c.fillStyle = "#eef4ff";
+    c.beginPath();
+    if (waxing) {
+      // Right semicircle lit
+      c.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
+      c.ellipse(x, y, termRx, r, 0, Math.PI / 2, -Math.PI / 2, k < 0);
+    } else {
+      // Left semicircle lit
+      c.arc(x, y, r, Math.PI / 2, -Math.PI / 2, false);
+      c.ellipse(x, y, termRx, r, 0, -Math.PI / 2, Math.PI / 2, k < 0);
+    }
+    c.closePath();
+    c.fill();
+    c.restore();
+
+    // Rim & crisp glyph
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.strokeStyle = panch.isPurnima ? "#ffffff" : (panch.isAmavasya ? "#8b97b4" : T.orbRim);
+    c.lineWidth = panch.isPurnima ? 1.8 : 1.15;
+    c.stroke();
+
+    c.font = `700 ${Math.max(9, r * 0.92).toFixed(1)}px "DM Sans", sans-serif`;
+    c.fillStyle = panch.illumination > 0.55 ? "#141926" : "#dce8ff";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText("☽", x, y + 0.5);
   }
 
   function stackPlanets(items, radii, minSepDeg) {
@@ -848,7 +1187,6 @@
   // ---------------------------------------------------------------------------
 
   function stepSimulation(dtSec, nowMs) {
-    // Smooth mechanical dial spring rotation (on Lahiri <-> Raman or Natal Lock)
     let zDiff = ((state.targetZenithDeg - state.zenithDeg + 540) % 360) - 180;
     if (Math.abs(zDiff) > 0.02) {
       state.zenithDeg = JE.norm360(state.zenithDeg + zDiff * Math.min(1, dtSec * 8));
@@ -856,33 +1194,29 @@
       state.zenithDeg = state.targetZenithDeg;
     }
 
-    if (state.playing) {
+    if (state.playing && !crank.active) {
       const rate = SPEED_MAP[state.speed].daysPerSec;
       const dDays = dtSec * rate * state.direction;
       const prevJD = state.simJD;
       state.simJD += dDays;
 
-      // When rewinding backward toward a locked birth moment, pause crisply at exact birth alignment
       if (state.direction < 0 && state.natalJD !== null && prevJD > state.natalJD && state.simJD <= state.natalJD) {
         state.simJD = state.natalJD;
         state.playing = false;
-        const btnPlay = $("btn-play");
-        if (btnPlay) {
-          btnPlay.textContent = "▶ ENGAGE";
-          btnPlay.classList.remove("is-active");
-        }
+        syncPlayButtons();
         if (Audio) Audio.playNatalLock(true);
       }
-
-      // Rotate physical cosmic gears proportionally to solar motion (scaled for tangible mechanical feel)
       state.gearAngle += (state.simJD - prevJD) * 0.065;
     }
 
-    // Compute live 60fps positions
     state.transit = JE.computeSiderealSnapshot(state.simJD, state.ayanamsa);
+    state.panchanga = JE.computePanchanga(state.transit, state.simJD);
+    state.dasha = (state.natal && state.natalJD !== null)
+      ? JE.computeVimshottariDasha(state.natal.positions.Moon, state.natalJD, state.simJD)
+      : null;
+    state.activeEpoch = JE.getActiveLifeEpoch(state.transit, state.natal);
 
-    // Append orbital trails smoothly
-    if (state.playing) {
+    if (state.playing && !crank.active) {
       for (const p of JE.PLANETS) {
         if (!state.trails[p.id]) state.trails[p.id] = [];
         const arr = state.trails[p.id];
@@ -895,7 +1229,6 @@
       }
     }
 
-    // Zero-skip day-by-day grain check for Double/Triple transits & escapement tick
     const curIntDay = Math.floor(state.simJD);
     if (curIntDay !== state.lastCheckedDay) {
       const stepDir = curIntDay > state.lastCheckedDay ? 1 : -1;
@@ -903,12 +1236,15 @@
       for (let s = 1; s <= totalSteps; s++) {
         const dayJD = state.lastCheckedDay + s * stepDir + 0.5;
         const daySnap = (s === totalSteps) ? state.transit : JE.computeSiderealSnapshot(dayJD, state.ayanamsa);
-        evaluateAndTriggerTransits(daySnap, dayJD, nowMs, true);
+        const dayDasha = (state.natal && state.natalJD !== null)
+          ? JE.computeVimshottariDasha(state.natal.positions.Moon, state.natalJD, dayJD)
+          : null;
+        evaluateAndTriggerTransits(daySnap, dayJD, nowMs, !crank.active, dayDasha);
       }
       state.lastCheckedDay = curIntDay;
-      if (state.playing && Audio) Audio.playTick(state.speed);
+      if (state.playing && !crank.active && Audio) Audio.playTick(state.speed);
     } else if (!state.analysis) {
-      evaluateAndTriggerTransits(state.transit, state.simJD, nowMs, false);
+      evaluateAndTriggerTransits(state.transit, state.simJD, nowMs, false, state.dasha);
     }
 
     if (nowMs - state.lastUiUpdateMs > 110) {
@@ -917,8 +1253,8 @@
     }
   }
 
-  function evaluateAndTriggerTransits(snap, jd, nowMs, allowSound) {
-    const res = JE.analyzeTransits(snap, state.natal);
+  function evaluateAndTriggerTransits(snap, jd, nowMs, allowSound, dashaObj = null) {
+    const res = JE.analyzeTransits(snap, state.natal, dashaObj || state.dasha);
     state.analysis = res;
 
     const nextKeys = new Set();
@@ -974,10 +1310,7 @@
   }
 
   function formatIsoDate(d) {
-    const y = String(d.getUTCFullYear()).padStart(4, "0");
-    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(d.getUTCDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+    return `${String(d.getUTCFullYear()).padStart(4, "0")}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
   }
 
   function getTimelineBounds() {
@@ -996,25 +1329,22 @@
     state.gearAngle += Math.max(-18, Math.min(18, (jd - oldJD) * 0.025));
     state.trails = {};
     state.transit = JE.computeSiderealSnapshot(jd, state.ayanamsa);
+    state.panchanga = JE.computePanchanga(state.transit, jd);
+    state.dasha = (state.natal && state.natalJD !== null)
+      ? JE.computeVimshottariDasha(state.natal.positions.Moon, state.natalJD, jd)
+      : null;
+    state.activeEpoch = JE.getActiveLifeEpoch(state.transit, state.natal);
     state.activeEventKeys = new Set();
-    evaluateAndTriggerTransits(state.transit, jd, performance.now(), playSound);
+    evaluateAndTriggerTransits(state.transit, jd, performance.now(), playSound, state.dasha);
     syncSidePanelUI();
   }
 
   function stepByUnit(unit, delta) {
     const d = JE.jdToDate(state.simJD);
     let targetJD = state.simJD;
-    if (unit === "d") {
-      targetJD = state.simJD + delta;
-    } else if (unit === "m") {
-      const next = new Date(d.getTime());
-      next.setUTCMonth(next.getUTCMonth() + delta);
-      targetJD = JE.dateToJD(next);
-    } else if (unit === "y") {
-      const next = new Date(d.getTime());
-      next.setUTCFullYear(next.getUTCFullYear() + delta);
-      targetJD = JE.dateToJD(next);
-    }
+    if (unit === "d") targetJD = state.simJD + delta;
+    else if (unit === "m") { const n = new Date(d.getTime()); n.setUTCMonth(n.getUTCMonth() + delta); targetJD = JE.dateToJD(n); }
+    else if (unit === "y") { const n = new Date(d.getTime()); n.setUTCFullYear(n.getUTCFullYear() + delta); targetJD = JE.dateToJD(n); }
     jumpToJD(targetJD, true);
   }
 
@@ -1027,10 +1357,20 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Interactive Controls & DOM Wiring
+  // DOM Sync, Life Epoch Track Bands, Dasha Strip & Zen Dock
   // ---------------------------------------------------------------------------
 
-  const $ = (id) => document.getElementById(id);
+  function syncPlayButtons() {
+    const btnPlay = $("btn-play");
+    const zenPlay = $("zen-play");
+    if (btnPlay) {
+      btnPlay.textContent = state.playing ? "❚❚ PAUSE" : "▶ ENGAGE";
+      btnPlay.classList.toggle("is-active", state.playing);
+    }
+    if (zenPlay) {
+      zenPlay.textContent = state.playing ? "❚❚" : "▶";
+    }
+  }
 
   function flashAnnunciator(tier) {
     const box = $("transit-annunciator");
@@ -1038,6 +1378,25 @@
     box.classList.remove("flash-double", "flash-triple", "flash-pada");
     void box.offsetWidth;
     box.classList.add(`flash-${tier}`);
+  }
+
+  function renderEpochBands() {
+    const host = $("timeline-epochs");
+    if (!host) return;
+    if (!state.natal || !state.epochs.length) {
+      host.innerHTML = "";
+      return;
+    }
+    const { minJD, maxJD } = getTimelineBounds();
+    const span = Math.max(1, maxJD - minJD);
+    host.innerHTML = state.epochs.map((ep) => {
+      const left = Math.max(0, Math.min(100, ((ep.startJD - minJD) / span) * 100));
+      const right = Math.max(0, Math.min(100, ((ep.endJD - minJD) / span) * 100));
+      const width = Math.max(0.9, right - left);
+      const y1 = JE.jdToDate(ep.startJD).getUTCFullYear();
+      const y2 = JE.jdToDate(ep.endJD).getUTCFullYear();
+      return `<span class="epoch-band ep-${ep.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="${ep.label} (${y1}–${y2})"></span>`;
+    }).join("");
   }
 
   function recomputeForAyanamsaOrNatal(playAudioMode) {
@@ -1049,21 +1408,29 @@
       state.natal = JE.computeSiderealSnapshot(bJD, state.ayanamsa, b.lat, b.lon);
       const lagR = state.natal.details.Lagna.rasiIdx;
       state.targetZenithDeg = lagR * 30 + 15;
+      const bounds = getTimelineBounds();
+      state.epochs = JE.computeLifeEpochs(state.natal, bounds.minJD, bounds.maxJD, state.ayanamsa);
     } else {
       state.natalJD = null;
       state.natal = null;
-      // Subtle visual ayanamsa clutch shift even in sky mode so user feels Lahiri <-> Raman engage!
+      state.epochs = [];
       state.targetZenithDeg = state.ayanamsa === "raman" ? 13.55 : 15.0;
     }
 
     state.transit = JE.computeSiderealSnapshot(state.simJD, state.ayanamsa);
+    state.panchanga = JE.computePanchanga(state.transit, state.simJD);
+    state.dasha = (state.natal && state.natalJD !== null)
+      ? JE.computeVimshottariDasha(state.natal.positions.Moon, state.natalJD, state.simJD)
+      : null;
+    state.activeEpoch = JE.getActiveLifeEpoch(state.transit, state.natal);
     state.activeEventKeys = new Set();
-    evaluateAndTriggerTransits(state.transit, state.simJD, performance.now(), false);
+    evaluateAndTriggerTransits(state.transit, state.simJD, performance.now(), false, state.dasha);
 
     if (playAudioMode === "ayanamsa" && Audio) Audio.playAyanamsaClutch();
     if (playAudioMode === "lock" && Audio) Audio.playNatalLock(true);
     if (playAudioMode === "unlock" && Audio) Audio.playNatalLock(false);
 
+    renderEpochBands();
     syncSidePanelUI();
     renderEventLog();
   }
@@ -1073,8 +1440,8 @@
     const curDate = JE.jdToDate(state.simJD);
     const { doy, daysInYear } = JE.dayOfYearUtc(curDate);
     const { minJD, maxJD, todayJD } = getTimelineBounds();
+    const shortDate = formatShortDate(curDate);
 
-    // Date, Day-of-Year, Age / Offset & Lifespan Timeline readout
     const elDate = $("chrono-date");
     const elDoy = $("chrono-doy");
     const elAge = $("chrono-age");
@@ -1086,45 +1453,39 @@
     const elBtnBirth = $("btn-birth");
     const elAyanVal = $("ayanamsa-readout");
 
-    if (elDate) elDate.textContent = formatShortDate(curDate);
-    if (elDoy) elDoy.textContent = `DAY ${String(doy).padStart(3, "0")} / ${daysInYear}`;
+    if (elDate) elDate.textContent = shortDate;
+    if (elDoy) {
+      const tithi = state.panchanga ? state.panchanga.tithiFull : "";
+      elDoy.textContent = `DAY ${String(doy).padStart(3, "0")} / ${daysInYear} · ${tithi}`;
+    }
 
-    if (elAge) {
-      if (state.natalJD !== null) {
-        const diffDays = state.simJD - state.natalJD;
-        if (Math.abs(diffDays) < 0.6) {
-          elAge.textContent = "BIRTH MOMENT";
-        } else {
-          const yrs = diffDays / 365.2425;
-          elAge.textContent = yrs >= 0 ? `AGE ${yrs.toFixed(1)} YRS` : `${yrs.toFixed(1)}Y PRE-BIRTH`;
-        }
-      } else {
-        const diffDays = state.simJD - todayJD;
-        if (Math.abs(diffDays) < 0.8) {
-          elAge.textContent = "PRESENT SKY";
-        } else {
-          const yrs = diffDays / 365.2425;
-          elAge.textContent = `${yrs >= 0 ? "+" : ""}${yrs.toFixed(1)} YRS`;
-        }
+    let ageText = "PRESENT SKY";
+    if (state.natalJD !== null) {
+      const diffDays = state.simJD - state.natalJD;
+      if (Math.abs(diffDays) < 0.6) ageText = "BIRTH MOMENT";
+      else {
+        const yrs = diffDays / 365.2425;
+        ageText = yrs >= 0 ? `AGE ${yrs.toFixed(1)} YRS` : `${yrs.toFixed(1)}Y PRE-BIRTH`;
+      }
+    } else {
+      const diffDays = state.simJD - todayJD;
+      if (Math.abs(diffDays) >= 0.8) {
+        const yrs = diffDays / 365.2425;
+        ageText = `${yrs >= 0 ? "+" : ""}${yrs.toFixed(1)} YRS`;
       }
     }
+    if (elAge) elAge.textContent = ageText;
 
-    if (elJump && document.activeElement !== elJump) {
-      elJump.value = formatIsoDate(curDate);
-    }
-
+    if (elJump && document.activeElement !== elJump) elJump.value = formatIsoDate(curDate);
     if (elSlider && document.activeElement !== elSlider) {
       const frac = Math.max(0, Math.min(1, (state.simJD - minJD) / Math.max(1, maxJD - minJD)));
       elSlider.value = String(Math.round(frac * 10000));
     }
-
     if (elTlStart) {
       const startYr = JE.jdToDate(minJD).getUTCFullYear();
       elTlStart.textContent = state.natalJD !== null ? `BORN ${startYr}` : String(startYr);
     }
-    if (elTlEnd) {
-      elTlEnd.textContent = String(JE.jdToDate(maxJD).getUTCFullYear());
-    }
+    if (elTlEnd) elTlEnd.textContent = String(JE.jdToDate(maxJD).getUTCFullYear());
     if (elTodayMark) {
       const tFrac = Math.max(0, Math.min(1, (todayJD - minJD) / Math.max(1, maxJD - minJD)));
       elTodayMark.style.left = `${(tFrac * 100).toFixed(2)}%`;
@@ -1135,9 +1496,55 @@
         ? "Jump back to exact birth date & time"
         : "Lock a birth chart below to jump to your birth moment";
     }
-
     if (elAyanVal) {
       elAyanVal.textContent = `${state.ayanamsa === "raman" ? "B.V. Raman" : "Lahiri"} · ${JE.fmtDMS(state.transit.ayanamsa)}`;
+    }
+
+    // Live Vimshottari Dasha & Active Life-Epoch strip
+    const dashaEl = $("dasha-strip");
+    if (dashaEl) {
+      if (state.dasha && !state.dasha.isPreBirth && state.dasha.maha) {
+        const mP = JE.PLANET_MAP[state.dasha.maha.lord];
+        const aP = JE.PLANET_MAP[state.dasha.antar.lord];
+        const pP = JE.PLANET_MAP[state.dasha.pratyantar.lord];
+        const mdPct = Math.round(state.dasha.maha.frac * 100);
+        const epochHtml = (state.activeEpoch && state.activeEpoch.badges.length)
+          ? state.activeEpoch.badges.map((b) => `<span class="epoch-pill ep-${b.type}">${b.label}</span>`).join("")
+          : "";
+        dashaEl.hidden = false;
+        dashaEl.innerHTML = `
+          <div class="dasha-row">
+            <span class="dasha-tag">VIMSHOTTARI</span>
+            <span class="dasha-lords">
+              <b style="color:${mP.color}">${mP.sym} ${mP.id}</b>
+              <span class="dasha-sep">›</span>
+              <b style="color:${aP.color}">${aP.sym} ${aP.id}</b>
+              <span class="dasha-sep">›</span>
+              <span>${pP.sym} ${pP.short}</span>
+            </span>
+            <span class="dasha-pct">${mdPct}%</span>
+          </div>
+          <div class="dasha-bar"><span style="width:${mdPct}%"></span></div>
+          ${epochHtml ? `<div class="epoch-row">${epochHtml}</div>` : ""}
+        `;
+      } else if (state.dasha && state.dasha.isPreBirth) {
+        dashaEl.hidden = false;
+        dashaEl.innerHTML = `<div class="dasha-row"><span class="dasha-tag">VIMSHOTTARI</span><span class="dasha-lords">Pre-Birth Epoch</span></div>`;
+      } else {
+        dashaEl.hidden = true;
+      }
+    }
+
+    // Zen Floating Dock telemetry
+    const zenDate = $("zen-date");
+    const zenMeta = $("zen-meta");
+    if (zenDate) zenDate.textContent = `${shortDate} · ${ageText}`;
+    if (zenMeta) {
+      const mdStr = (state.dasha && !state.dasha.isPreBirth && state.dasha.maha)
+        ? ` · MD ${JE.PLANET_MAP[state.dasha.maha.lord].sym} ${state.dasha.maha.lord} / ${state.dasha.antar.lord}`
+        : "";
+      const tiStr = state.panchanga ? state.panchanga.tithiFull : "";
+      zenMeta.textContent = `${tiStr}${mdStr}`;
     }
 
     // Annunciator live status
@@ -1148,13 +1555,17 @@
       const tr = state.analysis.triples[0];
       const db = state.analysis.doubles[0];
       const ph = state.analysis.padaHits[0];
-      annBox.classList.toggle("is-triple", Boolean(tr));
-      annBox.classList.toggle("is-double", !tr && Boolean(db));
-      if (tr) {
-        annBadge.textContent = "✦ TRIPLE TRANSIT ACTIVE";
+      const ecl = state.panchanga ? state.panchanga.eclipse : null;
+      annBox.classList.toggle("is-triple", Boolean(tr || ecl));
+      annBox.classList.toggle("is-double", !tr && !ecl && Boolean(db));
+      if (ecl) {
+        annBadge.textContent = `◐ ${ecl.label}`;
+        annText.textContent = tr ? tr.summary : (db ? db.summary : `${state.panchanga.tithiFull} · Node alignment within eclipse orb`);
+      } else if (tr) {
+        annBadge.textContent = tr.dashaActivated ? "✦ TRIPLE TRANSIT · ★ DASHA" : "✦ TRIPLE TRANSIT ACTIVE";
         annText.textContent = tr.summary;
       } else if (db) {
-        annBadge.textContent = "◆ DOUBLE TRANSIT ACTIVE";
+        annBadge.textContent = db.dashaActivated ? "◆ DOUBLE TRANSIT · ★ DASHA" : "◆ DOUBLE TRANSIT ACTIVE";
         annText.textContent = db.summary;
       } else if (ph) {
         annBadge.textContent = "◈ EXACT NATAL PADA TRANSIT";
@@ -1162,37 +1573,38 @@
       } else {
         annBadge.textContent = "○ MONITORING GOCHARA";
         annText.textContent = state.natal
-          ? `Watching ♃ ${state.transit.details.Jupiter.rasi.sanskrit} · ♄ ${state.transit.details.Saturn.rasi.sanskrit} · ☊ ${state.transit.details.Rahu.rasi.sanskrit}`
-          : "Enter birth details to lock natal pins & track personal Double / Triple transits";
+          ? `♃ ${state.transit.details.Jupiter.rasi.sanskrit} · ♄ ${state.transit.details.Saturn.rasi.sanskrit} · ☊ ${state.transit.details.Rahu.rasi.sanskrit}`
+          : "Lock birth details to track personal Double / Triple transits & Dasha";
       }
     }
 
-    // Natal lock status summary
+    // Natal lock summary
     const natalStatus = $("natal-lock-status");
     if (natalStatus) {
       if (state.natal) {
         const lag = state.natal.details.Lagna;
         const moo = state.natal.details.Moon;
-        natalStatus.innerHTML = `<span class="lock-pill">🔒 LOCKED</span> ${lag.rasi.sanskrit} Lagna (${lag.nak.short} P${lag.padaNum}) · ☽ ${moo.rasi.sanskrit} (${moo.nak.name} P${moo.padaNum})`;
+        natalStatus.innerHTML = `<span class="lock-pill">LOCKED</span> ${lag.rasi.sanskrit} Lagna (${lag.nak.short} P${lag.padaNum}) · ☽ ${moo.rasi.sanskrit} (${moo.nak.name} P${moo.padaNum})`;
       } else {
         natalStatus.innerHTML = `<span class="lock-pill is-sky">COSMIC SKY</span> Enter birth details below to lock natal pins`;
       }
     }
 
-    // Live Ephemeris Table (compact 9-planet live readout)
+    // Live Ephemeris Table (includes Dignity ↑ / ★ / ↓)
     const ephemBody = $("ephemeris-rows");
     if (ephemBody) {
-      const rows = JE.PLANETS.map((p) => {
+      ephemBody.innerHTML = JE.PLANETS.map((p) => {
         const d = state.transit.details[p.id];
         const retro = state.transit.retrograde[p.id] && p.id !== "Rahu" && p.id !== "Ketu";
+        const dig = JE.getDignity(p.id, d.rasiIdx);
+        const digTag = dig.mark ? `<span class="dig-tag dig-${dig.code}" title="${dig.label}">${dig.mark}</span>` : "";
         return `<tr>
-          <td><span class="p-dot" style="color:${p.color}">${p.sym}</span> ${p.short}${retro ? '<span class="retro-tag">℞</span>' : ""}</td>
+          <td><span class="p-dot" style="color:${p.color}">${p.sym}</span>${p.short}${retro ? '<span class="retro-tag">℞</span>' : ""}${digTag}</td>
           <td>${d.rasi.glyph} ${d.rasi.sanskrit}</td>
           <td class="mono">${JE.fmtDM(d.degInRasi)}</td>
           <td>${d.nak.name} <span class="pada-pill">P${d.padaNum}</span></td>
         </tr>`;
       }).join("");
-      ephemBody.innerHTML = rows;
     }
   }
 
@@ -1200,7 +1612,7 @@
     const list = $("transit-log-list");
     if (!list) return;
     if (!state.eventLog.length) {
-      list.innerHTML = `<li class="log-empty">No Double or Triple convergence crossed yet — speed up or press Next Convergence.</li>`;
+      list.innerHTML = `<li class="log-empty">Scrub timeline or press Prev / Next to locate Double &amp; Triple convergences.</li>`;
       return;
     }
     list.innerHTML = state.eventLog.slice(0, 8).map((ev) => {
@@ -1214,79 +1626,103 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Canvas Pointer Hover & Click Inspection (All 108 Padas, 27 Naks, 12 Rasis)
+  // Zero-Obstruction Hover Telemetry, Click-to-Pin Lore & Tactile Dial Cranking
   // ---------------------------------------------------------------------------
 
-  function handlePointerMove(e) {
-    if (!canvas || !state.transit) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+  function hitTestDial(mx, my) {
     const cx = canvasSize / 2;
     const cy = canvasSize / 2;
     const R = canvasSize * 0.468;
     const { deg, dist } = screenToSiderealDeg(cx, cy, mx, my);
-    const tip = $("dial-tooltip");
-    if (!tip) return;
-
     const rFrac = dist / R;
-    if (rFrac < 0.305 || rFrac > 0.945) {
-      state.hovered = null;
-      tip.hidden = true;
-      return;
-    }
+    if (rFrac < 0.305 || rFrac > 0.945) return null;
 
-    let html = "";
     if (rFrac >= 0.842) {
       const pada = JE.PADAS[Math.floor(deg / JE.PADA_SPAN) % 108];
-      state.hovered = { type: "pada", data: pada };
       const here = JE.PLANETS.filter((p) => state.transit.details[p.id].padaId === pada.id).map((p) => `${p.sym} ${p.id}`);
-      html = `
-        <div class="tt-head">${pada.nak.dev} · ${pada.nak.name} — Pada ${pada.padaNum} <span class="tt-num">#${pada.num}/108</span></div>
-        <div class="tt-meta">${JE.fmtDM(pada.startDeg)} – ${JE.fmtDM(pada.endDeg)} · Rasi: ${pada.rasi.sanskrit} ${pada.rasi.glyph} · Navamsa: ${pada.navamsa.sanskrit}</div>
-        <div class="tt-sub">Ruler: <b>${pada.nak.ruler}</b> · Deity: ${pada.nak.deity} · Beeja: <b>${pada.beeja}</b>${pada.isGandanta ? ' · <span class="tt-gandanta">GANDANTA</span>' : ""}</div>
-        ${here.length ? `<div class="tt-live">Transiting now: ${here.join(" · ")}</div>` : ""}
-      `;
-    } else if (rFrac >= 0.718) {
+      return {
+        type: "pada",
+        data: pada,
+        telemetryHtml: `<span class="tel-badge">PADA #${pada.num}/108</span> <b>${pada.nak.dev} · ${pada.nak.name} P${pada.padaNum}</b> <span class="tel-sep">·</span> ${JE.fmtDM(pada.startDeg)}–${JE.fmtDM(pada.endDeg)} <span class="tel-sep">·</span> ${pada.rasi.glyph} ${pada.rasi.sanskrit} <span class="tel-sep">·</span> Navamsa: <b>${pada.navamsa.sanskrit}</b> <span class="tel-sep">·</span> Beeja: <b>${pada.beeja}</b>${pada.isGandanta ? ' <span class="tel-gan">GANDANTA</span>' : ""}${here.length ? ` <span class="tel-live">${here.join(" ")}</span>` : ""}`,
+        loreHtml: `
+          <div class="lore-head">${pada.nak.dev} · ${pada.nak.name} — Pada ${pada.padaNum} <span class="lore-num">#${pada.num}/108</span></div>
+          <div class="lore-grid">
+            <span>Span</span><b>${JE.fmtDM(pada.startDeg)} – ${JE.fmtDM(pada.endDeg)}</b>
+            <span>Rasi / D9</span><b>${pada.rasi.glyph} ${pada.rasi.sanskrit} · Navamsa ${pada.navamsa.sanskrit}</b>
+            <span>Ruler / Deity</span><b>${pada.nak.ruler} · ${pada.nak.deity}</b>
+            <span>Beeja / Gana</span><b>${pada.beeja} · ${pada.nak.gana} (${pada.nak.symbol})</b>
+          </div>
+          ${pada.isGandanta ? `<div class="lore-warn">Gandanta Karmic Knot — Water/Fire spiritual junction</div>` : ""}
+          ${here.length ? `<div class="lore-live">Transiting now: ${here.join(" · ")}</div>` : ""}
+        `,
+      };
+    }
+
+    if (rFrac >= 0.718) {
       const nak = JE.NAKSHATRAS[Math.floor(deg / (360 / 27)) % 27];
-      state.hovered = { type: "nak", data: nak };
-      html = `
-        <div class="tt-head">${nak.dev} · ${nak.name} <span class="tt-num">Nakshatra ${nak.idx + 1}/27</span></div>
-        <div class="tt-meta">Ruler: <b>${nak.ruler}</b> · Deity: ${nak.deity} · Gana: ${nak.gana}</div>
-        <div class="tt-sub">Symbol: ${nak.symbol} · Padas: ${nak.padas.join(" · ")}</div>
-      `;
-    } else if (rFrac >= 0.562) {
-      // Check nearest transiting planet
+      return {
+        type: "nak",
+        data: nak,
+        telemetryHtml: `<span class="tel-badge">NAKSHATRA ${nak.idx + 1}/27</span> <b>${nak.dev} · ${nak.name}</b> <span class="tel-sep">·</span> Ruler: <b>${nak.ruler}</b> <span class="tel-sep">·</span> Deity: ${nak.deity} <span class="tel-sep">·</span> Gana: ${nak.gana} <span class="tel-sep">·</span> Padas: ${nak.padas.join(" · ")}`,
+        loreHtml: `
+          <div class="lore-head">${nak.dev} · ${nak.name} <span class="lore-num">${nak.idx + 1}/27</span></div>
+          <div class="lore-grid">
+            <span>Vimshottari</span><b>${nak.ruler}</b>
+            <span>Deity</span><b>${nak.deity}</b>
+            <span>Symbol</span><b>${nak.symbol}</b>
+            <span>Gana / Beeja</span><b>${nak.gana} · ${nak.padas.join(", ")}</b>
+          </div>
+        `,
+      };
+    }
+
+    if (rFrac >= 0.562) {
       let best = null;
       let bestD = 9;
       for (const p of JE.PLANETS) {
         const dd = JE.angDiff(deg, state.transit.positions[p.id]);
         if (dd < bestD) { bestD = dd; best = p; }
       }
-      if (best) {
-        const d = state.transit.details[best.id];
-        const retro = state.transit.retrograde[best.id];
-        state.hovered = { type: "planet", data: best };
-        html = `
-          <div class="tt-head" style="color:${best.color}">${best.sym} ${best.id} (${best.dev} ${best.sanskrit})${retro ? " ℞ Retrograde" : ""}</div>
-          <div class="tt-meta">${d.rasi.sanskrit} ${d.rasi.glyph} ${JE.fmtDMS(d.degInRasi)} · Speed: ${state.transit.speeds[best.id].toFixed(3)}°/day</div>
-          <div class="tt-sub">${d.nak.dev} ${d.nak.name} · Pada ${d.padaNum} (#${d.pada.num}/108) · Navamsa ${d.navamsa.sanskrit}</div>
-        `;
-      } else {
-        state.hovered = null;
-        tip.hidden = true;
-        return;
-      }
-    } else if (rFrac >= 0.422) {
+      if (!best) return null;
+      const d = state.transit.details[best.id];
+      const retro = state.transit.retrograde[best.id] && best.id !== "Rahu" && best.id !== "Ketu";
+      const dig = JE.getDignity(best.id, d.rasiIdx);
+      const speedStr = `${state.transit.speeds[best.id] >= 0 ? "+" : ""}${state.transit.speeds[best.id].toFixed(2)}°/d`;
+      const extraMoon = best.id === "Moon" && state.panchanga ? ` · ${state.panchanga.tithiFull} (${Math.round(state.panchanga.illumination * 100)}% lit)` : "";
+      return {
+        type: "planet",
+        data: best,
+        telemetryHtml: `<span class="tel-badge" style="color:${best.color}">${best.sym} ${best.id.toUpperCase()}${retro ? " ℞" : ""}</span> <b>${d.rasi.glyph} ${d.rasi.sanskrit} ${JE.fmtDM(d.degInRasi)}</b> <span class="tel-sep">·</span> ${d.nak.name} P${d.padaNum} (#${d.pada.num}) <span class="tel-sep">·</span> ${dig.label} <span class="tel-sep">·</span> ${speedStr}${extraMoon}`,
+        loreHtml: `
+          <div class="lore-head" style="color:${best.color}">${best.sym} ${best.id} (${best.dev} ${best.sanskrit})${retro ? " · ℞ Retrograde" : ""}</div>
+          <div class="lore-grid">
+            <span>Position</span><b>${d.rasi.glyph} ${d.rasi.sanskrit} ${JE.fmtDMS(d.degInRasi)}</b>
+            <span>Nakshatra</span><b>${d.nak.dev} ${d.nak.name} · P${d.padaNum} (#${d.pada.num}/108)</b>
+            <span>Navamsa</span><b>${d.navamsa.sanskrit} · ${dig.label}</b>
+            <span>Motion</span><b>${speedStr}${extraMoon}</b>
+          </div>
+        `,
+      };
+    }
+
+    if (rFrac >= 0.422) {
       const rasi = JE.RASIS[Math.floor(deg / 30) % 12];
-      state.hovered = { type: "rasi", data: rasi };
-      html = `
-        <div class="tt-head">${rasi.glyph} ${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</div>
-        <div class="tt-meta">Element: <b>${rasi.element}</b> · Ruler: <b>${rasi.ruler}</b></div>
-        <div class="tt-sub">${rasi.vibe}</div>
-      `;
-    } else if (state.natal) {
-      // Locked natal pin hover
+      return {
+        type: "rasi",
+        data: rasi,
+        telemetryHtml: `<span class="tel-badge">${rasi.glyph} RASI ${rasi.idx + 1}/12</span> <b>${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</b> <span class="tel-sep">·</span> ${rasi.element} <span class="tel-sep">·</span> Ruler: <b>${rasi.ruler}</b> <span class="tel-sep">·</span> ${rasi.vibe}`,
+        loreHtml: `
+          <div class="lore-head">${rasi.glyph} ${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</div>
+          <div class="lore-grid">
+            <span>Element</span><b>${rasi.element}</b>
+            <span>Ruler</span><b>${rasi.ruler}</b>
+            <span>Essence</span><b>${rasi.vibe}</b>
+          </div>
+        `,
+      };
+    }
+
+    if (state.natal) {
       const keys = ["Lagna", ...JE.PLANETS.map((p) => p.id)];
       let best = null;
       let bestD = 11;
@@ -1295,44 +1731,174 @@
         const dd = JE.angDiff(deg, state.natal.positions[k]);
         if (dd < bestD) { bestD = dd; best = k; }
       }
-      if (best) {
-        const meta = JE.PLANET_MAP[best];
-        const d = state.natal.details[best];
-        state.hovered = { type: "natal", data: best };
-        html = `
-          <div class="tt-head" style="color:${meta.color}">🔒 Natal ${best} (${meta.dev})</div>
-          <div class="tt-meta">${d.rasi.sanskrit} ${d.rasi.glyph} ${JE.fmtDMS(d.degInRasi)}</div>
-          <div class="tt-sub">${d.nak.name} · Pada ${d.padaNum} (#${d.pada.num}/108) · Navamsa ${d.navamsa.sanskrit}</div>
-        `;
-      } else {
-        state.hovered = null;
-        tip.hidden = true;
-        return;
-      }
+      if (!best) return null;
+      const meta = JE.PLANET_MAP[best];
+      const d = state.natal.details[best];
+      const dig = best === "Lagna" ? { label: "Ascendant · 1st House" } : JE.getDignity(best, d.rasiIdx);
+      return {
+        type: "natal",
+        data: best,
+        telemetryHtml: `<span class="tel-badge">NATAL ${best.toUpperCase()}</span> <b>${meta.sym} ${d.rasi.glyph} ${d.rasi.sanskrit} ${JE.fmtDM(d.degInRasi)}</b> <span class="tel-sep">·</span> ${d.nak.name} P${d.padaNum} (#${d.pada.num}) <span class="tel-sep">·</span> Navamsa: ${d.navamsa.sanskrit} <span class="tel-sep">·</span> ${dig.label}`,
+        loreHtml: `
+          <div class="lore-head" style="color:${meta.color}">🔒 Natal ${best} (${meta.dev})</div>
+          <div class="lore-grid">
+            <span>Locked Pos</span><b>${d.rasi.glyph} ${d.rasi.sanskrit} ${JE.fmtDMS(d.degInRasi)}</b>
+            <span>Nakshatra</span><b>${d.nak.name} · P${d.padaNum} (#${d.pada.num}/108)</b>
+            <span>Navamsa</span><b>${d.navamsa.sanskrit} · ${dig.label}</b>
+          </div>
+        `,
+      };
+    }
+    return null;
+  }
+
+  function updateHoverTelemetry(hit) {
+    const bar = $("dial-telemetry-bar");
+    const legend = $("dial-legend");
+    if (!bar || !legend) return;
+    if (hit) {
+      bar.innerHTML = hit.telemetryHtml;
+      bar.hidden = false;
+      legend.hidden = true;
     } else {
-      state.hovered = null;
-      tip.hidden = true;
+      bar.hidden = true;
+      legend.hidden = false;
+    }
+  }
+
+  function renderPinnedLore() {
+    const card = $("pinned-lore");
+    const body = $("pinned-lore-body");
+    if (!card || !body) return;
+    if (!state.pinned) {
+      card.hidden = true;
+      return;
+    }
+    body.innerHTML = state.pinned.loreHtml;
+    card.hidden = false;
+  }
+
+  function handlePointerDown(e) {
+    if (!canvas || !state.transit || e.button !== 0) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const cx = canvasSize / 2;
+    const cy = canvasSize / 2;
+    const R = canvasSize * 0.468;
+    const { dist, a } = screenToSiderealDeg(cx, cy, mx, my);
+    if (dist < R * 0.305 || dist > R * 1.05) return;
+
+    crank.active = true;
+    crank.moved = false;
+    crank.wasPlaying = state.playing;
+    crank.startX = e.clientX;
+    crank.startY = e.clientY;
+    crank.lastAngle = a;
+    crank.accumDeg = 0;
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  function handlePointerMove(e) {
+    if (!canvas || !state.transit) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const cx = canvasSize / 2;
+    const cy = canvasSize / 2;
+
+    if (crank.active) {
+      const dragDist = Math.hypot(e.clientX - crank.startX, e.clientY - crank.startY);
+      if (dragDist >= 5) {
+        crank.moved = true;
+        canvas.classList.add("is-cranking");
+        const curA = Math.atan2(my - cy, mx - cx);
+        let dRad = curA - crank.lastAngle;
+        if (dRad > Math.PI) dRad -= Math.PI * 2;
+        if (dRad < -Math.PI) dRad += Math.PI * 2;
+        crank.lastAngle = curA;
+        // Counter-clockwise drag advances zodiac forward in time; 360° crank = 1 solar year!
+        const dDeg = -dRad / DEG;
+        const dDays = dDeg * (365.25 / 360);
+        state.simJD += dDays;
+        state.gearAngle += dDays * 0.065;
+        crank.accumDeg += Math.abs(dDeg);
+        if (crank.accumDeg >= 4) {
+          crank.accumDeg = 0;
+          if (Audio) Audio.playRatchet();
+        }
+        state.trails = {};
+        state.transit = JE.computeSiderealSnapshot(state.simJD, state.ayanamsa);
+        state.panchanga = JE.computePanchanga(state.transit, state.simJD);
+        state.dasha = (state.natal && state.natalJD !== null)
+          ? JE.computeVimshottariDasha(state.natal.positions.Moon, state.natalJD, state.simJD)
+          : null;
+        state.activeEpoch = JE.getActiveLifeEpoch(state.transit, state.natal);
+        evaluateAndTriggerTransits(state.transit, state.simJD, performance.now(), false, state.dasha);
+        syncSidePanelUI();
+      }
       return;
     }
 
-    tip.innerHTML = html;
-    tip.hidden = false;
-    const tipX = Math.min(rect.width - 280, Math.max(10, mx + 16));
-    const tipY = Math.max(10, my - 22);
-    tip.style.left = `${tipX}px`;
-    tip.style.top = `${tipY}px`;
+    const hit = hitTestDial(mx, my);
+    state.hovered = hit;
+    updateHoverTelemetry(hit);
+  }
+
+  function handlePointerUp(e) {
+    if (!crank.active) return;
+    const wasMoved = crank.moved;
+    crank.active = false;
+    crank.moved = false;
+    canvas.classList.remove("is-cranking");
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+
+    if (wasMoved) {
+      state.lastCheckedDay = Math.floor(state.simJD);
+      return;
+    }
+
+    // Clean click -> Pin or Dismiss Lore Card
+    const rect = canvas.getBoundingClientRect();
+    const hit = hitTestDial(e.clientX - rect.left, e.clientY - rect.top);
+    state.pinned = hit;
+    renderPinnedLore();
   }
 
   // ---------------------------------------------------------------------------
-  // Setup & Initialization
+  // Theme, Zen Mode & Resize Setup
   // ---------------------------------------------------------------------------
+
+  function applyTheme(nextTheme) {
+    state.theme = nextTheme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = state.theme;
+    try { localStorage.setItem("nakshatra-theme", state.theme); } catch (_) {}
+    const btn = $("btn-theme");
+    const zenTheme = $("zen-theme");
+    const label = state.theme === "light" ? "☾ NIGHT" : "☀ DAY";
+    if (btn) btn.textContent = label;
+    if (zenTheme) zenTheme.textContent = label;
+    staticCacheKey = "";
+  }
+
+  function setZenMode(on) {
+    state.zen = Boolean(on);
+    document.body.classList.toggle("is-zen", state.zen);
+    const btn = $("btn-zen");
+    if (btn) btn.textContent = state.zen ? "✕ EXIT ZEN" : "⛶ ZEN";
+    const dock = $("zen-dock");
+    if (dock) dock.hidden = !state.zen;
+    requestAnimationFrame(() => resizeCanvas());
+  }
 
   function resizeCanvas() {
     if (!canvas) return;
     const stage = canvas.parentElement;
     const w = stage ? stage.clientWidth : 680;
-    const h = window.innerHeight ? Math.min(720, window.innerHeight - 106) : 680;
-    const target = Math.max(320, Math.min(700, Math.floor(Math.min(w, h))));
+    const maxCap = state.zen ? 900 : 696;
+    const vMargin = state.zen ? 104 : 114;
+    const h = window.innerHeight ? Math.min(maxCap, window.innerHeight - vMargin) : 680;
+    const target = Math.max(320, Math.min(maxCap, Math.floor(Math.min(w, h))));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvasSize = target;
     canvas.style.width = `${target}px`;
@@ -1348,7 +1914,13 @@
     dl.innerHTML = JE.CITIES.map((c) => `<option value="${c.name}"></option>`).join("");
   }
 
-  function loadSavedBirth() {
+  function loadSavedPreferences() {
+    try {
+      const savedTheme = localStorage.getItem("nakshatra-theme");
+      if (savedTheme === "light" || savedTheme === "dark") state.theme = savedTheme;
+    } catch (_) {}
+    applyTheme(state.theme);
+
     try {
       const raw = localStorage.getItem("nakshatra-cosmic-birth");
       if (!raw) return;
@@ -1364,17 +1936,36 @@
   }
 
   function bindControls() {
-    // Play / Pause
-    const btnPlay = $("btn-play");
-    if (btnPlay) {
-      btnPlay.addEventListener("click", () => {
-        state.playing = !state.playing;
-        btnPlay.textContent = state.playing ? "❚❚ PAUSE" : "▶ ENGAGE";
-        btnPlay.classList.toggle("is-active", state.playing);
-      });
-    }
+    // Theme Toggle (Night <-> Day)
+    const toggleTheme = () => applyTheme(state.theme === "dark" ? "light" : "dark");
+    $("btn-theme")?.addEventListener("click", toggleTheme);
+    $("zen-theme")?.addEventListener("click", toggleTheme);
 
-    // Reverse / Forward direction
+    // Zen / Cinema Mode
+    $("btn-zen")?.addEventListener("click", () => setZenMode(!state.zen));
+    $("zen-exit")?.addEventListener("click", () => setZenMode(false));
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (state.pinned) { state.pinned = null; renderPinnedLore(); }
+        else if (state.zen) setZenMode(false);
+      }
+    });
+
+    // Close Pinned Lore Card
+    $("pinned-lore-close")?.addEventListener("click", () => {
+      state.pinned = null;
+      renderPinnedLore();
+    });
+
+    // Play / Pause
+    const togglePlay = () => {
+      state.playing = !state.playing;
+      syncPlayButtons();
+    };
+    $("btn-play")?.addEventListener("click", togglePlay);
+    $("zen-play")?.addEventListener("click", togglePlay);
+
+    // Reverse / Forward
     const btnRev = $("btn-rev");
     if (btnRev) {
       btnRev.addEventListener("click", () => {
@@ -1384,25 +1975,15 @@
       });
     }
 
-    // Snap to Today
-    const btnToday = $("btn-today");
-    if (btnToday) {
-      btnToday.addEventListener("click", () => {
-        jumpToJD(JE.dateToJD(new Date()), false);
-      });
-    }
+    // Today & Birth buttons
+    $("btn-today")?.addEventListener("click", () => jumpToJD(JE.dateToJD(new Date()), false));
+    $("btn-birth")?.addEventListener("click", () => {
+      if (state.natalJD === null) return;
+      jumpToJD(state.natalJD, true);
+      if (Audio) Audio.playNatalLock(true);
+    });
 
-    // Snap back to exact Birth Moment
-    const btnBirth = $("btn-birth");
-    if (btnBirth) {
-      btnBirth.addEventListener("click", () => {
-        if (state.natalJD === null) return;
-        jumpToJD(state.natalJD, true);
-        if (Audio) Audio.playNatalLock(true);
-      });
-    }
-
-    // Direct Date Picker jump (any past or future date)
+    // Direct Date Picker
     const elJump = $("jump-date");
     if (elJump) {
       elJump.addEventListener("change", () => {
@@ -1418,13 +1999,12 @@
       });
     }
 
-    // Quick Bidirectional Time-Step Buttons (-1Y, -1M, +1M, +1Y)
+    // Time Step Buttons (-1Y, -1M, +1M, +1Y)
     document.querySelectorAll("[data-step]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const spec = btn.getAttribute("data-step") || "";
         const m = spec.match(/^([+-]?\d+)([dmy])$/);
-        if (!m) return;
-        stepByUnit(m[2], Number(m[1]));
+        if (m) stepByUnit(m[2], Number(m[1]));
       });
     });
 
@@ -1434,7 +2014,21 @@
         const sp = btn.getAttribute("data-speed");
         if (!SPEED_MAP[sp]) return;
         state.speed = sp;
-        document.querySelectorAll("[data-speed]").forEach((b) => b.classList.toggle("is-active", b === btn));
+        document.querySelectorAll("[data-speed]").forEach((b) => {
+          b.classList.toggle("is-active", b.getAttribute("data-speed") === sp);
+        });
+      });
+    });
+
+    // Drishti Optical Lens Toggle
+    document.querySelectorAll("[data-lens]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ln = btn.getAttribute("data-lens");
+        if (!ln) return;
+        state.lens = ln;
+        document.querySelectorAll("[data-lens]").forEach((b) => {
+          b.classList.toggle("is-active", b.getAttribute("data-lens") === ln);
+        });
       });
     });
 
@@ -1450,55 +2044,42 @@
       });
     });
 
-    // Bidirectional Lifespan Timeline Scrubber (Birth Date <-> Today <-> Future)
+    // Bidirectional Lifespan Scrubber
     const scrubber = $("timeline-scrubber");
     if (scrubber) {
       let dragBounds = null;
-      scrubber.addEventListener("pointerdown", () => {
-        dragBounds = getTimelineBounds();
-      });
+      scrubber.addEventListener("pointerdown", () => { dragBounds = getTimelineBounds(); });
       scrubber.addEventListener("input", () => {
         const b = dragBounds || getTimelineBounds();
         const frac = Number(scrubber.value) / 10000;
-        const targetJD = b.minJD + frac * (b.maxJD - b.minJD);
-        jumpToJD(targetJD, false);
+        jumpToJD(b.minJD + frac * (b.maxJD - b.minJD), false);
       });
       const clearDrag = () => { dragBounds = null; };
       scrubber.addEventListener("change", clearDrag);
       scrubber.addEventListener("pointerup", clearDrag);
     }
 
-    // Sound Toggle
+    // 3-State Soundscape Switch (Mute -> Clockwork -> Cosmic)
     const btnSound = $("btn-sound");
     if (btnSound && Audio) {
       btnSound.addEventListener("click", () => {
-        const on = Audio.setEnabled(!Audio.isEnabled());
-        btnSound.textContent = on ? "🔊 SOUND ON" : "🔇 SOUND";
-        btnSound.classList.toggle("is-active", on);
+        const m = Audio.cycleMode();
+        btnSound.textContent = m === "full" ? "🔊 COSMIC" : (m === "mech" ? "⚙ CLOCKWORK" : "🔇 MUTE");
+        btnSound.classList.toggle("is-active", m !== "off");
       });
     }
 
-    // Jump to Previous Major Double / Triple Transit (backwards toward Birth Date)
-    const btnPrev = $("btn-prev-transit");
-    if (btnPrev) {
-      btnPrev.addEventListener("click", () => {
-        const hit = JE.findPrevConvergence(state.simJD, state.natal, state.ayanamsa, 1825, state.natalJD);
-        if (!hit) return;
-        jumpToJD(hit.jd, true);
-      });
-    }
+    // Prev / Next Convergence Scanners
+    $("btn-prev-transit")?.addEventListener("click", () => {
+      const hit = JE.findPrevConvergence(state.simJD, state.natal, state.ayanamsa, 1825, state.natalJD);
+      if (hit) jumpToJD(hit.jd, true);
+    });
+    $("btn-next-transit")?.addEventListener("click", () => {
+      const hit = JE.findNextConvergence(state.simJD, state.natal, state.ayanamsa, 1825);
+      if (hit) jumpToJD(hit.jd, true);
+    });
 
-    // Jump to Next Major Double / Triple Transit (forward)
-    const btnNext = $("btn-next-transit");
-    if (btnNext) {
-      btnNext.addEventListener("click", () => {
-        const hit = JE.findNextConvergence(state.simJD, state.natal, state.ayanamsa, 1825);
-        if (!hit) return;
-        jumpToJD(hit.jd, true);
-      });
-    }
-
-    // Lock Birth Chart Form
+    // Birth Form Lock / Sample / Unlock
     const form = $("birth-form");
     if (form) {
       form.addEventListener("submit", (e) => {
@@ -1507,24 +2088,14 @@
         const time = $("birth-time")?.value || "12:00";
         const cityStr = $("birth-city")?.value || "Hyderabad, India";
         const errEl = $("birth-error");
-        if (!date) {
-          if (errEl) errEl.textContent = "Enter a birth date.";
-          return;
-        }
+        if (!date) { if (errEl) errEl.textContent = "Enter a birth date."; return; }
         const cityObj = JE.findCity(cityStr);
         if (!cityObj) {
-          if (errEl) errEl.textContent = "City not found — pick from list or enter lat, lon (e.g. 17.38, 78.49).";
+          if (errEl) errEl.textContent = "City not found — pick from list or enter lat, lon.";
           return;
         }
         if (errEl) errEl.textContent = "";
-        state.birthInput = {
-          date,
-          time,
-          city: cityObj.name,
-          lat: cityObj.lat,
-          lon: cityObj.lon,
-          tz: cityObj.tz,
-        };
+        state.birthInput = { date, time, city: cityObj.name, lat: cityObj.lat, lon: cityObj.lon, tz: cityObj.tz };
         try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
         if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
         state.eventLog = [];
@@ -1532,18 +2103,13 @@
       });
     }
 
-    // Sample Chart quick button
-    const btnSample = $("btn-sample-birth");
-    if (btnSample) {
-      btnSample.addEventListener("click", () => {
-        if ($("birth-date")) $("birth-date").value = "1988-08-15";
-        if ($("birth-time")) $("birth-time").value = "06:30";
-        if ($("birth-city")) $("birth-city").value = "Hyderabad, India";
-        $("birth-form")?.dispatchEvent(new Event("submit", { cancelable: true }));
-      });
-    }
+    $("btn-sample-birth")?.addEventListener("click", () => {
+      if ($("birth-date")) $("birth-date").value = "1988-08-15";
+      if ($("birth-time")) $("birth-time").value = "06:30";
+      if ($("birth-city")) $("birth-city").value = "Hyderabad, India";
+      $("birth-form")?.dispatchEvent(new Event("submit", { cancelable: true }));
+    });
 
-    // Unlock / Return to Cosmic Sky Mode
     const btnUnlock = $("btn-unlock-natal");
     if (btnUnlock) {
       btnUnlock.addEventListener("click", () => {
@@ -1555,31 +2121,25 @@
       });
     }
 
-    // Click any event log row to jump directly to that transit date
-    const logList = $("transit-log-list");
-    if (logList) {
-      logList.addEventListener("click", (e) => {
-        const li = e.target.closest("[data-jd]");
-        if (!li) return;
-        const jd = Number(li.getAttribute("data-jd"));
-        if (!Number.isFinite(jd)) return;
-        state.simJD = jd;
-        state.lastCheckedDay = Math.floor(jd);
-        state.trails = {};
-        state.transit = JE.computeSiderealSnapshot(jd, state.ayanamsa);
-        state.activeEventKeys = new Set();
-        evaluateAndTriggerTransits(state.transit, jd, performance.now(), true);
-        syncSidePanelUI();
-      });
-    }
+    // Event log row click -> jump directly to date
+    $("transit-log-list")?.addEventListener("click", (e) => {
+      const li = e.target.closest("[data-jd]");
+      if (!li) return;
+      const jd = Number(li.getAttribute("data-jd"));
+      if (Number.isFinite(jd)) jumpToJD(jd, true);
+    });
 
-    // Canvas hover / mouseleave
+    // Canvas pointer interactions (Hover Telemetry + Click-to-Pin + Grab-and-Spin Crank)
     if (canvas) {
-      canvas.addEventListener("mousemove", handlePointerMove);
-      canvas.addEventListener("mouseleave", () => {
-        state.hovered = null;
-        const tip = $("dial-tooltip");
-        if (tip) tip.hidden = true;
+      canvas.addEventListener("pointerdown", handlePointerDown);
+      canvas.addEventListener("pointermove", handlePointerMove);
+      canvas.addEventListener("pointerup", handlePointerUp);
+      canvas.addEventListener("pointercancel", handlePointerUp);
+      canvas.addEventListener("pointerleave", () => {
+        if (!crank.active) {
+          state.hovered = null;
+          updateHoverTelemetry(null);
+        }
       });
     }
 
@@ -1591,7 +2151,7 @@
     if (!canvas) return;
     ctx = canvas.getContext("2d");
     populateCityDatalist();
-    loadSavedBirth();
+    loadSavedPreferences();
     resizeCanvas();
     bindControls();
     recomputeForAyanamsaOrNatal(null);

@@ -61,7 +61,7 @@
       master.connect(ctx.destination);
 
       musicBus = ctx.createGain();
-      musicBus.gain.value = 0.72;
+      musicBus.gain.value = 0.56;
       musicBus.connect(master);
 
       sfxBus = ctx.createGain();
@@ -81,38 +81,38 @@
   // ---------------------------------------------------------------------------
 
   const TANPURA_STRINGS = [
-    { freq: 110.00, gain: 0.16, bright: 950,  dur: 5.4 }, // Pa (A2)
-    { freq: 146.83, gain: 0.15, bright: 1200, dur: 5.2 }, // Sa' (D3) +1.5c
-    { freq: 146.70, gain: 0.14, bright: 1120, dur: 5.2 }, // Sa' (D3) -1.5c (shimmering jawari chorus)
-    { freq: 73.42,  gain: 0.21, bright: 680,  dur: 6.4 }, // Kharaj Sa (D2)
+    { freq: 110.00, gain: 0.072, bright: 580, dur: 5.8 }, // Pa (A2) — tempered soft bed
+    { freq: 146.83, gain: 0.068, bright: 700, dur: 5.6 }, // Sa' (D3) +1.5c
+    { freq: 146.70, gain: 0.064, bright: 660, dur: 5.6 }, // Sa' (D3) -1.5c (warm jawari shimmer)
+    { freq: 73.42,  gain: 0.095, bright: 440, dur: 6.8 }, // Kharaj Sa (D2)
   ];
 
   function pluckTanpura(str, time) {
     if (!ctx || !musicBus) return;
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
-    osc1.type = "sawtooth";
-    osc2.type = "triangle";
+    osc1.type = "triangle";
+    osc2.type = "sine";
     osc1.frequency.setValueAtTime(str.freq, time);
-    osc2.frequency.setValueAtTime(str.freq * 2.0, time); // octave jawari overtone
+    osc2.frequency.setValueAtTime(str.freq * 2.0, time); // delicate octave jawari overtone
 
-    // Characteristic Tanpura jawari formant filter sweep (blooms smoothly after pluck)
+    // Warm, non-intrusive lowpass formant sweep
     const bp = ctx.createBiquadFilter();
     bp.type = "lowpass";
-    bp.Q.value = 2.6;
-    bp.frequency.setValueAtTime(str.freq * 2.2, time);
-    bp.frequency.exponentialRampToValueAtTime(str.bright, time + 0.55);
-    bp.frequency.exponentialRampToValueAtTime(str.freq * 2.8, time + str.dur);
+    bp.Q.value = 1.4;
+    bp.frequency.setValueAtTime(str.freq * 1.9, time);
+    bp.frequency.exponentialRampToValueAtTime(str.bright, time + 0.65);
+    bp.frequency.exponentialRampToValueAtTime(str.freq * 2.1, time + str.dur);
 
     const g1 = ctx.createGain();
     g1.gain.setValueAtTime(0.0001, time);
-    g1.gain.linearRampToValueAtTime(str.gain, time + 0.14);
-    g1.gain.exponentialRampToValueAtTime(str.gain * 0.42, time + 1.8);
+    g1.gain.linearRampToValueAtTime(str.gain, time + 0.22);
+    g1.gain.exponentialRampToValueAtTime(str.gain * 0.45, time + 2.0);
     g1.gain.exponentialRampToValueAtTime(0.0001, time + str.dur);
 
     const g2 = ctx.createGain();
     g2.gain.setValueAtTime(0.0001, time);
-    g2.gain.linearRampToValueAtTime(str.gain * 0.34, time + 0.32);
+    g2.gain.linearRampToValueAtTime(str.gain * 0.26, time + 0.42);
     g2.gain.exponentialRampToValueAtTime(0.0001, time + str.dur * 0.85);
 
     osc1.connect(g1);
@@ -246,7 +246,7 @@
       if (!ctx || ctx.state !== "running" || mode !== "full") return;
       pluckTanpura(TANPURA_STRINGS[tanpuraStep % 4], ctx.currentTime + 0.03);
       tanpuraStep = (tanpuraStep + 1) % 4;
-    }, 1220);
+    }, 1580);
 
     // Gentle meditative Tabla (~74 BPM = 405ms per matra subdivision -> 810ms per beat)
     tablaTimer = setInterval(() => {

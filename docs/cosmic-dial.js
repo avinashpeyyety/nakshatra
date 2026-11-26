@@ -1426,31 +1426,67 @@
     hosts.forEach((h) => { h.innerHTML = html; });
   }
 
-  function updateZenVargaBar() {
+  let lastZenVargaHtml = "";
+  let lastZenVargaWidth = 0;
+  let lastTelemetryHtml = "";
+
+  function applyInPlaceMarquee(bar, textEl) {
+    if (!bar || !textEl) return;
+    textEl.classList.remove("is-scrolling");
+    bar.classList.remove("is-overflowing");
+    textEl.style.removeProperty("--marquee-shift");
+    textEl.style.removeProperty("--marquee-dur");
+    const availW = bar.clientWidth;
+    if (availW <= 0) return;
+    const cs = window.getComputedStyle(bar);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const innerW = Math.max(0, availW - padX);
+    const overflow = Math.ceil(textEl.scrollWidth - innerW);
+    if (overflow > 4) {
+      const shift = overflow + 18;
+      const dur = Math.max(9.5, Math.min(28, shift / 28 + 4.5));
+      textEl.style.setProperty("--marquee-shift", `-${shift}px`);
+      textEl.style.setProperty("--marquee-dur", `${dur.toFixed(1)}s`);
+      bar.classList.add("is-overflowing");
+      void textEl.offsetWidth;
+      textEl.classList.add("is-scrolling");
+    }
+  }
+
+  function updateZenVargaBar(forceMeasure = false) {
     const bar = $("zen-varga-bar");
-    if (!bar) return;
+    const textEl = $("zen-varga-text") || bar;
+    if (!bar || !textEl) return;
+
+    let active = false;
+    let nextHtml = "Hover any ▼ arrow on timeline for D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump directly";
+
     if (state.hoveredMarker) {
       const w = state.hoveredMarker;
       const d1 = formatMonthYear(w.startJD);
       const d2 = formatMonthYear(w.endJD);
       const spanStr = d1 === d2 ? d1 : `${d1}–${d2}`;
-      bar.classList.add("is-active");
-      bar.innerHTML = `<span class="zv-tag">✦ ${spanStr}</span> ${w.vargaSummary}`;
-      return;
-    }
-    if (state.zen && state.hovered && state.hovered.telemetryHtml) {
-      bar.classList.add("is-active");
-      bar.innerHTML = state.hovered.telemetryHtml;
-      return;
-    }
-    const liveTr = state.analysis && state.analysis.triples[0];
-    if (liveTr && liveTr.vargaSummary) {
-      bar.classList.add("is-active");
-      bar.innerHTML = `<span class="zv-tag">✦ ACTIVE TRIPLE</span> ${liveTr.vargaSummary}`;
+      active = true;
+      nextHtml = `<span class="zv-tag">✦ ${spanStr}</span> ${w.vargaSummary}`;
+    } else if (state.zen && state.hovered && state.hovered.telemetryHtml) {
+      active = true;
+      nextHtml = state.hovered.telemetryHtml;
     } else {
-      bar.classList.remove("is-active");
-      bar.textContent = "Hover any ▼ arrow on timeline for D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump directly";
+      const liveTr = state.analysis && state.analysis.triples[0];
+      if (liveTr && liveTr.vargaSummary) {
+        active = true;
+        nextHtml = `<span class="zv-tag">✦ ACTIVE TRIPLE</span> ${liveTr.vargaSummary}`;
+      }
     }
+
+    bar.classList.toggle("is-active", active);
+    const curW = bar.clientWidth;
+    if (!forceMeasure && nextHtml === lastZenVargaHtml && curW === lastZenVargaWidth) return;
+
+    lastZenVargaHtml = nextHtml;
+    lastZenVargaWidth = curW;
+    textEl.innerHTML = nextHtml;
+    if (curW > 0) applyInPlaceMarquee(bar, textEl);
   }
 
   function recomputeForAyanamsaOrNatal(playAudioMode) {
@@ -1602,11 +1638,14 @@
     const zenMeta = $("zen-meta");
     if (zenDate) zenDate.textContent = `${shortDate} · ${ageText}`;
     if (zenMeta) {
+      const ascStr = (state.natal && state.natal.details.Lagna)
+        ? `Asc ${state.natal.details.Lagna.rasi.sanskrit} ${JE.fmtDM(state.natal.details.Lagna.degInRasi)} · `
+        : "";
       const mdStr = (state.dasha && !state.dasha.isPreBirth && state.dasha.maha)
         ? ` · MD ${JE.PLANET_MAP[state.dasha.maha.lord].sym} ${state.dasha.maha.lord} / ${state.dasha.antar.lord}`
         : "";
       const tiStr = state.panchanga ? state.panchanga.tithiFull : "";
-      zenMeta.textContent = `${tiStr}${mdStr}`;
+      zenMeta.textContent = `${ascStr}${tiStr}${mdStr}`;
     }
     updateZenVargaBar();
 
@@ -1658,7 +1697,10 @@
       if (state.natal) {
         const lag = state.natal.details.Lagna;
         const moo = state.natal.details.Moon;
-        natalStatus.innerHTML = `<span class="lock-pill">LOCKED</span> ${lag.rasi.sanskrit} Lagna (${lag.nak.short} P${lag.padaNum}) · ☽ ${moo.rasi.sanskrit} (${moo.nak.name} P${moo.padaNum})`;
+        const cityShort = state.birthInput ? String(state.birthInput.city || "").split(",")[0] : "";
+        const timeShort = state.birthInput ? (state.birthInput.time || "") : "";
+        const stamp = (timeShort || cityShort) ? ` · ${[timeShort, cityShort].filter(Boolean).join(" ")}` : "";
+        natalStatus.innerHTML = `<span class="lock-pill">LOCKED</span> ${lag.rasi.sanskrit} ${JE.fmtDM(lag.degInRasi)} (${lag.nak.short} P${lag.padaNum})${stamp} · ☽ ${moo.rasi.sanskrit} P${moo.padaNum}`;
       } else {
         natalStatus.innerHTML = `<span class="lock-pill is-sky">COSMIC SKY</span> Enter birth details below to lock natal pins`;
       }
@@ -1841,13 +1883,19 @@
       return;
     }
     const bar = $("dial-telemetry-bar");
+    const textEl = $("dial-telemetry-text") || bar;
     const legend = $("dial-legend");
     if (!bar || !legend) return;
     if (hit) {
-      bar.innerHTML = hit.telemetryHtml;
       bar.hidden = false;
       legend.hidden = true;
+      if (hit.telemetryHtml !== lastTelemetryHtml) {
+        lastTelemetryHtml = hit.telemetryHtml;
+        textEl.innerHTML = hit.telemetryHtml;
+        applyInPlaceMarquee(bar, textEl);
+      }
     } else {
+      lastTelemetryHtml = "";
       bar.hidden = true;
       legend.hidden = false;
     }
@@ -1975,7 +2023,10 @@
     if (btn) btn.textContent = state.zen ? "✕ EXIT ZEN" : "⛶ ZEN";
     const dock = $("zen-dock");
     if (dock) dock.hidden = !state.zen;
-    requestAnimationFrame(() => resizeCanvas());
+    requestAnimationFrame(() => {
+      resizeCanvas();
+      if (state.zen) updateZenVargaBar(true);
+    });
   }
 
   function resizeCanvas() {
@@ -1993,6 +2044,7 @@
     canvas.width = Math.round(target * dpr);
     canvas.height = Math.round(target * dpr);
     staticCacheKey = "";
+    if (state.zen) updateZenVargaBar(true);
   }
 
   function populateCityDatalist() {
@@ -2013,10 +2065,16 @@
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved && saved.date && saved.lat !== undefined) {
+        // Heal legacy raw-coord numeric tz values (e.g. India +5 -> Asia/Kolkata +5:30)
+        if (typeof saved.tz !== "string" || !saved.tz.includes("/")) {
+          const resolved = (saved.city && JE.findCity(saved.city)) || null;
+          saved.tz = (resolved && resolved.tz) || (JE.inferTzForCoords ? JE.inferTzForCoords(saved.lat, saved.lon) : saved.tz);
+        }
         state.birthInput = saved;
         if ($("birth-date")) $("birth-date").value = saved.date;
         if ($("zen-birth-date")) $("zen-birth-date").value = saved.date;
         if ($("birth-time")) $("birth-time").value = saved.time || "06:30";
+        if ($("zen-birth-time")) $("zen-birth-time").value = saved.time || "06:30";
         if ($("birth-city")) $("birth-city").value = saved.city || "Hyderabad, India";
         if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
       }
@@ -2230,27 +2288,31 @@
       zenSound?.addEventListener("click", () => Audio.toggleMusic());
     }
 
-    // Inline Birth Date Editor right inside the Zen Mode bottom toolbar!
+    // Inline Birth Date & Local Time Editor right inside the Zen Mode bottom toolbar!
     const zenBirth = $("zen-birth-date");
-    if (zenBirth) {
-      zenBirth.addEventListener("change", () => {
-        const val = zenBirth.value;
-        if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) return;
-        if ($("birth-date")) $("birth-date").value = val;
-        const base = state.birthInput || {
-          time: $("birth-time")?.value || "06:30",
-          city: "Hyderabad, India",
-          lat: 17.3850,
-          lon: 78.4867,
-          tz: "Asia/Kolkata",
-        };
-        state.birthInput = { ...base, date: val };
-        try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
-        if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
-        state.eventLog = [];
-        recomputeForAyanamsaOrNatal("lock");
-      });
-    }
+    const zenTime = $("zen-birth-time");
+    const applyZenBirthInputs = () => {
+      const dateVal = zenBirth?.value || $("birth-date")?.value;
+      const timeVal = zenTime?.value || $("birth-time")?.value || "06:30";
+      if (!dateVal || !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return;
+      if (!/^\d{2}:\d{2}/.test(timeVal)) return;
+      if ($("birth-date")) $("birth-date").value = dateVal;
+      if ($("birth-time")) $("birth-time").value = timeVal;
+      const cityFallback = JE.findCity($("birth-city")?.value || "Hyderabad, India") || JE.CITIES[0];
+      const base = state.birthInput || {
+        city: cityFallback.name,
+        lat: cityFallback.lat,
+        lon: cityFallback.lon,
+        tz: cityFallback.tz,
+      };
+      state.birthInput = { ...base, date: dateVal, time: timeVal };
+      try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
+      if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
+      state.eventLog = [];
+      recomputeForAyanamsaOrNatal("lock");
+    };
+    zenBirth?.addEventListener("change", applyZenBirthInputs);
+    zenTime?.addEventListener("change", applyZenBirthInputs);
 
     // Prev / Next Convergence Scanners (Main & Zen)
     const jumpPrevConv = () => {
@@ -2284,10 +2346,26 @@
         if (errEl) errEl.textContent = "";
         state.birthInput = { date, time, city: cityObj.name, lat: cityObj.lat, lon: cityObj.lon, tz: cityObj.tz };
         if ($("zen-birth-date")) $("zen-birth-date").value = date;
+        if ($("zen-birth-time")) $("zen-birth-time").value = time;
         try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
         if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
         state.eventLog = [];
         recomputeForAyanamsaOrNatal("lock");
+      });
+
+      // Keep Ascendant & Natal pins live-synced whenever birth date, time, or city changes while locked
+      ["birth-date", "birth-time", "birth-city"].forEach((id) => {
+        $(id)?.addEventListener("change", () => {
+          if (id === "birth-date" && $("zen-birth-date") && $("birth-date").value) {
+            $("zen-birth-date").value = $("birth-date").value;
+          }
+          if (id === "birth-time" && $("zen-birth-time") && $("birth-time").value) {
+            $("zen-birth-time").value = $("birth-time").value;
+          }
+          if (state.birthInput) {
+            form.dispatchEvent(new Event("submit", { cancelable: true }));
+          }
+        });
       });
     }
 

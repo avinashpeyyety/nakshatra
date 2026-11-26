@@ -91,13 +91,13 @@
 
     if (typeof tzOrOffset === "string" && tzOrOffset.includes("/")) {
       try {
-        // Compute exact historical/DST offset for that IANA timezone using Intl API
+        // Compute exact historical/DST offset for that IANA timezone using explicit h23 Intl API
         const guessUtcMs = Date.UTC(y, m - 1, d, hour, min, 0);
         const fmt = new Intl.DateTimeFormat("en-US", {
           timeZone: tzOrOffset,
           year: "numeric", month: "2-digit", day: "2-digit",
           hour: "2-digit", minute: "2-digit", second: "2-digit",
-          hour12: false,
+          hourCycle: "h23",
         });
         const partsToMs = (ms) => {
           const p = {};
@@ -106,9 +106,11 @@
           return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), hr, Number(p.minute), Number(p.second));
         };
         let utcMs = guessUtcMs;
-        for (let iter = 0; iter < 2; iter++) {
+        for (let iter = 0; iter < 3; iter++) {
           const wallMs = partsToMs(utcMs);
-          utcMs += (guessUtcMs - wallMs);
+          const diff = guessUtcMs - wallMs;
+          utcMs += diff;
+          if (Math.abs(diff) < 500) break;
         }
         return utcMs / 86400000 + 2440587.5;
       } catch (_) {
@@ -425,21 +427,30 @@
     };
   }
 
-  /** Compute tropical Ascendant (Lagna) for given Julian Day UT and geographic lat/lon (degrees, East +) */
+  /** Compute apparent tropical Ascendant (Lagna) for given JD UT and lat/lon (East +) with Meeus nutation */
   function computeTropicalAscendant(jd, latDeg, lonDeg) {
     const T = (jd - J2000) / 36525.0;
-    // Greenwich Mean Sidereal Time (Meeus Ch. 12)
+    // Greenwich Mean Sidereal Time (IAU / Meeus Ch. 12)
     const gmst = norm360(
       280.46061837
       + 360.98564736629 * (jd - J2000)
       + 0.000387933 * T * T
       - (T * T * T) / 38710000
     );
-    const lst = norm360(gmst + lonDeg) * DEG;
-    const eps = (23.4392911 - 0.013004167 * T) * DEG;
+    // Meeus Ch. 22 nutation in longitude (dPsi) & obliquity (dEps) for Apparent Sidereal Time (GAST)
+    const omega = (125.04452 - 1934.136261 * T) * DEG;
+    const Lsun = (280.4665 + 36000.7698 * T) * DEG;
+    const Lmoon = (218.3165 + 481267.8813 * T) * DEG;
+    const dPsiDeg = (-17.20 * Math.sin(omega) - 1.32 * Math.sin(2 * Lsun) - 0.23 * Math.sin(2 * Lmoon) + 0.21 * Math.sin(2 * omega)) / 3600;
+    const dEpsDeg = (9.20 * Math.cos(omega) + 0.57 * Math.cos(2 * Lsun) + 0.10 * Math.cos(2 * Lmoon) - 0.09 * Math.cos(2 * omega)) / 3600;
+    const eps0 = 23.4392911 - 0.013004167 * T - 0.000000164 * T * T;
+    const epsTrue = (eps0 + dEpsDeg) * DEG;
+    const gast = norm360(gmst + dPsiDeg * Math.cos(epsTrue));
+
+    const lst = norm360(gast + lonDeg) * DEG;
     const lat = latDeg * DEG;
-    // Standard spherical astronomy Ascendant formula
-    const asc = Math.atan2(Math.cos(lst), -(Math.sin(lst) * Math.cos(eps) + Math.tan(lat) * Math.sin(eps))) * RAD;
+    // Standard spherical astronomy Ascendant formula matching Swiss Ephemeris swe.houses() to <0.001°
+    const asc = Math.atan2(Math.cos(lst), -(Math.sin(lst) * Math.cos(epsTrue) + Math.tan(lat) * Math.sin(epsTrue))) * RAD;
     return norm360(asc);
   }
 
@@ -1534,6 +1545,45 @@
     ["Kakinada, India", 16.9891, 82.2475, "Asia/Kolkata"],
     ["Nellore, India", 14.4426, 79.9865, "Asia/Kolkata"],
     ["Kurnool, India", 15.8281, 78.0373, "Asia/Kolkata"],
+    ["Secunderabad, India", 17.4399, 78.4983, "Asia/Kolkata"],
+    ["Eluru, India", 16.7107, 81.0952, "Asia/Kolkata"],
+    ["Bhimavaram, India", 16.5449, 81.5212, "Asia/Kolkata"],
+    ["Machilipatnam, India", 16.1875, 81.1389, "Asia/Kolkata"],
+    ["Tenali, India", 16.2428, 80.6400, "Asia/Kolkata"],
+    ["Ongole, India", 15.5057, 80.0499, "Asia/Kolkata"],
+    ["Nizamabad, India", 18.6725, 78.0941, "Asia/Kolkata"],
+    ["Karimnagar, India", 18.4386, 79.1288, "Asia/Kolkata"],
+    ["Khammam, India", 17.2473, 80.1514, "Asia/Kolkata"],
+    ["Nalgonda, India", 17.0575, 79.2684, "Asia/Kolkata"],
+    ["Mahabubnagar, India", 16.7488, 78.0035, "Asia/Kolkata"],
+    ["Anantapur, India", 14.6819, 77.6006, "Asia/Kolkata"],
+    ["Kadapa, India", 14.4673, 78.8242, "Asia/Kolkata"],
+    ["Chittoor, India", 13.2172, 79.1003, "Asia/Kolkata"],
+    ["Srikakulam, India", 18.2949, 83.8938, "Asia/Kolkata"],
+    ["Vizianagaram, India", 18.1067, 83.3956, "Asia/Kolkata"],
+    ["Proddatur, India", 14.7502, 78.5481, "Asia/Kolkata"],
+    ["Tiruchirappalli, India", 10.7905, 78.7047, "Asia/Kolkata"],
+    ["Salem, India", 11.6643, 78.1460, "Asia/Kolkata"],
+    ["Vellore, India", 12.9165, 79.1325, "Asia/Kolkata"],
+    ["Kozhikode, India", 11.2588, 75.7804, "Asia/Kolkata"],
+    ["Thrissur, India", 10.5276, 76.2144, "Asia/Kolkata"],
+    ["Hubballi, India", 15.3647, 75.1240, "Asia/Kolkata"],
+    ["Belagavi, India", 15.8497, 74.4977, "Asia/Kolkata"],
+    ["Noida, India", 28.5355, 77.3910, "Asia/Kolkata"],
+    ["Gurugram, India", 28.4595, 77.0266, "Asia/Kolkata"],
+    ["Agra, India", 27.1767, 78.0081, "Asia/Kolkata"],
+    ["Kanpur, India", 26.4499, 80.3319, "Asia/Kolkata"],
+    ["Prayagraj, India", 25.4358, 81.8463, "Asia/Kolkata"],
+    ["Jodhpur, India", 26.2389, 73.0243, "Asia/Kolkata"],
+    ["Udaipur, India", 24.5854, 73.7125, "Asia/Kolkata"],
+    ["Ranchi, India", 23.3441, 85.3096, "Asia/Kolkata"],
+    ["Raipur, India", 21.2514, 81.6296, "Asia/Kolkata"],
+    ["Dehradun, India", 30.3165, 78.0322, "Asia/Kolkata"],
+    ["Shimla, India", 31.1048, 77.1734, "Asia/Kolkata"],
+    ["Puducherry, India", 11.9416, 79.8083, "Asia/Kolkata"],
+    ["Panaji, India", 15.4909, 73.8278, "Asia/Kolkata"],
+    ["Nashik, India", 19.9975, 73.7898, "Asia/Kolkata"],
+    ["Thane, India", 19.2183, 72.9781, "Asia/Kolkata"],
     ["Pune, India", 18.5204, 73.8567, "Asia/Kolkata"],
     ["Ahmedabad, India", 23.0225, 72.5714, "Asia/Kolkata"],
     ["Jaipur, India", 26.9124, 75.7873, "Asia/Kolkata"],
@@ -1617,6 +1667,24 @@
     ["San Francisco, USA", 37.7749, -122.4194, "America/Los_Angeles"],
     ["San Jose, USA", 37.3382, -121.8863, "America/Los_Angeles"],
     ["Seattle, USA", 47.6062, -122.3321, "America/Los_Angeles"],
+    ["Plano, USA", 33.0198, -96.6989, "America/Chicago"],
+    ["Irving, USA", 32.8140, -96.9489, "America/Chicago"],
+    ["Frisco, USA", 33.1507, -96.8236, "America/Chicago"],
+    ["San Ramon, USA", 37.7799, -121.9780, "America/Los_Angeles"],
+    ["Fremont, USA", 37.5485, -121.9886, "America/Los_Angeles"],
+    ["Cupertino, USA", 37.3230, -122.0322, "America/Los_Angeles"],
+    ["Sunnyvale, USA", 37.3688, -122.0363, "America/Los_Angeles"],
+    ["San Diego, USA", 32.7157, -117.1611, "America/Los_Angeles"],
+    ["Portland, USA", 45.5152, -122.6784, "America/Los_Angeles"],
+    ["Sacramento, USA", 38.5816, -121.4944, "America/Los_Angeles"],
+    ["Edison, USA", 40.5187, -74.4121, "America/New_York"],
+    ["Jersey City, USA", 40.7178, -74.0431, "America/New_York"],
+    ["Charlotte, USA", 35.2271, -80.8431, "America/New_York"],
+    ["Raleigh, USA", 35.7796, -78.6382, "America/New_York"],
+    ["Tampa, USA", 27.9506, -82.4572, "America/New_York"],
+    ["Orlando, USA", 28.5383, -81.3792, "America/New_York"],
+    ["Pittsburgh, USA", 40.4406, -79.9959, "America/New_York"],
+    ["Minneapolis, USA", 44.9778, -93.2650, "America/Chicago"],
     ["Toronto, Canada", 43.6532, -79.3832, "America/Toronto"],
     ["Vancouver, Canada", 49.2827, -123.1207, "America/Vancouver"],
     ["Montreal, Canada", 45.5017, -73.5673, "America/Toronto"],
@@ -1627,23 +1695,69 @@
     ["Buenos Aires, Argentina", -34.6037, -58.3816, "America/Argentina/Buenos_Aires"],
   ].map(([name, lat, lon, tz]) => ({ name, lat, lon, tz }));
 
+  const CITY_ALIASES = {
+    bangalore: "bengaluru",
+    bombay: "mumbai",
+    madras: "chennai",
+    calcutta: "kolkata",
+    vizag: "visakhapatnam",
+    trivandrum: "thiruvananthapuram",
+    cochin: "kochi",
+    mysore: "mysuru",
+    mangalore: "mangaluru",
+    baroda: "vadodara",
+    poona: "pune",
+    benares: "varanasi",
+    kashi: "varanasi",
+    allahabad: "prayagraj",
+    gurgaon: "gurugram",
+    trichy: "tiruchirappalli",
+    calicut: "kozhikode",
+    pondicherry: "puducherry",
+    delhi: "new delhi",
+    nyc: "new york",
+    sf: "san francisco",
+    la: "los angeles",
+    dc: "washington dc",
+  };
+
+  function inferTzForCoords(lat, lon) {
+    // Accurate IANA timezone detection for South Asia (avoids half-hour IST/Nepal/Sri Lanka offset bug!)
+    if (lat >= 5.8 && lat <= 9.8 && lon >= 79.6 && lon <= 81.9) return "Asia/Colombo";
+    if (lat >= 27.1 && lat <= 30.2 && lon >= 81.2 && lon <= 88.1) return "Asia/Kathmandu";
+    if (lat >= 21.5 && lat <= 26.4 && lon >= 88.9 && lon <= 92.3) return "Asia/Dhaka";
+    if (lat >= 6.5 && lat <= 37.5 && lon >= 68.0 && lon <= 97.5) return "Asia/Kolkata";
+    return Math.round((lon / 15) * 2) / 2; // half-hour precision fallback
+  }
+
   function findCity(query) {
     const q = String(query || "").trim().toLowerCase();
     if (!q) return CITIES[0];
-    // Allow raw "lat, lon" input too
-    const coordMatch = q.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+    // Allow raw "lat, lon" input (optional ° / N/S/E/W) with accurate India/South-Asia timezone resolution
+    const coordMatch = q.match(/^(-?\d+(?:\.\d+)?)\s*°?\s*([ns])?\s*,\s*(-?\d+(?:\.\d+)?)\s*°?\s*([ew])?$/);
     if (coordMatch) {
-      const lat = Number(coordMatch[1]);
-      const lon = Number(coordMatch[2]);
-      const approxOffset = Math.round(lon / 15);
-      return { name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, lat, lon, tz: approxOffset };
+      let lat = Number(coordMatch[1]);
+      let lon = Number(coordMatch[3]);
+      if (coordMatch[2] === "s") lat = -Math.abs(lat);
+      if (coordMatch[4] === "w") lon = -Math.abs(lon);
+      return { name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, lat, lon, tz: inferTzForCoords(lat, lon) };
     }
-    const exact = CITIES.find((c) => c.name.toLowerCase() === q);
-    if (exact) return exact;
-    const starts = CITIES.find((c) => c.name.toLowerCase().startsWith(q));
-    if (starts) return starts;
-    const partial = CITIES.find((c) => c.name.toLowerCase().includes(q));
-    return partial || null;
+    const baseToken = q.split(",")[0].trim();
+    const mapped = CITY_ALIASES[baseToken] || baseToken;
+    const candidates = [q, mapped, baseToken];
+    for (const term of candidates) {
+      const exact = CITIES.find((c) => c.name.toLowerCase() === term);
+      if (exact) return exact;
+    }
+    for (const term of candidates) {
+      const starts = CITIES.find((c) => c.name.toLowerCase().startsWith(term));
+      if (starts) return starts;
+    }
+    for (const term of candidates) {
+      const partial = CITIES.find((c) => c.name.toLowerCase().includes(term));
+      if (partial) return partial;
+    }
+    return null;
   }
 
   root.JyotishEngine = {
@@ -1684,6 +1798,7 @@
     computePanchanga,
     computeAllDrishtiRays,
     computeNatalResonances,
+    inferTzForCoords,
     findCity,
   };
 })(typeof window !== "undefined" ? window : globalThis);

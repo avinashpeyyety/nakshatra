@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cosmic-dial.css?v=8" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=9" />
 </head>
 <body>
   <canvas id="celestialTapestry" class="celestial-tapestry" aria-hidden="true"></canvas>
@@ -40,7 +40,7 @@
 
       <!-- Zero-Obstruction Docked Hover Telemetry / Legend Strip -->
       <div class="dial-footer-rail">
-        <div id="dial-telemetry-bar" class="dial-telemetry-bar" role="status" aria-live="polite" hidden></div>
+        <div id="dial-telemetry-bar" class="dial-telemetry-bar" role="status" aria-live="polite" hidden><span id="dial-telemetry-text" class="zen-varga-text"></span></div>
         <div id="dial-legend" class="dial-legend" aria-label="Zodiac alloy and interaction legend">
           <span class="legend-chip"><span class="legend-swatch sw-agni"></span>Agni</span>
           <span class="legend-chip"><span class="legend-swatch sw-prithvi"></span>Prithvi</span>
@@ -213,10 +213,10 @@
     </aside>
   </main>
 
-  <!-- Stabilized Fixed-Geometry Zen Cinema Deck with Thin Timeline & D1–D60 Triple Transit Markers -->
+  <!-- Stabilized Fixed-Geometry Zen Cinema Deck with Scrolling Marquee, Thin Timeline & Inline Birth Editor -->
   <div id="zen-dock" class="zen-dock" hidden>
     <div id="zen-varga-bar" class="zen-varga-bar" aria-live="polite">
-      Hover any ▼ marker on the timeline to inspect D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump
+      <span id="zen-varga-text" class="zen-varga-text">Hover any ▼ arrow on timeline for D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump directly</span>
     </div>
 
     <div class="zen-timeline-row">
@@ -232,9 +232,10 @@
 
     <div class="zen-bar-row">
       <span id="zen-date" class="zen-date">-- --- ----</span>
-      <label class="zen-born-wrap" title="Edit birth date directly in Zen mode">
+      <label class="zen-born-wrap" title="Edit birth date & local time in Zen mode">
         <span>BORN</span>
         <input id="zen-birth-date" class="zen-birth-input" type="date" value="1988-08-15" aria-label="Birth date in Zen mode" />
+        <input id="zen-birth-time" class="zen-birth-time" type="time" value="06:30" aria-label="Birth local time in Zen mode" />
       </label>
       <span id="zen-meta" class="zen-meta"></span>
       <div class="zen-controls">
@@ -253,9 +254,9 @@
     </div>
   </div>
 
-  <script src="jyotish-engine.js?v=8" defer></script>
-  <script src="cosmic-audio.js?v=8" defer></script>
+  <script src="jyotish-engine.js?v=9" defer></script>
+  <script src="cosmic-audio.js?v=9" defer></script>
   <script src="cosmic-tapestry.js?v=8" defer></script>
-  <script src="cosmic-dial.js?v=8" defer></script>
+  <script src="cosmic-dial.js?v=9" defer></script>
 </body>
 </html>

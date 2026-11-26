@@ -3,421 +3,333 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nakshatra Chakram</title>
-  <meta name="description" content="Local Vedic astrology birth chart and nakshatra wheel. No signup. Data stays on your computer." />
+  <title>Nakshatra Chakram — 108 Pada Cosmic Transit Dial</title>
+  <meta name="description" content="Enigmatic 108-Pada Vedic Jyotish cosmic dial with built-in Lahiri & B.V. Raman ayanamsas, natal planetary lock, daily/weekly/monthly transit simulation, and Double/Triple transit alerts." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lato:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0a0b12;
-      --panel: #12141f;
-      --gold: #d4a853;
-      --saffron: #e8a838;
-      --text: #e8e6e3;
-      --muted: #9a958c;
-      --border: rgba(212, 168, 83, 0.25);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: Lato, system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.65;
-      min-height: 100vh;
-    }
-    .wheel-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    #heroWheelSvg {
-      width: min(125vmin, 920px);
-      height: min(125vmin, 920px);
-      opacity: 0.25;
-      transform: translateY(-2%);
-    }
-    .wheel-bg-vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 55% 50% at 50% 42%, transparent 0%, rgba(10, 11, 18, 0.42) 62%, var(--bg) 90%),
-        radial-gradient(ellipse 120% 80% at 50% -20%, #1a1530 0%, transparent 55%);
-    }
-    .page-content {
-      position: relative;
-      z-index: 1;
-    }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
-    h1 {
-      font-family: Cinzel, serif;
-      font-size: clamp(1.75rem, 5vw, 2.5rem);
-      color: var(--gold);
-      letter-spacing: 0.04em;
-      margin-bottom: 0.75rem;
-    }
-    .tagline { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; }
-    .cta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 2.5rem;
-    }
-    .btn {
-      display: inline-block;
-      padding: 0.75rem 1.35rem;
-      border-radius: 6px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--saffron), var(--gold));
-      color: #1a1208;
-    }
-    .btn-secondary {
-      border: 1px solid var(--border);
-      color: var(--gold);
-      background: var(--panel);
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212, 168, 83, 0.2); }
-    .btn[aria-disabled="true"] {
-      opacity: 0.45;
-      pointer-events: none;
-      cursor: default;
-    }
-    .page-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      margin-bottom: 2rem;
-      font-size: 0.9rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .page-nav a {
-      color: var(--gold);
-      text-decoration: none;
-    }
-    .page-nav a:hover { text-decoration: underline; }
-    section {
-      background: rgba(18, 20, 31, 0.88);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-      scroll-margin-top: 1.25rem;
-      backdrop-filter: blur(4px);
-    }
-    section h2 {
-      font-family: Cinzel, serif;
-      font-size: 1rem;
-      color: var(--gold);
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    section h3 {
-      font-size: 0.95rem;
-      color: var(--saffron);
-      margin: 1rem 0 0.4rem;
-    }
-    section h3:first-of-type { margin-top: 0; }
-    ul { padding-left: 1.25rem; color: var(--muted); }
-    li { margin-bottom: 0.35rem; }
-    section p, section li { color: var(--muted); font-size: 0.95rem; }
-    section p { margin-bottom: 0.5rem; }
-    .lead { font-size: 1.05rem; }
-    .install { font-size: 0.9rem; color: var(--muted); }
-    code {
-      background: rgba(0,0,0,0.35);
-      padding: 0.12rem 0.35rem;
-      border-radius: 4px;
-      font-size: 0.88em;
-    }
-    footer {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-align: center;
-    }
-    footer a { color: var(--gold); }
-    .site-metrics {
-      margin-top: 1.25rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.78rem;
-      line-height: 1.5;
-      color: var(--muted);
-    }
-    .site-metrics .metrics-item strong {
-      color: var(--saffron);
-      font-weight: 600;
-    }
-    .site-metrics .metrics-sep {
-      margin: 0 0.45rem;
-      opacity: 0.45;
-    }
-    .site-metrics .metrics-hint {
-      font-size: 0.72rem;
-      opacity: 0.75;
-    }
-    .site-metrics-note {
-      margin-top: 0.35rem;
-      font-size: 0.7rem;
-      opacity: 0.65;
-    }
-    .site-metrics .metrics-updated {
-      display: block;
-      margin-top: 0.35rem;
-      font-size: 0.68rem;
-      opacity: 0.55;
-    }
-    .badge { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
-    section a { color: var(--gold); }
-    .glance {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-      gap: 0.6rem;
-      margin-bottom: 1.75rem;
-    }
-    .glance-card {
-      background: rgba(18, 20, 31, 0.88);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 0.85rem;
-      backdrop-filter: blur(4px);
-    }
-    .glance-card strong {
-      display: block;
-      font-family: Cinzel, serif;
-      color: var(--saffron);
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
-    }
-    .glance-card span {
-      color: var(--muted);
-      font-size: 0.82rem;
-      line-height: 1.4;
-    }
-    .glance-note {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin: -1rem 0 1.75rem;
-    }
-    .glance-note a { color: var(--gold); }
-
-    @keyframes transitGlow {
-      0%, 100% { stroke-opacity: 0.4; }
-      50% { stroke-opacity: 0.85; }
-    }
-    #heroWheelSvg .transit-orbit-ring {
-      animation: transitGlow 2.4s ease-in-out infinite;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      #heroWheelSvg .transit-orbit-ring { animation: none; }
-    }
-    .ambient-audio-toggle {
-      position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.45rem 0.75rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(18, 20, 31, 0.92);
-      color: var(--muted);
-      font-family: Lato, system-ui, sans-serif;
-      font-size: 0.78rem;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
-    }
-    .ambient-audio-toggle:hover {
-      color: var(--gold);
-      border-color: rgba(212, 168, 83, 0.45);
-    }
-    .ambient-audio-toggle.is-on,
-    .ambient-audio-toggle.is-armed {
-      color: var(--saffron);
-      border-color: rgba(232, 168, 56, 0.45);
-      box-shadow: 0 0 18px rgba(212, 168, 83, 0.12);
-    }
-    .ambient-audio-toggle.is-armed:not(.is-on) {
-      animation: audio-armed-pulse 2.4s ease-in-out infinite;
-    }
-    @keyframes audio-armed-pulse {
-      0%, 100% { opacity: 0.72; }
-      50% { opacity: 1; }
-    }
-    .ambient-audio-icon {
-      font-size: 0.95rem;
-      line-height: 1;
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=1" />
 </head>
 <body>
-  <div class="wheel-bg" aria-hidden="true">
-    <svg id="heroWheelSvg" viewBox="0 0 760 760"></svg>
-  </div>
-  <div class="wheel-bg-vignette" aria-hidden="true"></div>
-
-  <div class="wrap page-content">
-    <h1 id="app-name">Nakshatra Chakram</h1>
-    <p class="tagline" id="tagline">Loading…</p>
-    <div class="glance" id="glance" aria-label="Features at a glance">
-      <div class="glance-card"><strong>Wheel</strong><span>Sidereal chart &amp; nakshatra wheel</span></div>
-      <div class="glance-card"><strong>Dasha</strong><span>Vimshottari &amp; Jaimini timelines</span></div>
-      <div class="glance-card"><strong>Yogas</strong><span>Major yoga detection</span></div>
-      <div class="glance-card"><strong>Gochara</strong><span>Transits &amp; alerts</span></div>
-      <div class="glance-card"><strong>Consulting</strong><span>Decision suite — not available yet</span></div>
-    </div>
-    <p class="glance-note">
-      Local-first · no signup ·
-      <a href="https://github.com/avinashpeyyety/nakshatra/blob/main/docs/FEATURES.md">feature list on GitHub (markdown)</a>
-    </p>
-
-    <div class="cta" id="downloads">
-      <div style="width:100%;text-align:left;margin-bottom:10px">
-        <strong>Lite</strong> — charts only, no LLM
-      </div>
-      <a class="btn btn-primary" id="dl-mac-lite" href="#">Lite · macOS</a>
-      <a class="btn btn-primary" id="dl-win-lite" href="#">Lite · Windows</a>
-      <div style="width:100%;text-align:left;margin:16px 0 10px">
-        <strong>Advisor</strong> — local Ornith 9B report + chat (needs <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> + <code>ollama pull ornith:9b</code>)
-      </div>
-      <a class="btn btn-primary" id="dl-mac-advisor" href="#">Advisor · macOS</a>
-      <a class="btn btn-primary" id="dl-win-advisor" href="#">Advisor · Windows</a>
-      <!-- back-compat single buttons -->
-      <a class="btn btn-primary" id="dl-mac" href="#" style="display:none">Download for macOS</a>
-      <a class="btn btn-primary" id="dl-win" href="#" style="display:none">Download for Windows</a>
-    </div>
-    <p class="badge" id="version-line"></p>
-
-    <nav class="page-nav" aria-label="On this page">
-      <a href="#downloads">Download</a>
+  <header class="cosmic-topbar">
+    <a class="topbar-brand" href="#top" aria-label="Nakshatra Chakram home">
+      <span class="brand-sigil" aria-hidden="true">☸</span>
+      <span class="brand-title">Nakshatra Chakram</span>
+      <span class="brand-sub">108-Pada Sidereal Engine</span>
+    </a>
+    <nav class="topbar-links" aria-label="Primary navigation">
       <a href="#about">About</a>
       <a href="#features">Features</a>
-      <a href="#consulting">Consulting</a>
       <a href="#privacy">Privacy</a>
-      <a href="#install">Install</a>
-      <a href="#tip">Tip</a>
+      <a href="#downloads" class="topbar-dl">Desktop App</a>
     </nav>
+  </header>
 
-    <section id="about">
-      <h2>About</h2>
-      <p class="lead">
-        Nakshatra Chakram is a <strong>local-first</strong> desktop app for Vedic (Jyotish) birth chart work.
-        Enter birth date, time, and place; the app computes a sidereal chart with Swiss Ephemeris and shows it in your browser at <code>127.0.0.1</code>.
-        No account, no cloud storage of chart data.
-      </p>
-      <p>
-        Built for students and practitioners who want a private wheel, dasha timelines, classical yoga summaries, and transit (gochara) context —
-        without uploading birth details to a website. Everything runs on your computer; saved charts stay in your user data folder.
-      </p>
-    </section>
-
-    <section id="features">
-      <h2>Features</h2>
-      <p class="lead" style="font-size:1rem">Two builds: <strong>Lite</strong> (calculations only) and <strong>Advisor</strong> (Lite + local Ornith 9B full-chart report and Q&amp;A).</p>
-
-      <h3>Wheel</h3>
-      <ul>
-        <li>Sidereal positions from <strong>Swiss Ephemeris</strong> (Lahiri ayanamsa by default; Raman and Krishnamurti also available)</li>
-        <li>Interactive <strong>nakshatra wheel</strong> — lagna at top, planets by longitude, retrograde and dignity cues</li>
-        <li>Offline place lookup (bundled city catalog)</li>
-        <li>Save and switch between <strong>multiple named charts</strong> (stored locally)</li>
-      </ul>
-
-      <h3>Dasha</h3>
-      <ul>
-        <li><strong>Vimshottari</strong> — current Maha / Antar / Pratyantar, balance at birth, past and upcoming periods</li>
-        <li><strong>Jaimini Chara</strong> (sign-based) — direction from lagna, 12-sign timeline</li>
-      </ul>
-
-      <h3>Yogas</h3>
-      <ul>
-        <li>Automatic detection of common yogas (e.g. Gajakeshari, Pancha Mahapurusha variants, Kemadruma, Neecha Bhanga Raja, Parivartana, and others)</li>
-        <li>Short interpretations in the Yogas tab</li>
-      </ul>
-
-      <h3>Gochara (transits)</h3>
-      <ul>
-        <li>Current planetary positions and ranked transit alerts</li>
-        <li>Context for the active saved chart (Sade Sati, sign changes, major aspects)</li>
-        <li>Dasha-period notes including Jupiter / Saturn / Rahu ingresses and double-transit windows</li>
-      </ul>
-
-      <h3>Under the hood</h3>
-      <ul>
-        <li>Divisional vargas, ashtakavarga, shadbala, Jaimini karakas — available to the calculation engine and exports</li>
-        <li>Combustion and retrograde flags use traditional orbs</li>
-      </ul>
-    </section>
-
-    <section id="consulting">
-      <h2>Decision consulting</h2>
-      <p class="lead">Not available yet. There is no download for this suite.</p>
-      <p>
-        A later Nakshatra edition is planned for decision-model consulting: a local model that helps score a choice, kept on your computer the same way charts are.
-        It is not part of the Lite or Advisor installers, and it is not a hosted service.
-      </p>
-      <p class="badge">Stub — Lite and Advisor above are what you can install today.</p>
-    </section>
-
-    <section id="privacy">
-      <h2>Privacy &amp; data</h2>
-      <ul>
-        <li>No signup or license server</li>
-        <li>Chart library and settings on disk (macOS: <code>~/Library/Application Support/Nakshatra Chakram/</code>)</li>
-        <li>The app does not send your birth data to us; there is no central chart database</li>
-        <li>Educational software — not a substitute for professional advice</li>
-      </ul>
-      <p style="margin-top: 0.75rem;">
-        This site is documentation and installers only — not a hosted chart service. Source: <a href="https://github.com/avinashpeyyety/nakshatra">github.com/avinashpeyyety/nakshatra</a>.
-      </p>
-    </section>
-
-    <section id="install">
-      <h2>Install</h2>
-      <p class="install">
-        <strong>macOS:</strong> use the <a href="#downloads">macOS download</a> above. Open the <strong>.dmg</strong>, drag <strong>Nakshatra Chakram</strong> to Applications, then launch from Applications.
-        Requires <strong>Python 3.10+</strong> from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> or Homebrew (macOS system Python 3.9 is not enough). First launch installs dependencies (a few minutes).<br /><br />
-        <strong>Windows:</strong> use the <a href="#downloads">Windows download</a> above and run the <code>.exe</code> (browser opens at <code>http://127.0.0.1:8765</code>). No separate Python install.<br /><br />
-        <strong>Note:</strong> the installed app uses port <code>8765</code>; local development still uses <code>8000</code>. Network is only your browser talking to the local server.<br /><br />
-        If macOS blocks the app (not notarized): <strong>right-click → Open</strong>, or <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
-        If Windows SmartScreen warns: <strong>More info → Run anyway</strong>.
-      </p>
-    </section>
-
-    <section id="tip">
-      <h2>Tip if you like</h2>
-      <p class="install" style="margin-bottom: 1rem;">
-        The app is free. If it helps you, a small tip is welcome — never required.
-      </p>
-      <div class="cta" style="margin-bottom: 0;">
-        <a class="btn btn-secondary" id="donate" href="#">Ko-fi</a>
+  <main id="top" class="cosmic-hero" aria-label="Interactive 108-Pada Cosmic Transit Dial">
+    <!-- Left Stage: Formidable Forged-Metallic Cosmic Dial -->
+    <div class="dial-column">
+      <div class="dial-stage">
+        <canvas id="cosmicDialCanvas" width="680" height="680" aria-label="108 Nakshatra Padas, 27 Nakshatras, 12 Rasis, and live planetary transits"></canvas>
+        <div id="dial-tooltip" class="dial-tooltip" role="tooltip" hidden></div>
       </div>
-    </section>
 
-    <footer>
-      <p>Questions or bugs: <a id="issues" href="#">report an issue</a> (no chart data — describe steps only).</p>
-      <p style="margin-top: 0.5rem;">Educational software — not professional advice.</p>
-      <div class="site-metrics" id="site-metrics" aria-label="Site metrics"></div>
-      <p class="site-metrics-note">Views and clones are GitHub repo traffic (rolling 14 days). Installer downloads are not tracked on static Pages hosting.</p>
-    </footer>
+      <div class="dial-legend" aria-label="Zodiac alloy and symbol legend">
+        <span class="legend-chip"><span class="legend-swatch sw-agni"></span>Agni · Fire</span>
+        <span class="legend-chip"><span class="legend-swatch sw-prithvi"></span>Prithvi · Earth</span>
+        <span class="legend-chip"><span class="legend-swatch sw-vayu"></span>Vayu · Air</span>
+        <span class="legend-chip"><span class="legend-swatch sw-jala"></span>Jala · Water</span>
+        <span class="legend-chip"><span class="legend-swatch sw-gandanta"></span>Gandanta Seam</span>
+        <span class="legend-chip">℞ Retrograde</span>
+        <span class="legend-chip">Hover dial to inspect 108 Padas</span>
+      </div>
+    </div>
+
+    <!-- Right Stage: Machined Cosmic Instrument Console -->
+    <aside class="cosmic-console" aria-label="Cosmic dial controls">
+
+      <!-- 1. Chronometer & Orbital Drive -->
+      <div class="console-module">
+        <div class="module-head">
+          <span class="module-label">Solar Chronometer</span>
+          <span class="module-readout">Daily Grain · 108 Padas</span>
+        </div>
+
+        <div class="chrono-display">
+          <span id="chrono-date" class="chrono-date">-- --- ----</span>
+          <span id="chrono-doy" class="chrono-doy">DAY 001 / 365</span>
+        </div>
+
+        <div class="scrubber-row">
+          <span class="scrubber-tick">D1</span>
+          <input id="year-scrubber" type="range" min="1" max="365" value="1" aria-label="Day of year scrubber" />
+          <span class="scrubber-tick">D365</span>
+        </div>
+
+        <div class="mech-row mech-row-4">
+          <button id="btn-play" type="button" class="mech-btn is-active" title="Play or pause transit simulation">❚❚ PAUSE</button>
+          <button id="btn-rev" type="button" class="mech-btn" title="Reverse or forward time direction">FWD ▶</button>
+          <button id="btn-today" type="button" class="mech-btn" title="Snap to today's sky">TODAY</button>
+          <button id="btn-sound" type="button" class="mech-btn" title="Enable cosmic machine audio and transit gongs">🔇 SOUND</button>
+        </div>
+
+        <div class="mech-row mech-row-3" role="group" aria-label="Transit speed">
+          <button type="button" class="mech-btn" data-speed="day">DAY / S</button>
+          <button type="button" class="mech-btn is-active" data-speed="week">WEEK / S</button>
+          <button type="button" class="mech-btn" data-speed="month">MONTH / S</button>
+        </div>
+      </div>
+
+      <!-- 2. Built-In Sidereal Ayanamsa Clutch -->
+      <div class="console-module">
+        <div class="module-head">
+          <span class="module-label">Ayanamsa Clutch</span>
+          <span id="ayanamsa-readout" class="module-readout">Lahiri · 24° 14′ 45″</span>
+        </div>
+        <div class="mech-row mech-row-2" role="group" aria-label="Ayanamsa system">
+          <button type="button" class="mech-btn ayanamsa-btn is-active" data-ayanamsa="lahiri">
+            <span>LAHIRI</span>
+            <small>Chitrapaksha</small>
+          </button>
+          <button type="button" class="mech-btn ayanamsa-btn" data-ayanamsa="raman">
+            <span>B.V. RAMAN</span>
+            <small>Surya Siddhanta</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Double & Triple Transit Convergence Annunciator -->
+      <div class="console-module">
+        <div class="module-head">
+          <span class="module-label">Gochara Convergences</span>
+          <button id="btn-next-transit" type="button" class="mech-btn mech-btn-accent" style="padding:0.2rem 0.48rem;font-size:0.62rem;" title="Jump forward to the next major Double or Triple transit">⏭ NEXT CONVERGENCE</button>
+        </div>
+
+        <div id="transit-annunciator" class="annunciator-box" aria-live="polite">
+          <div class="ann-top">
+            <span id="ann-badge" class="ann-badge">○ MONITORING GOCHARA</span>
+          </div>
+          <div id="ann-text" class="ann-text">Enter birth details to lock natal pins &amp; track personal Double / Triple transits</div>
+        </div>
+
+        <ul id="transit-log-list" class="transit-log" aria-label="Detected major transit log">
+          <li class="log-empty">No Double or Triple convergence crossed yet — speed up or press Next Convergence.</li>
+        </ul>
+      </div>
+
+      <!-- 4. Birth Details & Natal Planetary Lock Chamber -->
+      <div class="console-module">
+        <div class="module-head">
+          <span class="module-label">Natal Lock Chamber</span>
+          <span class="module-readout">100% Local · In-Browser</span>
+        </div>
+
+        <div id="natal-lock-status" class="natal-status">
+          <span class="lock-pill is-sky">COSMIC SKY</span> Enter birth details below to lock natal pins
+        </div>
+
+        <form id="birth-form" autocomplete="off">
+          <div class="birth-grid">
+            <div class="birth-field">
+              <label for="birth-date">Birth Date</label>
+              <input id="birth-date" type="date" value="1988-08-15" required />
+            </div>
+            <div class="birth-field">
+              <label for="birth-time">Local Time</label>
+              <input id="birth-time" type="time" value="06:30" required />
+            </div>
+            <div class="birth-field full">
+              <label for="birth-city">Birth Place (City or lat, lon)</label>
+              <input id="birth-city" type="text" list="city-list" value="Hyderabad, India" placeholder="e.g. Hyderabad, India or 17.38, 78.49" required />
+              <datalist id="city-list"></datalist>
+            </div>
+          </div>
+
+          <div class="birth-actions">
+            <button type="submit" class="mech-btn is-active btn-lock">🔒 LOCK NATAL CHART</button>
+            <button id="btn-sample-birth" type="button" class="mech-btn" title="Load sample chart">SAMPLE</button>
+            <button id="btn-unlock-natal" type="button" class="mech-btn" hidden>UNLOCK</button>
+          </div>
+          <div id="birth-error" class="birth-error" role="alert"></div>
+        </form>
+      </div>
+
+      <!-- 5. Collapsible Live 9-Graha Sidereal Ephemeris -->
+      <details class="console-module ephem-module">
+        <summary>
+          <span class="module-label">Live 9-Graha Ephemeris</span>
+          <span class="ephem-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div class="ephem-table-wrap">
+          <table class="ephem-table" aria-label="Live sidereal planetary longitudes">
+            <thead>
+              <tr>
+                <th>Graha</th>
+                <th>Rasi</th>
+                <th>Deg</th>
+                <th>Nakshatra · Pada</th>
+              </tr>
+            </thead>
+            <tbody id="ephemeris-rows"></tbody>
+          </table>
+        </div>
+      </details>
+
+    </aside>
+  </main>
+
+  <div class="fold-divider">
+    <a href="#downloads">↓ Desktop App · Installers &amp; Documentation</a>
   </div>
+
+  <!-- Preserved Below-the-Fold Desktop App Landing Content -->
+  <div class="below-fold">
+    <div class="wrap">
+      <h1 id="app-name">Nakshatra Chakram</h1>
+      <p class="tagline" id="tagline">Local Vedic birth chart and nakshatra wheel — full desktop app with Swiss Ephemeris, Vimshottari &amp; Jaimini Dashas, Yogas, and optional local Advisor.</p>
+
+      <div class="glance" id="glance" aria-label="Features at a glance">
+        <div class="glance-card"><strong>Wheel</strong><span>Sidereal chart &amp; nakshatra wheel</span></div>
+        <div class="glance-card"><strong>Dasha</strong><span>Vimshottari &amp; Jaimini timelines</span></div>
+        <div class="glance-card"><strong>Yogas</strong><span>Major yoga detection</span></div>
+        <div class="glance-card"><strong>Gochara</strong><span>Transits &amp; alerts</span></div>
+        <div class="glance-card"><strong>Consulting</strong><span>Decision suite — not available yet</span></div>
+      </div>
+      <p class="glance-note">
+        Local-first · no signup ·
+        <a href="https://github.com/avinashpeyyety/nakshatra/blob/main/docs/FEATURES.md">feature list on GitHub (markdown)</a>
+      </p>
+
+      <div class="cta" id="downloads">
+        <div style="width:100%;text-align:left;margin-bottom:8px">
+          <strong>Lite</strong> — charts only, no LLM
+        </div>
+        <a class="btn btn-primary" id="dl-mac-lite" href="#">Lite · macOS</a>
+        <a class="btn btn-primary" id="dl-win-lite" href="#">Lite · Windows</a>
+        <div style="width:100%;text-align:left;margin:14px 0 8px">
+          <strong>Advisor</strong> — local Ornith 9B report + chat (needs <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> + <code>ollama pull ornith:9b</code>)
+        </div>
+        <a class="btn btn-primary" id="dl-mac-advisor" href="#">Advisor · macOS</a>
+        <a class="btn btn-primary" id="dl-win-advisor" href="#">Advisor · Windows</a>
+        <!-- back-compat single buttons -->
+        <a class="btn btn-primary" id="dl-mac" href="#" style="display:none">Download for macOS</a>
+        <a class="btn btn-primary" id="dl-win" href="#" style="display:none">Download for Windows</a>
+      </div>
+      <p class="badge" id="version-line"></p>
+
+      <nav class="page-nav" aria-label="On this page">
+        <a href="#top">Cosmic Dial</a>
+        <a href="#downloads">Download</a>
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#consulting">Consulting</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#install">Install</a>
+        <a href="#tip">Tip</a>
+      </nav>
+
+      <section id="about">
+        <h2>About</h2>
+        <p class="lead">
+          Nakshatra Chakram is a <strong>local-first</strong> Vedic (Jyotish) workspace. The live cosmic dial above runs a built-in sidereal engine directly in your browser (Lahiri &amp; B.V. Raman); for full Swiss Ephemeris divisional charts, Vimshottari/Jaimini dashas, and saved multi-chart libraries, install the desktop app below at <code>127.0.0.1</code>.
+        </p>
+        <p>
+          Built for students and practitioners who want a private wheel, dasha timelines, classical yoga summaries, and transit (gochara) context —
+          without uploading birth details to a server. Everything stays on your device.
+        </p>
+      </section>
+
+      <section id="features">
+        <h2>Features</h2>
+        <p class="lead" style="font-size:1rem">Two desktop builds: <strong>Lite</strong> (calculations only) and <strong>Advisor</strong> (Lite + local Ornith 9B full-chart report and Q&amp;A).</p>
+
+        <h3>Wheel</h3>
+        <ul>
+          <li>Sidereal positions from <strong>Swiss Ephemeris</strong> (Lahiri ayanamsa by default; Raman and Krishnamurti also available)</li>
+          <li>Interactive <strong>nakshatra wheel</strong> — lagna at top, planets by longitude, retrograde and dignity cues</li>
+          <li>Offline place lookup (bundled city catalog)</li>
+          <li>Save and switch between <strong>multiple named charts</strong> (stored locally)</li>
+        </ul>
+
+        <h3>Dasha</h3>
+        <ul>
+          <li><strong>Vimshottari</strong> — current Maha / Antar / Pratyantar, balance at birth, past and upcoming periods</li>
+          <li><strong>Jaimini Chara</strong> (sign-based) — direction from lagna, 12-sign timeline</li>
+        </ul>
+
+        <h3>Yogas</h3>
+        <ul>
+          <li>Automatic detection of common yogas (e.g. Gajakeshari, Pancha Mahapurusha variants, Kemadruma, Neecha Bhanga Raja, Parivartana, and others)</li>
+          <li>Short interpretations in the Yogas tab</li>
+        </ul>
+
+        <h3>Gochara (transits)</h3>
+        <ul>
+          <li>Current planetary positions and ranked transit alerts</li>
+          <li>Context for the active saved chart (Sade Sati, sign changes, major aspects)</li>
+          <li>Dasha-period notes including Jupiter / Saturn / Rahu ingresses and double-transit windows</li>
+        </ul>
+
+        <h3>Under the hood</h3>
+        <ul>
+          <li>Divisional vargas, ashtakavarga, shadbala, Jaimini karakas — available to the calculation engine and exports</li>
+          <li>Combustion and retrograde flags use traditional orbs</li>
+        </ul>
+      </section>
+
+      <section id="consulting">
+        <h2>Decision consulting</h2>
+        <p class="lead">Not available yet. There is no download for this suite.</p>
+        <p>
+          A later Nakshatra edition is planned for decision-model consulting: a local model that helps score a choice, kept on your computer the same way charts are.
+          It is not part of the Lite or Advisor installers, and it is not a hosted service.
+        </p>
+        <p class="badge">Stub — Lite and Advisor above are what you can install today.</p>
+      </section>
+
+      <section id="privacy">
+        <h2>Privacy &amp; data</h2>
+        <ul>
+          <li>No signup or license server — birth details entered in the cosmic dial never leave your browser (<code>localStorage</code> only)</li>
+          <li>Desktop chart library and settings on disk (macOS: <code>~/Library/Application Support/Nakshatra Chakram/</code>)</li>
+          <li>The app does not send your birth data to us; there is no central chart database</li>
+          <li>Educational software — not a substitute for professional advice</li>
+        </ul>
+        <p style="margin-top: 0.75rem;">
+          Source: <a href="https://github.com/avinashpeyyety/nakshatra">github.com/avinashpeyyety/nakshatra</a>.
+        </p>
+      </section>
+
+      <section id="install">
+        <h2>Install</h2>
+        <p class="install">
+          <strong>macOS:</strong> use the <a href="#downloads">macOS download</a> above. Open the <strong>.dmg</strong>, drag <strong>Nakshatra Chakram</strong> to Applications, then launch from Applications.
+          Requires <strong>Python 3.10+</strong> from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> or Homebrew (macOS system Python 3.9 is not enough). First launch installs dependencies (a few minutes).<br /><br />
+          <strong>Windows:</strong> use the <a href="#downloads">Windows download</a> above and run the <code>.exe</code> (browser opens at <code>http://127.0.0.1:8765</code>). No separate Python install.<br /><br />
+          <strong>Note:</strong> the installed app uses port <code>8765</code>; local development still uses <code>8000</code>. Network is only your browser talking to the local server.<br /><br />
+          If macOS blocks the app (not notarized): <strong>right-click → Open</strong>, or <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
+          If Windows SmartScreen warns: <strong>More info → Run anyway</strong>.
+        </p>
+      </section>
+
+      <section id="tip">
+        <h2>Tip if you like</h2>
+        <p class="install" style="margin-bottom: 1rem;">
+          The app is free. If it helps you, a small tip is welcome — never required.
+        </p>
+        <div class="cta" style="margin-bottom: 0;">
+          <a class="btn btn-secondary" id="donate" href="#">Ko-fi</a>
+        </div>
+      </section>
+
+      <footer>
+        <p>Questions or bugs: <a id="issues" href="#">report an issue</a> (no chart data — describe steps only).</p>
+        <p style="margin-top: 0.5rem;">Educational software — not professional advice.</p>
+        <div class="site-metrics" id="site-metrics" aria-label="Site metrics"></div>
+        <p class="site-metrics-note">Views and clones are GitHub repo traffic (rolling 14 days). Installer downloads are not tracked on static Pages hosting.</p>
+      </footer>
+    </div>
+  </div>
+
   <script>
     (async function () {
       let cfg = {};
@@ -451,7 +363,8 @@
     })();
   </script>
   <script src="site-metrics.js?v=2" defer></script>
-  <script src="wheel-hero.js?v=4" defer></script>
-  <script src="wheel-audio-5.js?v=7" defer></script>
+  <script src="jyotish-engine.js?v=1" defer></script>
+  <script src="cosmic-audio.js?v=1" defer></script>
+  <script src="cosmic-dial.js?v=1" defer></script>
 </body>
 </html>

@@ -606,6 +606,364 @@
     "Maritime, spirituality, global compassion & dissolution of old orders.",
   ];
 
+  // ---------------------------------------------------------------------------
+  // Full Parashara Shodashavarga Engine (D1 through D60 — All 16 Vargas)
+  // ---------------------------------------------------------------------------
+
+  const VARGAS = [
+    { num: 1,  code: "D1",  name: "Rasi",            domain: "life direction & physical reality", weight: 3.0 },
+    { num: 2,  code: "D2",  name: "Hora",            domain: "wealth & financial flow",           weight: 1.4 },
+    { num: 3,  code: "D3",  name: "Drekkana",        domain: "initiative & enterprise",           weight: 1.2 },
+    { num: 4,  code: "D4",  name: "Chaturthamsha",   domain: "property, home & assets",           weight: 1.6 },
+    { num: 7,  code: "D7",  name: "Saptamsha",       domain: "children & creative legacy",        weight: 1.5 },
+    { num: 9,  code: "D9",  name: "Navamsha",        domain: "dharma, marriage & fruition",       weight: 2.8 },
+    { num: 10, code: "D10", name: "Dashamsha",       domain: "career, status & authority",        weight: 2.6 },
+    { num: 12, code: "D12", name: "Dwadashamsha",    domain: "lineage & parental karma",          weight: 1.2 },
+    { num: 16, code: "D16", name: "Shodashamsha",    domain: "comforts, vehicles & inner ease",   weight: 1.2 },
+    { num: 20, code: "D20", name: "Vimshamsha",      domain: "spiritual growth & devotion",       weight: 1.5 },
+    { num: 24, code: "D24", name: "Chaturvimshamsha",domain: "scholarship & mastery",             weight: 1.4 },
+    { num: 27, code: "D27", name: "Bhamsha",         domain: "vitality & subtle endurance",       weight: 1.1 },
+    { num: 30, code: "D30", name: "Trimshamsha",     domain: "resilience & karmic testing",       weight: 1.3 },
+    { num: 40, code: "D40", name: "Khavedamsha",     domain: "maternal legacy & fortune",         weight: 1.1 },
+    { num: 45, code: "D45", name: "Akshavedamsha",   domain: "ethics & character strength",       weight: 1.1 },
+    { num: 60, code: "D60", name: "Shashtiamsha",    domain: "deep root karma & destiny seeds",   weight: 2.5 },
+  ];
+
+  const BHAVA_SHORT = [
+    "", "identity & vitality", "wealth & family", "initiative & communication",
+    "home & property", "creativity & children", "work & resilience",
+    "partnerships & alliances", "deep transformation", "dharma & higher horizons",
+    "career & authority", "income & ambitions", "foreign ties & release",
+  ];
+
+  /** Exact BPHS Varga sign index (0..11) for any sidereal longitude (0..360) and divisor D1..D60 */
+  function computeVargaSign(deg, n) {
+    const lon = norm360(deg);
+    const r = Math.floor(lon / 30) % 12;
+    const d = lon - r * 30; // 0..30 within sign
+    const isOdd = (r % 2 === 0); // Mesha=0 (1st sign, odd)
+    const mod = r % 3; // 0=Movable (Chara), 1=Fixed (Sthira), 2=Dual (Dwiswabhava)
+    const el = r % 4;  // 0=Fire, 1=Earth, 2=Air, 3=Water
+
+    switch (n) {
+      case 1:  return r;
+      case 2:  return isOdd ? (d < 15 ? 4 : 3) : (d < 15 ? 3 : 4);
+      case 3:  return (r + Math.floor(d / 10) * 4) % 12;
+      case 4:  return (r + Math.floor(d / 7.5) * 3) % 12;
+      case 7:  return ((isOdd ? r : (r + 6)) + Math.floor(d / (30 / 7))) % 12;
+      case 9:  return ([0, 9, 6, 3][el] + Math.floor(d / (30 / 9))) % 12;
+      case 10: return ((isOdd ? r : (r + 8)) + Math.floor(d / 3)) % 12;
+      case 12: return (r + Math.floor(d / 2.5)) % 12;
+      case 16: return ([0, 4, 8][mod] + Math.floor(d / 1.875)) % 12;
+      case 20: return ([0, 8, 4][mod] + Math.floor(d / 1.5)) % 12;
+      case 24: return ((isOdd ? 4 : 3) + Math.floor(d / 1.25)) % 12;
+      case 27: return ([0, 3, 6, 9][el] + Math.floor(d / (30 / 27))) % 12;
+      case 30: {
+        if (isOdd) {
+          if (d < 5) return 0;
+          if (d < 10) return 10;
+          if (d < 18) return 8;
+          if (d < 25) return 2;
+          return 6;
+        }
+        if (d < 5) return 1;
+        if (d < 12) return 5;
+        if (d < 20) return 11;
+        if (d < 25) return 9;
+        return 7;
+      }
+      case 40: return ((isOdd ? 0 : 6) + Math.floor(d / 0.75)) % 12;
+      case 45: return ([0, 4, 8][mod] + Math.floor(d / (30 / 45))) % 12;
+      case 60: return (r + Math.floor(d / 0.5)) % 12;
+      default: return r;
+    }
+  }
+
+  function computeAllVargas(deg) {
+    const out = {};
+    for (const v of VARGAS) out[v.code] = computeVargaSign(deg, v.num);
+    return out;
+  }
+
+  /**
+   * Analyze a Triple Transit (Jupiter + Saturn + Rahu/Ketu) across ALL 16 Parashara Vargas (D1..D60),
+   * synthesizing a concise, deeply grounded 1-line summary of pattern + expected area of impact.
+   */
+  function analyzeMultiVargaTriple(transitSnap, natalSnap, tripleEv) {
+    const juDeg = transitSnap.positions.Jupiter;
+    const saDeg = transitSnap.positions.Saturn;
+    const nodeName = tripleEv.planets[2] === "Ketu" ? "Ketu" : "Rahu";
+    const ndDeg = transitSnap.positions[nodeName];
+
+    const vargaHits = [];
+    let tripleVargaCount = 0;
+
+    for (const v of VARGAS) {
+      const juV = computeVargaSign(juDeg, v.num);
+      const saV = computeVargaSign(saDeg, v.num);
+      const ndV = computeVargaSign(ndDeg, v.num);
+
+      if (v.num === 1) {
+        vargaHits.push({
+          code: "D1",
+          name: v.name,
+          domain: v.domain,
+          strength: "triple",
+          score: 12,
+          rasiIdx: tripleEv.rasiIdx,
+          bhavaNum: tripleEv.bhavaNum || null,
+        });
+        tripleVargaCount++;
+        continue;
+      }
+
+      // Check exact Varga resonance against the Varga's primary anchors (Varga Lagna I, Moon, 10th Karma, 9th Dharma, 7th Partnership)
+      const candidates = [];
+      if (natalSnap) {
+        const vLag = natalSnap.positions.Lagna !== undefined ? computeVargaSign(natalSnap.positions.Lagna, v.num) : null;
+        const vMoon = computeVargaSign(natalSnap.positions.Moon, v.num);
+        const added = new Set();
+        const addCand = (rIdx, bhava, bonus) => {
+          if (rIdx === null || rIdx === undefined || added.has(rIdx)) return;
+          added.add(rIdx);
+          candidates.push({ rIdx, bhava, bonus });
+        };
+        if (vLag !== null) {
+          addCand(vLag, 1, 2.4);
+          addCand((vLag + 9) % 12, 10, 1.9);
+          addCand((vLag + 8) % 12, 9, 1.6);
+          addCand((vLag + 6) % 12, 7, 1.5);
+        }
+        addCand(vMoon, vLag !== null ? (((vMoon - vLag) % 12 + 12) % 12) + 1 : 1, 2.0);
+      } else {
+        candidates.push({ rIdx: tripleEv.rasiIdx, bhava: null, bonus: 2.0 });
+        candidates.push({ rIdx: (tripleEv.rasiIdx + 4) % 12, bhava: null, bonus: 1.2 });
+        candidates.push({ rIdx: (tripleEv.rasiIdx + 8) % 12, bhava: null, bonus: 1.2 });
+      }
+
+      let bestHit = null;
+      for (const c of candidates) {
+        const jH = aspectsTargetRasi("Jupiter", juV, c.rIdx);
+        const sH = aspectsTargetRasi("Saturn", saV, c.rIdx);
+        const nH = aspectsTargetRasi(nodeName, ndV, c.rIdx);
+        if (!jH || !sH) continue;
+        // Weight true Triple Varga echo much higher than Double echo
+        const score = v.weight * c.bonus * (nH ? 3.2 : 0.85);
+        if (!bestHit || score > bestHit.score) {
+          bestHit = {
+            code: v.code,
+            name: v.name,
+            domain: v.domain,
+            strength: nH ? "triple" : "double",
+            score,
+            rasiIdx: c.rIdx,
+            bhavaNum: c.bhava,
+          };
+        }
+      }
+
+      if (bestHit) {
+        if (bestHit.strength === "triple") tripleVargaCount++;
+        vargaHits.push(bestHit);
+      }
+    }
+
+    // Prioritize true Triple-echo Vargas, then highest-weighted Double-echo Vargas across D2..D60
+    const secondary = vargaHits
+      .filter((x) => x.code !== "D1")
+      .sort((a, b) => (b.strength === "triple" ? 1 : 0) - (a.strength === "triple" ? 1 : 0) || b.score - a.score);
+    const topSecondary = secondary.slice(0, 3);
+    const vargaTags = ["D1", ...topSecondary.map((x) => x.code)];
+
+    const jupDig = getDignity("Jupiter", transitSnap.details.Jupiter.rasiIdx);
+    const satDig = getDignity("Saturn", transitSnap.details.Saturn.rasiIdx);
+    const isVargottama = (computeVargaSign(juDeg, 1) === computeVargaSign(juDeg, 9))
+      || (computeVargaSign(saDeg, 1) === computeVargaSign(saDeg, 9));
+
+    // Nuanced classical Pattern tag based on active Vargas & Node polarity
+    const tagSet = new Set(vargaTags);
+    let pattern;
+    if (tagSet.has("D10") && (tripleEv.bhavaNum === 10 || tripleEv.bhavaNum === 1 || tripleEv.bhavaNum === 11)) {
+      pattern = nodeName === "Rahu" ? "Authority Breakthrough" : "Career Culmination";
+    } else if (tagSet.has("D60") && tripleVargaCount >= 4) {
+      pattern = nodeName === "Rahu" ? "Destiny Turning Point" : "Root-Karma Fruition";
+    } else if (tagSet.has("D9") && (tripleEv.bhavaNum === 7 || tripleEv.bhavaNum === 9)) {
+      pattern = nodeName === "Rahu" ? "Dharmic Expansion" : "Karmic Alignment";
+    } else if (tagSet.has("D2") || tagSet.has("D4")) {
+      pattern = nodeName === "Rahu" ? "Material & Asset Surge" : "Foundation Restructuring";
+    } else if (tagSet.has("D20") || tagSet.has("D24")) {
+      pattern = nodeName === "Rahu" ? "Wisdom & Mastery Leap" : "Spiritual Distillation";
+    } else if (isVargottama || jupDig.code === "exalted" || satDig.code === "exalted") {
+      pattern = nodeName === "Rahu" ? "Sovereign Elevation" : "High-Dignity Consolidation";
+    } else {
+      pattern = nodeName === "Rahu" ? "Catalytic Inflection" : "Karmic Completion";
+    }
+
+    const rasi = RASIS[tripleEv.rasiIdx];
+    const nodeSym = PLANET_MAP[nodeName].sym;
+    const bhavaTag = tripleEv.bhavaNum ? `${tripleEv.bhavaNum}${ordinalSuffix(tripleEv.bhavaNum)} ${rasi.sanskrit}` : `${rasi.sanskrit} ${rasi.glyph}`;
+    const coreTheme = tripleEv.bhavaNum ? BHAVA_SHORT[tripleEv.bhavaNum] : SKY_TRIPLE_IMPACT_BY_RASI[tripleEv.rasiIdx].replace(/\.$/, "");
+
+    let vargaEchoClause = "";
+    if (topSecondary.length >= 2) {
+      vargaEchoClause = ` — ${topSecondary[0].code} (${topSecondary[0].domain}) & ${topSecondary[1].code} (${topSecondary[1].domain})`;
+    } else if (topSecondary.length === 1) {
+      vargaEchoClause = ` — echoed in ${topSecondary[0].code} (${topSecondary[0].domain})`;
+    }
+
+    const vargaSummary = `[${vargaTags.join("·")}] ${bhavaTag} (${nodeSym}) · ${pattern}: ${coreTheme}${vargaEchoClause}.`;
+    return {
+      vargaTags,
+      vargaHits: vargaHits.slice(0, 6),
+      tripleVargaCount,
+      pattern,
+      vargaSummary,
+    };
+  }
+
+  function ordinalSuffix(n) {
+    if (n === 1) return "st";
+    if (n === 2) return "nd";
+    if (n === 3) return "rd";
+    return "th";
+  }
+
+  /** Fast slow-planet sidereal positions (Jupiter, Saturn, Rahu, Ketu only) for lifespan window scanning */
+  function computeSlowSidereal(jd, ayanamsaMode = "lahiri") {
+    const d = jd - J2000;
+    const T = d / 36525.0;
+    const ayan = getAyanamsa(jd, ayanamsaMode);
+    const s = (deg) => Math.sin(deg * DEG);
+
+    // Sun rectangular (needed for geocentric parallax of Jupiter & Saturn)
+    const Msun = norm360(357.5291092 + 0.98560028 * d);
+    const L0 = norm360(280.46646 + 0.98564736 * d);
+    const C = (1.914602 - 0.004817 * T) * s(Msun) + 0.019993 * s(2 * Msun);
+    const sunLon = norm360(L0 + C);
+    const Rearth = 1.00014 - 0.01671 * Math.cos(Msun * DEG);
+    const xsEcl = Rearth * Math.cos(sunLon * DEG);
+    const ysEcl = Rearth * Math.sin(sunLon * DEG);
+
+    const hJup = helioRect(ORBIT_EL.Jupiter, d);
+    const hSat = helioRect(ORBIT_EL.Saturn, d);
+    const Mj = hJup.M;
+    const Msa = hSat.M;
+    const jupPert = -0.332 * s(2 * Mj - 5 * Msa - 67.6) - 0.056 * s(2 * Mj - 2 * Msa + 21) + 0.042 * s(3 * Mj - 5 * Msa + 21);
+    const satPert = 0.812 * s(2 * Mj - 5 * Msa - 67.6) - 0.229 * Math.cos((2 * Mj - 4 * Msa - 2) * DEG) + 0.119 * s(Mj - 2 * Msa - 3);
+
+    const rotGeo = (h, dp) => {
+      const rad = dp * DEG;
+      const c = Math.cos(rad), sn = Math.sin(rad);
+      const rx = h.x * c - h.y * sn;
+      const ry = h.x * sn + h.y * c;
+      return norm360(Math.atan2(ry + ysEcl, rx + xsEcl) * RAD - ayan);
+    };
+
+    const rahuTrop = norm360(125.0445479 - 1934.1362891 * T + 0.0020754 * T * T);
+    const rahu = norm360(rahuTrop - ayan);
+    const ketu = norm360(rahu + 180);
+    return {
+      Jupiter: rotGeo(hJup, jupPert),
+      Saturn:  rotGeo(hSat, satPert),
+      Rahu: rahu,
+      Ketu: ketu,
+    };
+  }
+
+  /**
+   * Scan entire visible lifespan [minJD, maxJD] in <10ms to extract all major Triple Transit windows,
+   * each enriched with full D1..D60 Shodashavarga analysis for instant clickable timeline markers.
+   */
+  function computeTripleTransitWindows(natalSnap, minJD, maxJD, ayanamsaMode = "lahiri") {
+    if (maxJD <= minJD) return [];
+    const stepDays = 10;
+    const lagR = (natalSnap && natalSnap.details.Lagna) ? natalSnap.details.Lagna.rasiIdx : null;
+    const moonR = natalSnap ? natalSnap.details.Moon.rasiIdx : null;
+    const PRIMARY_BHAVAS = new Set([1, 4, 5, 7, 9, 10, 11]);
+
+    const rawWindows = [];
+    let active = null;
+
+    const pickPrimaryTriple = (slow) => {
+      const juR = Math.floor(slow.Jupiter / 30) % 12;
+      const saR = Math.floor(slow.Saturn / 30) % 12;
+      const raR = Math.floor(slow.Rahu / 30) % 12;
+      const keR = Math.floor(slow.Ketu / 30) % 12;
+      let best = null;
+      for (let r = 0; r < 12; r++) {
+        if (!aspectsTargetRasi("Jupiter", juR, r) || !aspectsTargetRasi("Saturn", saR, r)) continue;
+        const rH = aspectsTargetRasi("Rahu", raR, r);
+        const kH = aspectsTargetRasi("Ketu", keR, r);
+        if (!rH && !kH) continue;
+        const bhavaNum = lagR !== null ? (((r - lagR) % 12 + 12) % 12) + 1 : null;
+        if (bhavaNum !== null && !PRIMARY_BHAVAS.has(bhavaNum) && r !== moonR) continue;
+        let prio = bhavaNum !== null ? BHAVA_META[bhavaNum - 1].prio : 6;
+        if (moonR !== null && r === moonR) prio = Math.max(prio, 9);
+        const nodeName = rH ? "Rahu" : "Ketu";
+        if (!best || prio > best.prio) best = { rasiIdx: r, bhavaNum, nodeName, prio };
+      }
+      return best;
+    };
+
+    for (let jd = minJD; jd <= maxJD; jd += stepDays) {
+      const slow = computeSlowSidereal(jd, ayanamsaMode);
+      const hit = pickPrimaryTriple(slow);
+      if (hit) {
+        if (active && active.rasiIdx === hit.rasiIdx && active.nodeName === hit.nodeName && (jd - active.endJD) <= 140) {
+          active.endJD = jd;
+        } else {
+          if (active) rawWindows.push(active);
+          active = { ...hit, startJD: jd, endJD: jd };
+        }
+      } else if (active && (jd - active.endJD) > 60) {
+        rawWindows.push(active);
+        active = null;
+      }
+    }
+    if (active) rawWindows.push(active);
+
+    // Filter out tiny <25d grazing blips, enrich with D1..D60 Varga analysis, and ensure crisp non-overlapping spacing on timeline
+    const candidates = [];
+    for (const w of rawWindows) {
+      if ((w.endJD - w.startJD) < 20) continue;
+      const peakJD = (w.startJD + w.endJD) / 2;
+      const snap = computeSiderealSnapshot(peakJD, ayanamsaMode);
+      const res = analyzeTransits(snap, natalSnap);
+      const match = res.triples.find((t) => t.rasiIdx === w.rasiIdx) || res.triples[0];
+      if (!match) continue;
+      candidates.push({
+        key: `${Math.round(peakJD)}:${match.key}`,
+        startJD: w.startJD,
+        endJD: w.endJD,
+        peakJD,
+        rasiIdx: match.rasiIdx,
+        bhavaNum: match.bhavaNum || w.bhavaNum,
+        nodeName: match.planets[2],
+        targetLabel: match.targetLabel,
+        summary: match.summary,
+        impact: match.impact,
+        vargaTags: match.vargaTags || ["D1"],
+        tripleVargaCount: match.tripleVargaCount || 1,
+        pattern: match.pattern || "Karmic Convergence",
+        vargaSummary: match.vargaSummary || match.impact,
+        score: (match.priority || 10) + (match.tripleVargaCount || 1) * 1.5,
+      });
+    }
+
+    // Keep arrows cleanly clickable (minimum 2.4% horizontal separation on the timeline bar)
+    const minSepJD = (maxJD - minJD) * 0.024;
+    const spaced = [];
+    for (const c of candidates) {
+      const prev = spaced[spaced.length - 1];
+      if (prev && (c.peakJD - prev.peakJD) < minSepJD) {
+        if (c.score > prev.score) spaced[spaced.length - 1] = c;
+      } else {
+        spaced.push(c);
+      }
+    }
+    return spaced;
+  }
+
   function getTripleImpact(bhavaNum, nodeName, hasNatalMoon, rasiIdx) {
     if (bhavaNum && TRIPLE_IMPACT_BY_BHAVA[bhavaNum]) {
       const base = TRIPLE_IMPACT_BY_BHAVA[bhavaNum][nodeName === "Ketu" ? "Ketu" : "Rahu"];
@@ -683,7 +1041,7 @@
           const nodeName = rHit ? "Rahu" : "Ketu";
           const nodeR = rHit ? raR : keR;
           const impact = getTripleImpact(t.bhavaNum, nodeName, t.rasiIdx === moonR, t.rasiIdx);
-          triples.push({
+          const ev = {
             tier: "triple",
             key: `T:${t.rasiIdx}:${juR}:${saR}:${nodeName}:${nodeR}`,
             rasiIdx: t.rasiIdx,
@@ -699,7 +1057,9 @@
             ],
             impact,
             summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} · ${PLANET_MAP[nodeName].sym} ${RASIS[nodeR].sanskrit} → ${targetText}${dashaSuffix}`,
-          });
+          };
+          Object.assign(ev, analyzeMultiVargaTriple(transitSnap, natalSnap, ev));
+          triples.push(ev);
         } else if (t.allowDouble) {
           doubles.push({
             tier: "double",
@@ -753,10 +1113,11 @@
           const nodeName = rHit ? "Rahu" : "Ketu";
           const nodeR = rHit ? raR : keR;
           const impact = getTripleImpact(null, nodeName, false, r);
-          triples.push({
+          const ev = {
             tier: "triple",
             key: `SKY-T:${r}:${juR}:${saR}:${nodeName}:${nodeR}`,
             rasiIdx: r,
+            bhavaNum: null,
             targetLabel: `${rasi.dev} ${rasi.sanskrit} (${rasi.english})`,
             priority: 10,
             planets: ["Jupiter", "Saturn", nodeName],
@@ -767,7 +1128,9 @@
             ],
             impact,
             summary: `♃ ♄ ${PLANET_MAP[nodeName].sym} Triple Activation → ${rasi.sanskrit} ${rasi.glyph}`,
-          });
+          };
+          Object.assign(ev, analyzeMultiVargaTriple(transitSnap, null, ev));
+          triples.push(ev);
         } else {
           doubles.push({
             tier: "double",
@@ -1289,6 +1652,7 @@
     PADAS,
     PLANETS,
     PLANET_MAP,
+    VARGAS,
     CITIES,
     PADA_SPAN,
     norm360,
@@ -1302,6 +1666,10 @@
     localBirthToJD,
     getAyanamsa,
     computeSiderealSnapshot,
+    computeVargaSign,
+    computeAllVargas,
+    analyzeMultiVargaTriple,
+    computeTripleTransitWindows,
     locateDegree,
     aspectsTargetRasi,
     getAspectLabel,

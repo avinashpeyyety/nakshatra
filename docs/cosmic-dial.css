@@ -242,11 +242,17 @@ body.is-zen .cosmic-topbar {
 body.is-zen .cosmic-hero {
   grid-template-columns: 1fr;
   min-height: 100vh;
-  padding: 0.45rem 1rem 3.4rem;
+  padding: 0.35rem 1rem 6.4rem;
 }
 
-body.is-zen .cosmic-console {
+body.is-zen .cosmic-console,
+body.is-zen #dial-legend {
   display: none;
+}
+
+body.is-zen .dial-footer-rail {
+  margin-top: 0.22rem;
+  min-height: 0;
 }
 
 /* Left Column: Formidable Metallic Dial Stage */
@@ -476,47 +482,96 @@ body.is-zen .cosmic-console {
   color: var(--amber);
 }
 
-/* Floating Zen Cinema Dock */
+/* Stabilized Fixed-Geometry Zen Cinema Deck (Zero Flicker / Zero Horizontal Drift) */
 .zen-dock {
   position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: min(95vw, 980px);
   z-index: 30;
   display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.36rem 0.85rem;
-  border-radius: 999px;
+  flex-direction: column;
+  gap: 0.26rem;
+  padding: 0.38rem 0.8rem 0.42rem;
+  border-radius: 10px;
   background: linear-gradient(180deg, var(--mod-bg-1), var(--mod-bg-3));
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-mod);
-  backdrop-filter: blur(10px);
+  contain: layout style;
 }
 
 .zen-dock[hidden] {
   display: none;
 }
 
+.zen-varga-bar {
+  height: 20px;
+  line-height: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--muted-cool);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--border-brass);
+  padding-bottom: 0.16rem;
+}
+
+.zen-varga-bar.is-active {
+  color: var(--text);
+}
+
+.zv-tag {
+  font-weight: 700;
+  color: var(--crimson);
+  margin-right: 0.35rem;
+}
+
+.zen-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 9px;
+}
+
+.zen-track-wrap {
+  height: 16px;
+}
+
+.zen-bar-row {
+  display: grid;
+  grid-template-columns: 204px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .zen-date {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .zen-meta {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   color: var(--brass-bright);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .zen-controls {
   display: flex;
   align-items: center;
   gap: 0.24rem;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -665,12 +720,75 @@ body.is-zen .cosmic-console {
   white-space: nowrap;
 }
 
+.scrubber-row.has-markers {
+  padding-top: 8px;
+}
+
 .scrubber-track-wrap {
   position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   height: 16px;
+}
+
+/* Clickable ▼ Triple Transit Arrows anchored cleanly above the thin timeline track */
+.triple-markers {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -11px;
+  height: 13px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.tt-arrow {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ff6e40;
+  font-size: 0.62rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  pointer-events: auto;
+  text-shadow: 0 0 6px rgba(255, 102, 56, 0.7);
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.tt-arrow.is-ketu {
+  color: #cf88ff;
+  text-shadow: 0 0 6px rgba(196, 120, 255, 0.65);
+}
+
+:root[data-theme="light"] .tt-arrow {
+  color: #c73812;
+  text-shadow: 0 0 4px rgba(199, 56, 18, 0.28);
+}
+
+:root[data-theme="light"] .tt-arrow.is-ketu {
+  color: #7c2eb8;
+  text-shadow: 0 0 4px rgba(124, 46, 184, 0.28);
+}
+
+.tt-arrow:hover,
+.tt-arrow:focus-visible {
+  transform: translateX(-50%) scale(1.38);
+  color: #ffd43b;
+  outline: none;
+  z-index: 6;
+}
+
+:root[data-theme="light"] .tt-arrow:hover,
+:root[data-theme="light"] .tt-arrow:focus-visible {
+  color: #9e4b00;
 }
 
 /* Colored Life-Epoch bands rendered right onto the Lifespan Scrubber Rail */
@@ -711,7 +829,8 @@ body.is-zen .cosmic-console {
   z-index: 2;
 }
 
-#timeline-scrubber {
+#timeline-scrubber,
+#zen-scrubber {
   position: relative;
   z-index: 3;
   width: 100%;
@@ -725,7 +844,8 @@ body.is-zen .cosmic-console {
   cursor: pointer;
 }
 
-#timeline-scrubber::-webkit-slider-thumb {
+#timeline-scrubber::-webkit-slider-thumb,
+#zen-scrubber::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 13px;
@@ -737,7 +857,8 @@ body.is-zen .cosmic-console {
   cursor: grab;
 }
 
-#timeline-scrubber::-moz-range-thumb {
+#timeline-scrubber::-moz-range-thumb,
+#zen-scrubber::-moz-range-thumb {
   width: 13px;
   height: 13px;
   border-radius: 50%;

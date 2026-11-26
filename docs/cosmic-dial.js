@@ -211,6 +211,8 @@
     dasha: null,               // computeVimshottariDasha result
     panchanga: null,           // computePanchanga result
     epochs: [],                // lifespan epoch bands
+    tripleWindows: [],         // clickable D1..D60 Triple Transit markers on timeline
+    hoveredMarker: null,       // hovered ▼ Triple Transit marker object
     activeEpoch: { badges: [], sadeSatiPhase: null, sadeSatiRasis: [] },
     analysis: { triples: [], doubles: [], padaHits: [] },
     activeEventKeys: new Set(),
@@ -1267,7 +1269,7 @@
       nextKeys.add(tr.key);
       if (!state.activeEventKeys.has(tr.key)) {
         firedTriple = true;
-        pushEventLog({ tier: "triple", date: dateLabel, summary: tr.summary, impact: tr.impact || "", jd });
+        pushEventLog({ tier: "triple", date: dateLabel, summary: tr.summary, impact: tr.vargaSummary || tr.impact || "", jd });
         state.shockwaves.push({ rasiIdx: tr.rasiIdx, tier: "triple", bornAt: nowMs });
       }
     }
@@ -1380,16 +1382,21 @@
     box.classList.add(`flash-${tier}`);
   }
 
+  function formatMonthYear(jd) {
+    const d = JE.jdToDate(jd);
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  }
+
   function renderEpochBands() {
-    const host = $("timeline-epochs");
-    if (!host) return;
+    const hosts = [$("timeline-epochs"), $("zen-epochs")].filter(Boolean);
+    if (!hosts.length) return;
     if (!state.natal || !state.epochs.length) {
-      host.innerHTML = "";
+      hosts.forEach((h) => { h.innerHTML = ""; });
       return;
     }
     const { minJD, maxJD } = getTimelineBounds();
     const span = Math.max(1, maxJD - minJD);
-    host.innerHTML = state.epochs.map((ep) => {
+    const html = state.epochs.map((ep) => {
       const left = Math.max(0, Math.min(100, ((ep.startJD - minJD) / span) * 100));
       const right = Math.max(0, Math.min(100, ((ep.endJD - minJD) / span) * 100));
       const width = Math.max(0.9, right - left);
@@ -1397,6 +1404,47 @@
       const y2 = JE.jdToDate(ep.endJD).getUTCFullYear();
       return `<span class="epoch-band ep-${ep.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="${ep.label} (${y1}–${y2})"></span>`;
     }).join("");
+    hosts.forEach((h) => { h.innerHTML = html; });
+  }
+
+  function renderTripleMarkers() {
+    const hosts = [$("main-triple-markers"), $("zen-triple-markers")].filter(Boolean);
+    if (!hosts.length) return;
+    if (!state.tripleWindows.length) {
+      hosts.forEach((h) => { h.innerHTML = ""; });
+      return;
+    }
+    const { minJD, maxJD } = getTimelineBounds();
+    const span = Math.max(1, maxJD - minJD);
+    const html = state.tripleWindows.map((w, idx) => {
+      const pct = Math.max(0.8, Math.min(99.2, ((w.peakJD - minJD) / span) * 100));
+      const dateStr = formatMonthYear(w.peakJD);
+      const isKetu = w.nodeName === "Ketu";
+      return `<button type="button" class="tt-arrow${isKetu ? " is-ketu" : ""}" data-tt-idx="${idx}" style="left:${pct.toFixed(2)}%" aria-label="Triple Transit ${dateStr}: ${w.vargaSummary.replace(/"/g, "&quot;")}">▼</button>`;
+    }).join("");
+    hosts.forEach((h) => { h.innerHTML = html; });
+  }
+
+  function updateZenVargaBar() {
+    const bar = $("zen-varga-bar");
+    if (!bar) return;
+    if (state.hoveredMarker) {
+      const w = state.hoveredMarker;
+      const d1 = formatMonthYear(w.startJD);
+      const d2 = formatMonthYear(w.endJD);
+      const spanStr = d1 === d2 ? d1 : `${d1}–${d2}`;
+      bar.classList.add("is-active");
+      bar.innerHTML = `<span class="zv-tag">✦ ${spanStr}</span> ${w.vargaSummary}`;
+      return;
+    }
+    const liveTr = state.analysis && state.analysis.triples[0];
+    if (liveTr && liveTr.vargaSummary) {
+      bar.classList.add("is-active");
+      bar.innerHTML = `<span class="zv-tag">✦ ACTIVE TRIPLE</span> ${liveTr.vargaSummary}`;
+    } else {
+      bar.classList.remove("is-active");
+      bar.textContent = "Hover any ▼ arrow on timeline for D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump directly";
+    }
   }
 
   function recomputeForAyanamsaOrNatal(playAudioMode) {
@@ -1408,14 +1456,16 @@
       state.natal = JE.computeSiderealSnapshot(bJD, state.ayanamsa, b.lat, b.lon);
       const lagR = state.natal.details.Lagna.rasiIdx;
       state.targetZenithDeg = lagR * 30 + 15;
-      const bounds = getTimelineBounds();
-      state.epochs = JE.computeLifeEpochs(state.natal, bounds.minJD, bounds.maxJD, state.ayanamsa);
     } else {
       state.natalJD = null;
       state.natal = null;
-      state.epochs = [];
       state.targetZenithDeg = state.ayanamsa === "raman" ? 13.55 : 15.0;
     }
+
+    const bounds = getTimelineBounds();
+    state.epochs = state.natal ? JE.computeLifeEpochs(state.natal, bounds.minJD, bounds.maxJD, state.ayanamsa) : [];
+    state.tripleWindows = JE.computeTripleTransitWindows(state.natal, bounds.minJD, bounds.maxJD, state.ayanamsa);
+    state.hoveredMarker = null;
 
     state.transit = JE.computeSiderealSnapshot(state.simJD, state.ayanamsa);
     state.panchanga = JE.computePanchanga(state.transit, state.simJD);
@@ -1431,6 +1481,7 @@
     if (playAudioMode === "unlock" && Audio) Audio.playNatalLock(false);
 
     renderEpochBands();
+    renderTripleMarkers();
     syncSidePanelUI();
     renderEventLog();
   }
@@ -1477,19 +1528,24 @@
     if (elAge) elAge.textContent = ageText;
 
     if (elJump && document.activeElement !== elJump) elJump.value = formatIsoDate(curDate);
-    if (elSlider && document.activeElement !== elSlider) {
-      const frac = Math.max(0, Math.min(1, (state.simJD - minJD) / Math.max(1, maxJD - minJD)));
-      elSlider.value = String(Math.round(frac * 10000));
-    }
-    if (elTlStart) {
-      const startYr = JE.jdToDate(minJD).getUTCFullYear();
-      elTlStart.textContent = state.natalJD !== null ? `BORN ${startYr}` : String(startYr);
-    }
-    if (elTlEnd) elTlEnd.textContent = String(JE.jdToDate(maxJD).getUTCFullYear());
-    if (elTodayMark) {
-      const tFrac = Math.max(0, Math.min(1, (todayJD - minJD) / Math.max(1, maxJD - minJD)));
-      elTodayMark.style.left = `${(tFrac * 100).toFixed(2)}%`;
-    }
+    const tlFrac = Math.max(0, Math.min(1, (state.simJD - minJD) / Math.max(1, maxJD - minJD)));
+    const tlValStr = String(Math.round(tlFrac * 10000));
+    if (elSlider && document.activeElement !== elSlider) elSlider.value = tlValStr;
+    const zenSlider = $("zen-scrubber");
+    if (zenSlider && document.activeElement !== zenSlider) zenSlider.value = tlValStr;
+
+    const startYr = JE.jdToDate(minJD).getUTCFullYear();
+    const startTxt = state.natalJD !== null ? `BORN ${startYr}` : String(startYr);
+    const endTxt = String(JE.jdToDate(maxJD).getUTCFullYear());
+    if (elTlStart) elTlStart.textContent = startTxt;
+    if (elTlEnd) elTlEnd.textContent = endTxt;
+    if ($("zen-tl-start")) $("zen-tl-start").textContent = startTxt;
+    if ($("zen-tl-end")) $("zen-tl-end").textContent = endTxt;
+
+    const tFrac = Math.max(0, Math.min(1, (todayJD - minJD) / Math.max(1, maxJD - minJD)));
+    const tPct = `${(tFrac * 100).toFixed(2)}%`;
+    if (elTodayMark) elTodayMark.style.left = tPct;
+    if ($("zen-today-mark")) $("zen-today-mark").style.left = tPct;
     if (elBtnBirth) {
       elBtnBirth.disabled = state.natalJD === null;
       elBtnBirth.title = state.natalJD !== null
@@ -1535,7 +1591,7 @@
       }
     }
 
-    // Zen Floating Dock telemetry
+    // Zen Stabilized Deck telemetry & Multi-Varga bar
     const zenDate = $("zen-date");
     const zenMeta = $("zen-meta");
     if (zenDate) zenDate.textContent = `${shortDate} · ${ageText}`;
@@ -1546,6 +1602,7 @@
       const tiStr = state.panchanga ? state.panchanga.tithiFull : "";
       zenMeta.textContent = `${tiStr}${mdStr}`;
     }
+    updateZenVargaBar();
 
     // Annunciator live status + 1-line expected impact summary for Triple Transits
     const annBadge = $("ann-badge");
@@ -1578,8 +1635,9 @@
           : "Lock birth details to track personal Double / Triple transits & Dasha";
       }
       if (annImpact) {
-        if (tr && tr.impact) {
-          annImpact.textContent = `Impact: ${tr.impact}`;
+        if (tr && (tr.vargaSummary || tr.impact)) {
+          annImpact.textContent = tr.vargaSummary || `Impact: ${tr.impact}`;
+          annImpact.title = tr.vargaSummary || tr.impact;
           annImpact.hidden = false;
         } else {
           annImpact.textContent = "";
@@ -1721,8 +1779,9 @@
     if (rFrac >= 0.422) {
       const rasi = JE.RASIS[Math.floor(deg / 30) % 12];
       const activeTr = state.analysis.triples.find((t) => t.rasiIdx === rasi.idx);
-      const trTel = activeTr && activeTr.impact ? ` <span class="tel-sep">·</span> <span class="tel-gan">TRIPLE IMPACT</span> ${activeTr.impact}` : "";
-      const trLore = activeTr && activeTr.impact ? `<div class="lore-warn">✦ Triple Transit Impact: ${activeTr.impact}</div>` : "";
+      const trSummary = activeTr ? (activeTr.vargaSummary || activeTr.impact) : "";
+      const trTel = trSummary ? ` <span class="tel-sep">·</span> <span class="tel-gan">D1–D60 TRIPLE</span> ${trSummary}` : "";
+      const trLore = trSummary ? `<div class="lore-warn">✦ ${trSummary}</div>` : "";
       return {
         type: "rasi",
         data: rasi,
@@ -1912,8 +1971,8 @@
     if (!canvas) return;
     const stage = canvas.parentElement;
     const w = stage ? stage.clientWidth : 680;
-    const maxCap = state.zen ? 900 : 696;
-    const vMargin = state.zen ? 104 : 114;
+    const maxCap = state.zen ? 860 : 696;
+    const vMargin = state.zen ? 142 : 114;
     const h = window.innerHeight ? Math.min(maxCap, window.innerHeight - vMargin) : 680;
     const target = Math.max(320, Math.min(maxCap, Math.floor(Math.min(w, h))));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1982,18 +2041,27 @@
     $("btn-play")?.addEventListener("click", togglePlay);
     $("zen-play")?.addEventListener("click", togglePlay);
 
-    // Reverse / Forward
-    const btnRev = $("btn-rev");
-    if (btnRev) {
-      btnRev.addEventListener("click", () => {
-        state.direction = -state.direction;
+    // Reverse / Forward (synced between Main & Zen decks)
+    const toggleDir = () => {
+      state.direction = -state.direction;
+      const btnRev = $("btn-rev");
+      const zenRev = $("zen-rev");
+      if (btnRev) {
         btnRev.textContent = state.direction < 0 ? "◀ REV" : "FWD ▶";
         btnRev.classList.toggle("is-active", state.direction < 0);
-      });
-    }
+      }
+      if (zenRev) {
+        zenRev.textContent = state.direction < 0 ? "REV" : "FWD";
+        zenRev.classList.toggle("is-active", state.direction < 0);
+      }
+    };
+    $("btn-rev")?.addEventListener("click", toggleDir);
+    $("zen-rev")?.addEventListener("click", toggleDir);
 
     // Today & Birth buttons
-    $("btn-today")?.addEventListener("click", () => jumpToJD(JE.dateToJD(new Date()), false));
+    const jumpToday = () => jumpToJD(JE.dateToJD(new Date()), false);
+    $("btn-today")?.addEventListener("click", jumpToday);
+    $("zen-today")?.addEventListener("click", jumpToday);
     $("btn-birth")?.addEventListener("click", () => {
       if (state.natalJD === null) return;
       jumpToJD(state.natalJD, true);
@@ -2061,20 +2129,72 @@
       });
     });
 
-    // Bidirectional Lifespan Scrubber
-    const scrubber = $("timeline-scrubber");
-    if (scrubber) {
+    // Bidirectional Lifespan Scrubbers (Main Console & Stabilized Zen Deck)
+    const bindScrubber = (el) => {
+      if (!el) return;
       let dragBounds = null;
-      scrubber.addEventListener("pointerdown", () => { dragBounds = getTimelineBounds(); });
-      scrubber.addEventListener("input", () => {
+      el.addEventListener("pointerdown", () => { dragBounds = getTimelineBounds(); });
+      el.addEventListener("input", () => {
         const b = dragBounds || getTimelineBounds();
-        const frac = Number(scrubber.value) / 10000;
+        const frac = Number(el.value) / 10000;
         jumpToJD(b.minJD + frac * (b.maxJD - b.minJD), false);
       });
       const clearDrag = () => { dragBounds = null; };
-      scrubber.addEventListener("change", clearDrag);
-      scrubber.addEventListener("pointerup", clearDrag);
-    }
+      el.addEventListener("change", clearDrag);
+      el.addEventListener("pointerup", clearDrag);
+    };
+    bindScrubber($("timeline-scrubber"));
+    bindScrubber($("zen-scrubber"));
+
+    // Clickable & Hoverable ▼ Triple Transit Timeline Markers (Main & Zen)
+    const bindTripleMarkerHost = (host, isZenHost) => {
+      if (!host) return;
+      const showMarker = (btn) => {
+        const idx = Number(btn.getAttribute("data-tt-idx"));
+        const w = state.tripleWindows[idx];
+        if (!w) return;
+        state.hoveredMarker = w;
+        if (isZenHost || state.zen) {
+          updateZenVargaBar();
+        } else {
+          const d1 = formatMonthYear(w.startJD);
+          const d2 = formatMonthYear(w.endJD);
+          const spanStr = d1 === d2 ? d1 : `${d1}–${d2}`;
+          updateHoverTelemetry({
+            telemetryHtml: `<span class="tel-gan">✦ ${spanStr}</span> ${w.vargaSummary}`,
+          });
+        }
+      };
+      const clearMarker = () => {
+        state.hoveredMarker = null;
+        if (isZenHost || state.zen) updateZenVargaBar();
+        else updateHoverTelemetry(null);
+      };
+      host.addEventListener("mouseover", (e) => {
+        const btn = e.target.closest("[data-tt-idx]");
+        if (btn) showMarker(btn);
+      });
+      host.addEventListener("focusin", (e) => {
+        const btn = e.target.closest("[data-tt-idx]");
+        if (btn) showMarker(btn);
+      });
+      host.addEventListener("mouseleave", clearMarker);
+      host.addEventListener("focusout", clearMarker);
+      host.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-tt-idx]");
+        if (!btn) return;
+        const idx = Number(btn.getAttribute("data-tt-idx"));
+        const w = state.tripleWindows[idx];
+        if (!w) return;
+        jumpToJD(w.peakJD, true);
+        // Pause gently on click so user can inspect the Triple Transit & D1-D60 summary peacefully
+        state.playing = false;
+        syncPlayButtons();
+        updateZenVargaBar();
+      });
+    };
+    bindTripleMarkerHost($("main-triple-markers"), false);
+    bindTripleMarkerHost($("zen-triple-markers"), true);
 
     // 3-State Soundscape Switch (Mute -> Clockwork -> Cosmic)
     const btnSound = $("btn-sound");
@@ -2086,15 +2206,19 @@
       });
     }
 
-    // Prev / Next Convergence Scanners
-    $("btn-prev-transit")?.addEventListener("click", () => {
+    // Prev / Next Convergence Scanners (Main & Zen)
+    const jumpPrevConv = () => {
       const hit = JE.findPrevConvergence(state.simJD, state.natal, state.ayanamsa, 1825, state.natalJD);
       if (hit) jumpToJD(hit.jd, true);
-    });
-    $("btn-next-transit")?.addEventListener("click", () => {
+    };
+    const jumpNextConv = () => {
       const hit = JE.findNextConvergence(state.simJD, state.natal, state.ayanamsa, 1825);
       if (hit) jumpToJD(hit.jd, true);
-    });
+    };
+    $("btn-prev-transit")?.addEventListener("click", jumpPrevConv);
+    $("zen-prev-transit")?.addEventListener("click", jumpPrevConv);
+    $("btn-next-transit")?.addEventListener("click", jumpNextConv);
+    $("zen-next-transit")?.addEventListener("click", jumpNextConv);
 
     // Birth Form Lock / Sample / Unlock
     const form = $("birth-form");

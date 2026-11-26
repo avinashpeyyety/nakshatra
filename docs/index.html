@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cosmic-dial.css?v=6" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=7" />
 </head>
 <body>
   <header class="cosmic-topbar">
@@ -70,9 +70,10 @@
           <input id="jump-date" class="jump-date-input" type="date" aria-label="Jump to any date" title="Jump directly to any past or future date" />
         </div>
 
-        <div class="scrubber-row">
+        <div class="scrubber-row has-markers">
           <span id="tl-start" class="scrubber-tick">1950</span>
           <div class="scrubber-track-wrap">
+            <div id="main-triple-markers" class="triple-markers" aria-label="Clickable Triple Transit markers"></div>
             <div id="timeline-epochs" class="timeline-epochs" aria-hidden="true"></div>
             <span id="timeline-today-mark" class="today-mark" title="Today"></span>
             <input id="timeline-scrubber" type="range" min="0" max="10000" value="5000" aria-label="Bidirectional lifespan timeline scrubber" />
@@ -211,22 +212,43 @@
     </aside>
   </main>
 
-  <!-- Translucent Floating Zen Cinema Dock -->
+  <!-- Stabilized Fixed-Geometry Zen Cinema Deck with Thin Timeline & D1–D60 Triple Transit Markers -->
   <div id="zen-dock" class="zen-dock" hidden>
-    <span id="zen-date" class="zen-date">-- --- ----</span>
-    <span id="zen-meta" class="zen-meta"></span>
-    <div class="zen-controls">
-      <button id="zen-play" type="button" class="mech-btn mech-btn-xs is-active">❚❚</button>
-      <button type="button" class="mech-btn mech-btn-xs" data-speed="day">D</button>
-      <button type="button" class="mech-btn mech-btn-xs is-active" data-speed="week">W</button>
-      <button type="button" class="mech-btn mech-btn-xs" data-speed="month">M</button>
-      <button id="zen-theme" type="button" class="mech-btn mech-btn-xs">☀ DAY</button>
-      <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent">✕ EXIT</button>
+    <div id="zen-varga-bar" class="zen-varga-bar" aria-live="polite">
+      Hover any ▼ marker on the timeline to inspect D1–D60 Multi-Varga Triple Transit impact · Click ▼ to jump
+    </div>
+
+    <div class="zen-timeline-row">
+      <span id="zen-tl-start" class="scrubber-tick">1950</span>
+      <div class="scrubber-track-wrap zen-track-wrap">
+        <div id="zen-triple-markers" class="triple-markers" aria-label="Triple Transit jump markers"></div>
+        <div id="zen-epochs" class="timeline-epochs" aria-hidden="true"></div>
+        <span id="zen-today-mark" class="today-mark" title="Today"></span>
+        <input id="zen-scrubber" type="range" min="0" max="10000" value="5000" aria-label="Zen mode lifespan timeline" />
+      </div>
+      <span id="zen-tl-end" class="scrubber-tick">2056</span>
+    </div>
+
+    <div class="zen-bar-row">
+      <span id="zen-date" class="zen-date">-- --- ----</span>
+      <span id="zen-meta" class="zen-meta"></span>
+      <div class="zen-controls">
+        <button id="zen-play" type="button" class="mech-btn mech-btn-xs is-active" title="Play or pause">❚❚</button>
+        <button id="zen-rev" type="button" class="mech-btn mech-btn-xs" title="Toggle direction">FWD</button>
+        <button type="button" class="mech-btn mech-btn-xs" data-speed="day" title="1 day/sec">D</button>
+        <button type="button" class="mech-btn mech-btn-xs is-active" data-speed="week" title="1 week/sec">W</button>
+        <button type="button" class="mech-btn mech-btn-xs" data-speed="month" title="1 month/sec">M</button>
+        <button id="zen-prev-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Previous convergence">⏮</button>
+        <button id="zen-next-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Next convergence">⏭</button>
+        <button id="zen-today" type="button" class="mech-btn mech-btn-xs" title="Snap to today">NOW</button>
+        <button id="zen-theme" type="button" class="mech-btn mech-btn-xs" title="Toggle Day / Night theme">☀ DAY</button>
+        <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Exit Zen mode (Esc)">✕ EXIT</button>
+      </div>
     </div>
   </div>
 
-  <script src="jyotish-engine.js?v=6" defer></script>
+  <script src="jyotish-engine.js?v=7" defer></script>
   <script src="cosmic-audio.js?v=4" defer></script>
-  <script src="cosmic-dial.js?v=6" defer></script>
+  <script src="cosmic-dial.js?v=7" defer></script>
 </body>
 </html>

@@ -2352,21 +2352,32 @@
     });
   }
 
+  let lastDockReserve = 0;
+
   function resizeCanvas() {
     if (!canvas) return;
+    const dock = $("zen-dock");
+    const dockH = (dock && !dock.hidden) ? Math.ceil(dock.getBoundingClientRect().height) : 92;
+    const reserve = dockH + (window.innerWidth <= 639 ? 14 : 20);
+    if (Math.abs(reserve - lastDockReserve) >= 2) {
+      lastDockReserve = reserve;
+      document.documentElement.style.setProperty("--dock-reserve", `${reserve}px`);
+    }
     const stage = canvas.parentElement;
-    const w = stage ? stage.clientWidth : 680;
-    const maxCap = state.zen ? 860 : 696;
-    const vMargin = state.zen ? 142 : 114;
-    const h = window.innerHeight ? Math.min(maxCap, window.innerHeight - vMargin) : 680;
-    const target = Math.max(320, Math.min(maxCap, Math.floor(Math.min(w, h))));
+    const availW = Math.max(220, (stage ? stage.clientWidth : window.innerWidth) - (window.innerWidth <= 639 ? 8 : 20));
+    const maxCap = 860;
+    const topCushion = window.innerHeight <= 540 ? 12 : (window.innerWidth <= 639 ? 16 : 24);
+    const availH = window.innerHeight ? Math.max(220, window.innerHeight - reserve - topCushion) : 680;
+    const target = Math.max(220, Math.min(maxCap, Math.floor(Math.min(availW, availH))));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvasSize = target;
-    canvas.style.width = `${target}px`;
-    canvas.style.height = `${target}px`;
-    canvas.width = Math.round(target * dpr);
-    canvas.height = Math.round(target * dpr);
-    staticCacheKey = "";
+    if (target !== canvasSize || canvas.width !== Math.round(target * dpr)) {
+      canvasSize = target;
+      canvas.style.width = `${target}px`;
+      canvas.style.height = `${target}px`;
+      canvas.width = Math.round(target * dpr);
+      canvas.height = Math.round(target * dpr);
+      staticCacheKey = "";
+    }
     if (state.zen) updateZenVargaBar(true);
   }
 
@@ -2845,6 +2856,24 @@
     }
 
     window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(resizeCanvas, 80));
+    const dockEl = $("zen-dock");
+    if (dockEl && typeof ResizeObserver === "function") {
+      let lastObsH = 0;
+      let lastObsW = 0;
+      const ro = new ResizeObserver((entries) => {
+        const rect = entries[0] && entries[0].contentRect;
+        if (!rect) return;
+        const h = Math.round(rect.height);
+        const w = Math.round(rect.width);
+        if (Math.abs(h - lastObsH) >= 2 || Math.abs(w - lastObsW) >= 4) {
+          lastObsH = h;
+          lastObsW = w;
+          resizeCanvas();
+        }
+      });
+      ro.observe(dockEl);
+    }
   }
 
   function init() {

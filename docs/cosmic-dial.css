@@ -288,8 +288,9 @@ body.is-zen .cosmic-topbar {
 
 body.is-zen .cosmic-hero {
   grid-template-columns: 1fr;
-  min-height: 100vh;
-  padding: 0.35rem 1rem 6.4rem;
+  min-height: 100dvh;
+  padding: 0.4rem 0.85rem var(--dock-reserve, 110px);
+  box-sizing: border-box;
 }
 
 body.is-zen .cosmic-console,
@@ -675,19 +676,20 @@ body.is-zen .pinned-lore {
   color: var(--amber);
 }
 
-/* Stabilized Fixed-Geometry Zen Cinema Deck (Zero Flicker / Zero Horizontal Drift) */
+/* Stabilized Fluid-Responsive Zen Cinema Deck (Zero Flicker / Auto-Adjusts to Any Viewport) */
 .zen-dock {
   position: fixed;
-  bottom: 10px;
+  bottom: max(8px, env(safe-area-inset-bottom));
   left: 0;
   right: 0;
   margin: 0 auto;
-  width: min(96vw, 1180px);
+  width: min(calc(100vw - 20px), 1240px);
+  max-width: calc(100vw - 12px);
   z-index: 30;
   display: flex;
   flex-direction: column;
   gap: 0.26rem;
-  padding: 0.38rem 0.8rem 0.42rem;
+  padding: 0.38rem 0.78rem 0.42rem;
   border-radius: 10px;
   background: linear-gradient(180deg, var(--mod-bg-1), var(--mod-bg-3));
   border: 1px solid var(--border-strong);
@@ -1730,40 +1732,163 @@ body.is-zen .pinned-lore {
 }
 
 /* ==========================================================================
-   Responsive Breakpoints
+   Responsive Breakpoints (Desktop -> Compact Laptop -> Tablet -> Mobile)
    ========================================================================== */
 
-@media (max-width: 1080px) {
-  .cosmic-hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    gap: 0.85rem;
-  }
-
-  .cosmic-console {
-    max-width: 640px;
-    width: 100%;
-    margin: 0 auto;
+/* When right flank is narrower than Dasha drawer, float Dasha Dials cleanly centered */
+@media (max-width: 1180px) {
+  .dasha-panel {
+    right: auto;
+    left: 50%;
+    top: calc((100dvh - var(--dock-reserve, 112px)) / 2);
+    transform: translate(-50%, -50%);
+    width: min(calc(100vw - 24px), 312px);
+    max-height: calc(100dvh - var(--dock-reserve, 112px) - 18px);
+    overflow-y: auto;
   }
 }
 
-@media (max-width: 1100px) {
-  .zen-meta { display: none; }
+/* Tier 2: Compact Laptop / Split-Screen (single row, streamlined spacing) */
+@media (max-width: 1119px) and (min-width: 960px) {
+  .zen-dock {
+    padding: 0.36rem 0.62rem 0.40rem;
+  }
+  .zen-meta {
+    display: none;
+  }
   .zen-bar-row {
-    grid-template-columns: 132px 330px auto;
+    grid-template-columns: auto auto auto;
     justify-content: space-between;
+    gap: 0.3rem;
+  }
+  .zen-birth-city {
+    width: 92px;
+  }
+  .mech-btn-xs {
+    padding: 0.15rem 0.32rem;
   }
 }
 
-@media (max-width: 900px) {
-  .zen-crest { display: none; }
+/* Tier 3: Tablet / Half-Screen Browser (balanced 2-row instrument deck) */
+@media (max-width: 959px) {
+  .zen-crest {
+    display: none;
+  }
+  .zen-dock {
+    padding: 0.36rem 0.62rem 0.40rem;
+    gap: 0.24rem;
+  }
+  .zen-bar-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.26rem 0.42rem;
+  }
+  .zen-meta {
+    display: block;
+    text-align: center;
+  }
+  .zen-controls {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.24rem;
+    padding-top: 0.2rem;
+    border-top: 1px solid rgba(196, 158, 92, 0.2);
+  }
 }
 
-@media (max-width: 640px) {
-  .cosmic-topbar { padding: 0.45rem 0.8rem; }
-  .brand-sub, .telemetry-pill { display: none; }
-  .cosmic-hero { padding: 0.5rem 0.65rem 1rem; }
-  .mech-row-6 { grid-template-columns: repeat(3, 1fr); }
+/* Tier 4: Mobile Portrait & Narrow Viewports (ergonomic 3-row zero-overflow deck) */
+@media (max-width: 639px) {
+  body.is-zen .cosmic-hero {
+    padding: 0.3rem 0.4rem var(--dock-reserve, 168px);
+  }
+  body.is-zen .pinned-lore {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: 316px;
+  }
+  .zen-dock {
+    width: calc(100vw - 12px);
+    bottom: max(6px, env(safe-area-inset-bottom));
+    padding: 0.32rem 0.46rem 0.36rem;
+    gap: 0.22rem;
+    border-radius: 9px;
+  }
+  .zen-varga-bar {
+    height: 19px;
+    line-height: 18px;
+    font-size: 0.59rem;
+  }
+  .zen-timeline-row {
+    gap: 0.32rem;
+    padding-top: 8px;
+  }
+  .scrubber-tick {
+    font-size: 0.54rem;
+  }
+  .zen-bar-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.24rem 0.36rem;
+  }
+  .zen-date {
+    font-size: 0.62rem;
+  }
+  .zen-meta {
+    display: block;
+    text-align: right;
+    font-size: 0.58rem;
+  }
+  .zen-born-wrap {
+    grid-column: 1 / -1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1.05fr) minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: 0.2rem;
+  }
+  .zen-birth-input,
+  .zen-birth-time,
+  .zen-birth-city {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.57rem;
+    padding: 0.16rem 0.18rem;
+  }
+  .zen-controls {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.18rem;
+    padding-top: 0.2rem;
+    border-top: 1px solid rgba(196, 158, 92, 0.2);
+  }
+  .mech-btn-xs {
+    padding: 0.18rem 0.34rem;
+    font-size: 0.56rem;
+  }
+  .zen-lens-btn,
+  .zen-dasha-btn {
+    padding: 0.18rem 0.34rem;
+    font-size: 0.54rem;
+  }
+  .zen-ayan-btn {
+    padding: 0.18rem 0.3rem;
+    font-size: 0.52rem;
+  }
+}
+
+/* Short-height / Landscape mobile & compact strips */
+@media (max-height: 540px) {
+  .zen-crest {
+    display: none;
+  }
+  .zen-dock {
+    bottom: 4px;
+    padding: 0.24rem 0.52rem 0.28rem;
+    gap: 0.16rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

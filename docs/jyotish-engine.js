@@ -140,18 +140,18 @@
   // ---------------------------------------------------------------------------
 
   const RASIS = [
-    { idx: 0,  sanskrit: "Mesha",      dev: "मेष",    english: "Aries",       glyph: "♈", element: "Agni",    elIdx: 0, ruler: "Mars",    vibe: "Initiating Fire · Cardinal Force" },
-    { idx: 1,  sanskrit: "Vrishabha",  dev: "वृषभ",   english: "Taurus",      glyph: "♉", element: "Prithvi", elIdx: 1, ruler: "Venus",   vibe: "Steadfast Earth · Abundance" },
-    { idx: 2,  sanskrit: "Mithuna",    dev: "मिथुन",  english: "Gemini",      glyph: "♊", element: "Vayu",    elIdx: 2, ruler: "Mercury", vibe: "Quicksilver Air · Dual Intellect" },
-    { idx: 3,  sanskrit: "Karka",      dev: "कर्क",   english: "Cancer",      glyph: "♋", element: "Jala",    elIdx: 3, ruler: "Moon",    vibe: "Tidal Water · Sanctuary" },
-    { idx: 4,  sanskrit: "Simha",      dev: "सिंह",   english: "Leo",         glyph: "♌", element: "Agni",    elIdx: 0, ruler: "Sun",     vibe: "Sovereign Fire · Solar Throne" },
-    { idx: 5,  sanskrit: "Kanya",      dev: "कन्या",  english: "Virgo",       glyph: "♍", element: "Prithvi", elIdx: 1, ruler: "Mercury", vibe: "Analytical Earth · Precision" },
-    { idx: 6,  sanskrit: "Tula",       dev: "तुला",   english: "Libra",       glyph: "♎", element: "Vayu",    elIdx: 2, ruler: "Venus",   vibe: "Equilibrium Air · Scales" },
-    { idx: 7,  sanskrit: "Vrishchika", dev: "वृश्चिक", english: "Scorpio",     glyph: "♏", element: "Jala",    elIdx: 3, ruler: "Mars",    vibe: "Alchemical Water · Occult Depth" },
-    { idx: 8,  sanskrit: "Dhanu",      dev: "धनु",    english: "Sagittarius", glyph: "♐", element: "Agni",    elIdx: 0, ruler: "Jupiter", vibe: "Dharmic Fire · Arrow of Truth" },
-    { idx: 9,  sanskrit: "Makara",     dev: "मकर",    english: "Capricorn",   glyph: "♑", element: "Prithvi", elIdx: 1, ruler: "Saturn",  vibe: "Crystalline Earth · Endurance" },
-    { idx: 10, sanskrit: "Kumbha",     dev: "कुम्भ",  english: "Aquarius",    glyph: "♒", element: "Vayu",    elIdx: 2, ruler: "Saturn",  vibe: "Cosmic Air · Vessel of Currents" },
-    { idx: 11, sanskrit: "Meena",      dev: "मीन",    english: "Pisces",      glyph: "♓", element: "Jala",    elIdx: 3, ruler: "Jupiter", vibe: "Oceanic Water · Dissolution" },
+    { idx: 0,  sanskrit: "Mesha",      dev: "मेष",    english: "Aries",       glyph: "♈\uFE0E", element: "Agni",    elIdx: 0, ruler: "Mars",    vibe: "Initiating Fire · Cardinal Force" },
+    { idx: 1,  sanskrit: "Vrishabha",  dev: "वृषभ",   english: "Taurus",      glyph: "♉\uFE0E", element: "Prithvi", elIdx: 1, ruler: "Venus",   vibe: "Steadfast Earth · Abundance" },
+    { idx: 2,  sanskrit: "Mithuna",    dev: "मिथुन",  english: "Gemini",      glyph: "♊\uFE0E", element: "Vayu",    elIdx: 2, ruler: "Mercury", vibe: "Quicksilver Air · Dual Intellect" },
+    { idx: 3,  sanskrit: "Karka",      dev: "कर्क",   english: "Cancer",      glyph: "♋\uFE0E", element: "Jala",    elIdx: 3, ruler: "Moon",    vibe: "Tidal Water · Sanctuary" },
+    { idx: 4,  sanskrit: "Simha",      dev: "सिंह",   english: "Leo",         glyph: "♌\uFE0E", element: "Agni",    elIdx: 0, ruler: "Sun",     vibe: "Sovereign Fire · Solar Throne" },
+    { idx: 5,  sanskrit: "Kanya",      dev: "कन्या",  english: "Virgo",       glyph: "♍\uFE0E", element: "Prithvi", elIdx: 1, ruler: "Mercury", vibe: "Analytical Earth · Precision" },
+    { idx: 6,  sanskrit: "Tula",       dev: "तुला",   english: "Libra",       glyph: "♎\uFE0E", element: "Vayu",    elIdx: 2, ruler: "Venus",   vibe: "Equilibrium Air · Scales" },
+    { idx: 7,  sanskrit: "Vrishchika", dev: "वृश्चिक", english: "Scorpio",     glyph: "♏\uFE0E", element: "Jala",    elIdx: 3, ruler: "Mars",    vibe: "Alchemical Water · Occult Depth" },
+    { idx: 8,  sanskrit: "Dhanu",      dev: "धनु",    english: "Sagittarius", glyph: "♐\uFE0E", element: "Agni",    elIdx: 0, ruler: "Jupiter", vibe: "Dharmic Fire · Arrow of Truth" },
+    { idx: 9,  sanskrit: "Makara",     dev: "मकर",    english: "Capricorn",   glyph: "♑\uFE0E", element: "Prithvi", elIdx: 1, ruler: "Saturn",  vibe: "Crystalline Earth · Endurance" },
+    { idx: 10, sanskrit: "Kumbha",     dev: "कुम्भ",  english: "Aquarius",    glyph: "♒\uFE0E", element: "Vayu",    elIdx: 2, ruler: "Saturn",  vibe: "Cosmic Air · Vessel of Currents" },
+    { idx: 11, sanskrit: "Meena",      dev: "मीन",    english: "Pisces",      glyph: "♓\uFE0E", element: "Jala",    elIdx: 3, ruler: "Jupiter", vibe: "Oceanic Water · Dissolution" },
   ];
 
   const NAKSHATRAS = [

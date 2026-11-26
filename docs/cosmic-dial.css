@@ -85,7 +85,7 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.62rem 1.4rem;
+  padding: 0.48rem 1.3rem;
   background: linear-gradient(180deg, rgba(14, 17, 26, 0.94) 0%, rgba(8, 10, 16, 0.84) 100%);
   border-bottom: 1px solid var(--border-brass);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
@@ -177,11 +177,11 @@ body::before {
   z-index: 2;
   max-width: 1420px;
   margin: 0 auto;
-  padding: 0.85rem 1.35rem 1.1rem;
-  min-height: calc(100vh - 50px);
+  padding: 0.55rem 1.3rem 0.65rem;
+  min-height: calc(100vh - 46px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) 416px;
-  gap: 1.25rem;
+  gap: 1.15rem;
   align-items: center;
 }
 
@@ -343,7 +343,7 @@ body::before {
 .cosmic-console {
   display: flex;
   flex-direction: column;
-  gap: 0.68rem;
+  gap: 0.48rem;
   min-width: 0;
 }
 
@@ -353,7 +353,7 @@ body::before {
     linear-gradient(170deg, rgba(23, 28, 41, 0.94) 0%, rgba(12, 15, 23, 0.97) 58%, rgba(9, 11, 17, 0.99) 100%);
   border: 1px solid var(--border-brass);
   border-radius: 8px;
-  padding: 0.72rem 0.85rem;
+  padding: 0.54rem 0.78rem;
   box-shadow:
     0 12px 30px rgba(0, 0, 0, 0.56),
     inset 0 1px 0 rgba(242, 212, 140, 0.14),
@@ -382,8 +382,8 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.48rem;
-  padding-bottom: 0.32rem;
+  margin-bottom: 0.36rem;
+  padding-bottom: 0.24rem;
   border-bottom: 1px solid rgba(212, 166, 80, 0.16);
 }
 
@@ -410,8 +410,8 @@ body::before {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.42rem 0.65rem;
-  margin-bottom: 0.52rem;
+  padding: 0.32rem 0.6rem;
+  margin-bottom: 0.38rem;
   border-radius: 5px;
   background: linear-gradient(180deg, #06080e 0%, #0b0e17 100%);
   border: 1px solid rgba(130, 148, 184, 0.22);
@@ -420,7 +420,7 @@ body::before {
 
 .chrono-date {
   font-family: var(--font-mono);
-  font-size: 1.12rem;
+  font-size: 1.06rem;
   font-weight: 700;
   color: #f6ebd4;
   letter-spacing: 0.06em;
@@ -429,7 +429,7 @@ body::before {
 
 .chrono-doy {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--amber);
   letter-spacing: 0.08em;
@@ -439,8 +439,8 @@ body::before {
 .scrubber-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.55rem;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
 }
 
 .scrubber-tick {
@@ -495,7 +495,7 @@ body::before {
 
 .mech-row-4 {
   grid-template-columns: 1.25fr 0.85fr 0.82fr 1.12fr;
-  margin-bottom: 0.42rem;
+  margin-bottom: 0.34rem;
 }
 
 .mech-row-3 {
@@ -510,9 +510,9 @@ body::before {
   appearance: none;
   border: 1px solid rgba(154, 166, 194, 0.24);
   border-radius: 5px;
-  padding: 0.4rem 0.48rem;
+  padding: 0.32rem 0.44rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -571,11 +571,11 @@ body::before {
 /* --- Module 3: Double / Triple Transit Annunciator & Log --- */
 
 .annunciator-box {
-  padding: 0.52rem 0.65rem;
+  padding: 0.42rem 0.6rem;
   border-radius: 6px;
   background: linear-gradient(180deg, #070910 0%, #0d1019 100%);
   border: 1px solid rgba(130, 148, 184, 0.24);
-  margin-bottom: 0.46rem;
+  margin-bottom: 0.36rem;
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 
@@ -644,11 +644,11 @@ body::before {
 
 .transit-log {
   list-style: none;
-  max-height: 92px;
+  max-height: 76px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.26rem;
+  gap: 0.22rem;
   padding-right: 0.18rem;
 }
 
@@ -731,10 +731,10 @@ body::before {
 /* --- Module 4: Birth Details & Natal Lock Chamber --- */
 
 .natal-status {
-  font-size: 0.73rem;
+  font-size: 0.71rem;
   color: var(--text);
-  margin-bottom: 0.48rem;
-  line-height: 1.4;
+  margin-bottom: 0.36rem;
+  line-height: 1.35;
 }
 
 .lock-pill {
@@ -761,14 +761,14 @@ body::before {
 .birth-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
+  gap: 0.32rem;
+  margin-bottom: 0.32rem;
 }
 
 .birth-field {
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0.12rem;
 }
 
 .birth-field.full {
@@ -777,7 +777,7 @@ body::before {
 
 .birth-field label {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-cool);
@@ -785,13 +785,13 @@ body::before {
 
 .birth-field input {
   width: 100%;
-  padding: 0.36rem 0.52rem;
+  padding: 0.28rem 0.48rem;
   border-radius: 4px;
   border: 1px solid rgba(145, 162, 198, 0.24);
   background: #070910;
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -804,8 +804,8 @@ body::before {
 .birth-actions {
   display: flex;
   align-items: center;
-  gap: 0.38rem;
-  margin-top: 0.45rem;
+  gap: 0.34rem;
+  margin-top: 0.34rem;
 }
 
 .birth-actions .btn-lock {
@@ -813,9 +813,9 @@ body::before {
 }
 
 .birth-error {
-  min-height: 0.9rem;
-  margin-top: 0.25rem;
-  font-size: 0.7rem;
+  min-height: 0;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
   color: #ff8c70;
 }
 

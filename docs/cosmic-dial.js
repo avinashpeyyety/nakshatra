@@ -772,6 +772,16 @@
     const dateLine = `${String(curDate.getUTCDate()).padStart(2, "0")} ${MONTHS[curDate.getUTCMonth()]} ${year}`;
     const sunDet = state.transit.details.Sun;
 
+    // Subtle dark scrim behind hub text so bright Drishti arcs never obscure the date/ayanamsa
+    const hubScrim = ctx.createRadialGradient(cx, cy, rCore * 0.1, cx, cy, rCore * 0.84);
+    hubScrim.addColorStop(0, "rgba(6, 8, 14, 0.86)");
+    hubScrim.addColorStop(0.72, "rgba(6, 8, 14, 0.68)");
+    hubScrim.addColorStop(1, "rgba(6, 8, 14, 0.0)");
+    ctx.beginPath();
+    ctx.arc(cx, cy, rCore * 0.84, 0, Math.PI * 2);
+    ctx.fillStyle = hubScrim;
+    ctx.fill();
+
     // 365-Day curved brass progress ring inside the obsidian dome
     const rYearArc = rCore * 0.87;
     const yearFrac = (doy - 1) / daysInYear;
@@ -1207,8 +1217,8 @@
     if (!canvas) return;
     const stage = canvas.parentElement;
     const w = stage ? stage.clientWidth : 680;
-    const h = window.innerHeight ? Math.min(740, window.innerHeight - 96) : 680;
-    const target = Math.max(320, Math.min(720, Math.floor(Math.min(w, h))));
+    const h = window.innerHeight ? Math.min(720, window.innerHeight - 106) : 680;
+    const target = Math.max(320, Math.min(700, Math.floor(Math.min(w, h))));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvasSize = target;
     canvas.style.width = `${target}px`;

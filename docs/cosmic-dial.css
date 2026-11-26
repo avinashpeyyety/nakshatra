@@ -931,6 +931,13 @@ body.is-zen .cosmic-console {
   color: #2d45a6;
 }
 
+:root[data-theme="light"] .dasha-lords b,
+:root[data-theme="light"] .tel-badge[style],
+:root[data-theme="light"] .lore-head[style],
+:root[data-theme="light"] .p-dot[style] {
+  filter: brightness(0.62) saturate(1.35);
+}
+
 .epoch-pill.ep-ashtama,
 .epoch-pill.ep-saturn-return {
   background: rgba(180, 108, 245, 0.2);

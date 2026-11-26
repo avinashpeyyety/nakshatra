@@ -1141,13 +1141,13 @@
     c.fillStyle = "#eef4ff";
     c.beginPath();
     if (waxing) {
-      // Right semicircle lit
+      // Right semicircle lit; gibbous (k < 0) curves left (anticlockwise=false), crescent (k > 0) curves right (anticlockwise=true)
       c.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
-      c.ellipse(x, y, termRx, r, 0, Math.PI / 2, -Math.PI / 2, k < 0);
+      c.ellipse(x, y, termRx, r, 0, Math.PI / 2, -Math.PI / 2, k > 0);
     } else {
-      // Left semicircle lit
+      // Left semicircle lit; gibbous (k < 0) curves right (anticlockwise=false), crescent (k > 0) curves left (anticlockwise=true)
       c.arc(x, y, r, Math.PI / 2, -Math.PI / 2, false);
-      c.ellipse(x, y, termRx, r, 0, -Math.PI / 2, Math.PI / 2, k < 0);
+      c.ellipse(x, y, termRx, r, 0, -Math.PI / 2, Math.PI / 2, k > 0);
     }
     c.closePath();
     c.fill();

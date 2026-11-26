@@ -201,7 +201,7 @@
   // ---------------------------------------------------------------------------
 
   const state = {
-    theme: "dark",             // "dark" | "light"
+    theme: "light",            // "light" (Daylight Brass default) | "dark" (Night Obsidian)
     zen: true,                 // Fullscreen Zen Cosmic Observatory is the default & primary view
     dashaOpen: false,          // Interactive Concentric 3-Ring Vimshottari Dasha Dials drawer
     dashaHover: null,          // { tier, item } hovered arc on #dashaDialCanvas
@@ -2323,10 +2323,12 @@
   // Theme, Zen Mode & Resize Setup
   // ---------------------------------------------------------------------------
 
-  function applyTheme(nextTheme) {
-    state.theme = nextTheme === "light" ? "light" : "dark";
+  function applyTheme(nextTheme, persist = false) {
+    state.theme = nextTheme === "dark" ? "dark" : "light";
     document.documentElement.dataset.theme = state.theme;
-    try { localStorage.setItem("nakshatra-theme", state.theme); } catch (_) {}
+    if (persist) {
+      try { localStorage.setItem("nakshatra-theme-v2", state.theme); } catch (_) {}
+    }
     const btn = $("btn-theme");
     const zenTheme = $("zen-theme");
     const label = state.theme === "light" ? "☾ NIGHT" : "☀ DAY";
@@ -2390,10 +2392,10 @@
 
   function loadSavedPreferences() {
     try {
-      const savedTheme = localStorage.getItem("nakshatra-theme");
+      const savedTheme = localStorage.getItem("nakshatra-theme-v2");
       if (savedTheme === "light" || savedTheme === "dark") state.theme = savedTheme;
     } catch (_) {}
-    applyTheme(state.theme);
+    applyTheme(state.theme, false);
 
     let loaded = null;
     try {
@@ -2434,8 +2436,8 @@
   }
 
   function bindControls() {
-    // Theme Toggle (Night <-> Day)
-    const toggleTheme = () => applyTheme(state.theme === "dark" ? "light" : "dark");
+    // Theme Toggle (Daylight Brass <-> Night Obsidian)
+    const toggleTheme = () => applyTheme(state.theme === "dark" ? "light" : "dark", true);
     $("btn-theme")?.addEventListener("click", toggleTheme);
     $("zen-theme")?.addEventListener("click", toggleTheme);
 

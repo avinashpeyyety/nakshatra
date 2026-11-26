@@ -525,12 +525,101 @@
     return `${diff + 1}${diff === 2 ? "rd" : "th"}`;
   }
 
+  const BHAVA_META = [
+    { num: 1,  label: "Natal Lagna (I)",     prio: 10 },
+    { num: 2,  label: "2nd House (Dhana)",   prio: 5 },
+    { num: 3,  label: "3rd House (Sahaja)",  prio: 4 },
+    { num: 4,  label: "4th House (Sukha)",   prio: 6 },
+    { num: 5,  label: "5th House (Putra)",   prio: 6 },
+    { num: 6,  label: "6th House (Ari)",     prio: 4 },
+    { num: 7,  label: "7th House (Kalatra)", prio: 8 },
+    { num: 8,  label: "8th House (Randhra)", prio: 5 },
+    { num: 9,  label: "9th House (Dharma)",  prio: 6 },
+    { num: 10, label: "10th House (Karma)",  prio: 8 },
+    { num: 11, label: "11th House (Labha)",  prio: 7 },
+    { num: 12, label: "12th House (Vyaya)",  prio: 5 },
+  ];
+
+  const TRIPLE_IMPACT_BY_BHAVA = {
+    1: {
+      Rahu: "Identity, vitality & life direction — catalytic personal reinvention or bold new chapter.",
+      Ketu: "Self-definition & body-mind — shedding old roles for clearer authentic alignment.",
+    },
+    2: {
+      Rahu: "Wealth, family & voice — accelerated financial restructuring or major family shift.",
+      Ketu: "Savings, values & lineage — simplifying assets and redefining material priorities.",
+    },
+    3: {
+      Rahu: "Initiative, siblings & communication — daring venture, skill leap, or decisive move.",
+      Ketu: "Courage, craft & short journeys — distilling effort toward high-conviction pursuits.",
+    },
+    4: {
+      Rahu: "Home, property & inner foundation — relocation, real-estate turn, or domestic renewal.",
+      Ketu: "Roots, homeland & emotional peace — releasing past ties to rebuild inner sanctuary.",
+    },
+    5: {
+      Rahu: "Creativity, children & speculation — bold creative birth or high-stakes inflection.",
+      Ketu: "Intellect, children & purva-punya — karmic fruition in craft, mentorship, or calling.",
+    },
+    6: {
+      Rahu: "Work routine, health & competition — decisive breakthrough over rivals, obstacles, or debt.",
+      Ketu: "Service, wellness & daily discipline — resolving chronic friction through focused regimen.",
+    },
+    7: {
+      Rahu: "Marriage, partnerships & public dealings — pivotal alliance, contract, or relational turn.",
+      Ketu: "Spouse, collaborators & agreements — karmic milestone or deep renegotiation of bonds.",
+    },
+    8: {
+      Rahu: "Transformation, joint finances & research — sudden structural pivot or hidden windfall.",
+      Ketu: "Shared resources & occult insight — deep release and lasting inner metamorphosis.",
+    },
+    9: {
+      Rahu: "Higher learning, travel & fortune — foreign horizon, publication, or dharmic leap.",
+      Ketu: "Philosophy, pilgrimage & grace — spiritual clarity, ancestral karma, or detached wisdom.",
+    },
+    10: {
+      Rahu: "Career, status & authority — rapid elevation, leadership pivot, or visibility surge.",
+      Ketu: "Vocation, reputation & duty — crowning karmic work or shift toward purpose-led authority.",
+    },
+    11: {
+      Rahu: "Income, networks & ambitions — surging gains, influential allies, or major milestone.",
+      Ketu: "Fulfillment & social circles — harvesting past efforts while outgrowing old networks.",
+    },
+    12: {
+      Rahu: "Foreign lands, retreat & expenditure — international chapter, investment, or liberation.",
+      Ketu: "Solitude, subconscious & moksha — quiet closure, spiritual retreat, or karmic release.",
+    },
+  };
+
+  const SKY_TRIPLE_IMPACT_BY_RASI = [
+    "Collective leadership, bold initiatives & geopolitical flashpoints.",
+    "Markets, currency, agriculture & material security.",
+    "Media, trade networks, communications & intellectual shifts.",
+    "Homeland, real estate, public sentiment & domestic resilience.",
+    "Governance, sovereign authority, creative power & prominence.",
+    "Public health, labor systems, analytics & precision reforms.",
+    "Diplomacy, treaties, legal balance & strategic alliances.",
+    "Deep finance, covert restructuring, crisis & regeneration.",
+    "Law, global travel, higher ideals & institutional dharma.",
+    "Infrastructure, executive institutions, industry & governance.",
+    "Technology, collective movements, networks & systemic innovation.",
+    "Maritime, spirituality, global compassion & dissolution of old orders.",
+  ];
+
+  function getTripleImpact(bhavaNum, nodeName, hasNatalMoon, rasiIdx) {
+    if (bhavaNum && TRIPLE_IMPACT_BY_BHAVA[bhavaNum]) {
+      const base = TRIPLE_IMPACT_BY_BHAVA[bhavaNum][nodeName === "Ketu" ? "Ketu" : "Rahu"];
+      if (hasNatalMoon && bhavaNum !== 1) {
+        return `${base.replace(/\.$/, "")} (deep emotional turning point).`;
+      }
+      return base;
+    }
+    return SKY_TRIPLE_IMPACT_BY_RASI[rasiIdx % 12];
+  }
+
   /**
    * Analyze live transits for Major Double Transits (Jupiter + Saturn), Rare Triple Transits
    * (Jupiter + Saturn + Rahu/Ketu), and Exact Slow-Planet Pada Crossings.
-   *
-   * When `natal` is locked, prioritizes Natal Lagna, Natal Moon, Natal Sun, and key Houses (1, 4, 5, 7, 9, 10, 11).
-   * When `natal` is null (Cosmic Sky Mode), detects zodiac-wide Rasis receiving simultaneous Double/Triple Drishti.
    */
   function analyzeTransits(transitSnap, natalSnap, dashaInfo = null) {
     const juR = transitSnap.details.Jupiter.rasiIdx;
@@ -551,33 +640,32 @@
       const lagR = natalSnap.details.Lagna ? natalSnap.details.Lagna.rasiIdx : null;
       const moonR = natalSnap.details.Moon.rasiIdx;
       const sunR = natalSnap.details.Sun.rasiIdx;
+      const MAJOR_DOUBLE_BHAVAS = new Set([1, 4, 5, 7, 9, 10, 11]);
 
-      // Key natal anchor points (Lagna, Moon, Sun, and major Bhavas from Lagna)
       const targets = [];
       const seenRasi = new Map();
-      const pushTarget = (rasiIdx, label, priority) => {
+      const pushTarget = (rasiIdx, label, priority, bhavaNum = null, allowDouble = true) => {
         if (rasiIdx === null || rasiIdx === undefined) return;
         if (seenRasi.has(rasiIdx)) {
           const prev = seenRasi.get(rasiIdx);
           if (!prev.labels.includes(label)) prev.labels.push(label);
           prev.priority = Math.max(prev.priority, priority);
+          if (bhavaNum !== null) prev.bhavaNum = bhavaNum;
+          prev.allowDouble = prev.allowDouble || allowDouble;
         } else {
-          const entry = { rasiIdx, labels: [label], priority };
+          const entry = { rasiIdx, labels: [label], priority, bhavaNum, allowDouble };
           seenRasi.set(rasiIdx, entry);
           targets.push(entry);
         }
       };
 
-      if (lagR !== null) pushTarget(lagR, "Natal Lagna (I)", 10);
-      pushTarget(moonR, "Natal Moon", 9);
-      pushTarget(sunR, "Natal Sun", 7);
       if (lagR !== null) {
-        pushTarget((lagR + 6) % 12, "7th House (Kalatra)", 8);
-        pushTarget((lagR + 9) % 12, "10th House (Karma)", 8);
-        pushTarget((lagR + 10) % 12, "11th House (Labha)", 7);
-        pushTarget((lagR + 8) % 12, "9th House (Dharma)", 6);
-        pushTarget((lagR + 4) % 12, "5th House (Putra)", 6);
+        for (const bm of BHAVA_META) {
+          pushTarget((lagR + bm.num - 1) % 12, bm.label, bm.prio, bm.num, MAJOR_DOUBLE_BHAVAS.has(bm.num));
+        }
       }
+      pushTarget(moonR, "Natal Moon", 9, lagR !== null ? (((moonR - lagR) % 12 + 12) % 12) + 1 : 1, true);
+      pushTarget(sunR, "Natal Sun", 7, lagR !== null ? (((sunR - lagR) % 12 + 12) % 12) + 1 : null, true);
 
       for (const t of targets) {
         const jHit = aspectsTargetRasi("Jupiter", juR, t.rasiIdx);
@@ -594,10 +682,12 @@
         if (rHit || kHit) {
           const nodeName = rHit ? "Rahu" : "Ketu";
           const nodeR = rHit ? raR : keR;
+          const impact = getTripleImpact(t.bhavaNum, nodeName, t.rasiIdx === moonR, t.rasiIdx);
           triples.push({
             tier: "triple",
             key: `T:${t.rasiIdx}:${juR}:${saR}:${nodeName}:${nodeR}`,
             rasiIdx: t.rasiIdx,
+            bhavaNum: t.bhavaNum,
             targetLabel: targetText,
             dashaActivated: dashaHit,
             priority: t.priority + 5 + (dashaHit ? 4 : 0),
@@ -607,13 +697,15 @@
               { planet: "Saturn",  fromRasi: saR, label: getAspectLabel("Saturn",  saR, t.rasiIdx) },
               { planet: nodeName,  fromRasi: nodeR, label: getAspectLabel(nodeName, nodeR, t.rasiIdx) },
             ],
+            impact,
             summary: `♃ ${RASIS[juR].sanskrit} · ♄ ${RASIS[saR].sanskrit} · ${PLANET_MAP[nodeName].sym} ${RASIS[nodeR].sanskrit} → ${targetText}${dashaSuffix}`,
           });
-        } else {
+        } else if (t.allowDouble) {
           doubles.push({
             tier: "double",
             key: `D:${t.rasiIdx}:${juR}:${saR}`,
             rasiIdx: t.rasiIdx,
+            bhavaNum: t.bhavaNum,
             targetLabel: targetText,
             dashaActivated: dashaHit,
             priority: t.priority + (dashaHit ? 3 : 0),
@@ -660,6 +752,7 @@
         if (rHit || kHit) {
           const nodeName = rHit ? "Rahu" : "Ketu";
           const nodeR = rHit ? raR : keR;
+          const impact = getTripleImpact(null, nodeName, false, r);
           triples.push({
             tier: "triple",
             key: `SKY-T:${r}:${juR}:${saR}:${nodeName}:${nodeR}`,
@@ -672,6 +765,7 @@
               { planet: "Saturn",  fromRasi: saR, label: getAspectLabel("Saturn",  saR, r) },
               { planet: nodeName,  fromRasi: nodeR, label: getAspectLabel(nodeName, nodeR, r) },
             ],
+            impact,
             summary: `♃ ♄ ${PLANET_MAP[nodeName].sym} Triple Activation → ${rasi.sanskrit} ${rasi.glyph}`,
           });
         } else {

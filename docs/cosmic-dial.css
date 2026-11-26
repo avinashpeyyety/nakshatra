@@ -1017,18 +1017,31 @@ body.is-zen .cosmic-console {
 .annunciator-box.is-double .ann-badge { color: var(--amber); }
 
 .ann-text {
-  font-size: 0.71rem;
+  font-size: 0.7rem;
   color: var(--text);
-  line-height: 1.28;
+  line-height: 1.26;
+}
+
+.ann-impact {
+  margin-top: 0.2rem;
+  padding-top: 0.18rem;
+  border-top: 1px dashed rgba(235, 108, 62, 0.35);
+  font-size: 0.64rem;
+  line-height: 1.26;
+  color: var(--brass-bright);
+}
+
+.ann-impact[hidden] {
+  display: none;
 }
 
 .transit-log {
   list-style: none;
-  max-height: 54px;
+  max-height: 52px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0.16rem;
   padding-right: 0.15rem;
 }
 
@@ -1083,6 +1096,17 @@ body.is-zen .cosmic-console {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.transit-log .log-impact {
+  grid-column: 1 / -1;
+  font-size: 0.61rem;
+  color: var(--brass-bright);
+  opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 0.12rem;
 }
 
 /* --- Module 4: Natal Lock Chamber --- */

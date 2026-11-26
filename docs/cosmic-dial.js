@@ -1267,7 +1267,7 @@
       nextKeys.add(tr.key);
       if (!state.activeEventKeys.has(tr.key)) {
         firedTriple = true;
-        pushEventLog({ tier: "triple", date: dateLabel, summary: tr.summary, jd });
+        pushEventLog({ tier: "triple", date: dateLabel, summary: tr.summary, impact: tr.impact || "", jd });
         state.shockwaves.push({ rasiIdx: tr.rasiIdx, tier: "triple", bornAt: nowMs });
       }
     }
@@ -1547,9 +1547,10 @@
       zenMeta.textContent = `${tiStr}${mdStr}`;
     }
 
-    // Annunciator live status
+    // Annunciator live status + 1-line expected impact summary for Triple Transits
     const annBadge = $("ann-badge");
     const annText = $("ann-text");
+    const annImpact = $("ann-impact");
     const annBox = $("transit-annunciator");
     if (annBadge && annText && annBox) {
       const tr = state.analysis.triples[0];
@@ -1575,6 +1576,15 @@
         annText.textContent = state.natal
           ? `♃ ${state.transit.details.Jupiter.rasi.sanskrit} · ♄ ${state.transit.details.Saturn.rasi.sanskrit} · ☊ ${state.transit.details.Rahu.rasi.sanskrit}`
           : "Lock birth details to track personal Double / Triple transits & Dasha";
+      }
+      if (annImpact) {
+        if (tr && tr.impact) {
+          annImpact.textContent = `Impact: ${tr.impact}`;
+          annImpact.hidden = false;
+        } else {
+          annImpact.textContent = "";
+          annImpact.hidden = true;
+        }
       }
     }
 
@@ -1617,10 +1627,13 @@
     }
     list.innerHTML = state.eventLog.slice(0, 8).map((ev) => {
       const badge = ev.tier === "triple" ? "TRIPLE" : (ev.tier === "double" ? "DOUBLE" : "PADA");
-      return `<li class="log-item tier-${ev.tier}" data-jd="${ev.jd.toFixed(3)}" title="Jump dial to ${ev.date}">
+      const tip = ev.impact ? `Jump dial to ${ev.date} — Impact: ${ev.impact}` : `Jump dial to ${ev.date}`;
+      const impactHtml = (ev.tier === "triple" && ev.impact) ? `<span class="log-impact">${ev.impact}</span>` : "";
+      return `<li class="log-item tier-${ev.tier}" data-jd="${ev.jd.toFixed(3)}" title="${tip.replace(/"/g, "&quot;")}">
         <span class="log-tag">${badge}</span>
         <span class="log-date">${ev.date}</span>
         <span class="log-msg">${ev.summary}</span>
+        ${impactHtml}
       </li>`;
     }).join("");
   }
@@ -1707,10 +1720,13 @@
 
     if (rFrac >= 0.422) {
       const rasi = JE.RASIS[Math.floor(deg / 30) % 12];
+      const activeTr = state.analysis.triples.find((t) => t.rasiIdx === rasi.idx);
+      const trTel = activeTr && activeTr.impact ? ` <span class="tel-sep">·</span> <span class="tel-gan">TRIPLE IMPACT</span> ${activeTr.impact}` : "";
+      const trLore = activeTr && activeTr.impact ? `<div class="lore-warn">✦ Triple Transit Impact: ${activeTr.impact}</div>` : "";
       return {
         type: "rasi",
         data: rasi,
-        telemetryHtml: `<span class="tel-badge">${rasi.glyph} RASI ${rasi.idx + 1}/12</span> <b>${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</b> <span class="tel-sep">·</span> ${rasi.element} <span class="tel-sep">·</span> Ruler: <b>${rasi.ruler}</b> <span class="tel-sep">·</span> ${rasi.vibe}`,
+        telemetryHtml: `<span class="tel-badge">${rasi.glyph} RASI ${rasi.idx + 1}/12</span> <b>${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</b> <span class="tel-sep">·</span> ${rasi.element} <span class="tel-sep">·</span> Ruler: <b>${rasi.ruler}</b>${trTel || ` <span class="tel-sep">·</span> ${rasi.vibe}`}`,
         loreHtml: `
           <div class="lore-head">${rasi.glyph} ${rasi.dev} · ${rasi.sanskrit} (${rasi.english})</div>
           <div class="lore-grid">
@@ -1718,6 +1734,7 @@
             <span>Ruler</span><b>${rasi.ruler}</b>
             <span>Essence</span><b>${rasi.vibe}</b>
           </div>
+          ${trLore}
         `,
       };
     }

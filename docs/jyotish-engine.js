@@ -1247,69 +1247,94 @@
     let cursor = firstStartJD + cycles * cycleDays;
 
     let maha = null;
+    const mahaList = [];
     for (let i = 0; i < 9; i++) {
       const idx = (startLordIdx + i) % 9;
       const lord = VIM_ORDER[idx];
-      const dur = VIM_YEARS[lord] * YEAR_DAYS;
-      if (targetJD >= cursor && targetJD < cursor + dur) {
-        maha = {
-          lord,
-          idx,
-          startJD: cursor,
-          endJD: cursor + dur,
-          frac: Math.max(0, Math.min(1, (targetJD - cursor) / dur)),
-        };
-        break;
-      }
+      const years = VIM_YEARS[lord];
+      const dur = years * YEAR_DAYS;
+      const isAct = targetJD >= cursor && targetJD < cursor + dur;
+      const item = {
+        lord,
+        idx,
+        years,
+        startJD: cursor,
+        endJD: cursor + dur,
+        jumpJD: Math.max(natalJD, cursor + 0.5),
+        active: isAct,
+        frac: isAct ? Math.max(0, Math.min(1, (targetJD - cursor) / dur)) : (targetJD >= cursor + dur ? 1 : 0),
+      };
+      mahaList.push(item);
+      if (isAct) maha = item;
       cursor += dur;
     }
-    if (!maha) return null;
+    if (!maha) {
+      maha = mahaList[0];
+      if (!maha) return null;
+      maha.active = true;
+    }
 
     // Antardasha (Bhukti)
     let adCursor = maha.startJD;
     const mdDur = maha.endJD - maha.startJD;
     let antar = null;
+    const antarList = [];
     for (let i = 0; i < 9; i++) {
       const idx = (maha.idx + i) % 9;
       const lord = VIM_ORDER[idx];
-      const dur = mdDur * (VIM_YEARS[lord] / 120);
-      if (targetJD >= adCursor && targetJD < adCursor + dur) {
-        antar = {
-          lord,
-          idx,
-          startJD: adCursor,
-          endJD: adCursor + dur,
-          frac: Math.max(0, Math.min(1, (targetJD - adCursor) / dur)),
-        };
-        break;
-      }
+      const years = VIM_YEARS[lord];
+      const dur = mdDur * (years / 120);
+      const isAct = targetJD >= adCursor && targetJD < adCursor + dur;
+      const item = {
+        lord,
+        idx,
+        years,
+        startJD: adCursor,
+        endJD: adCursor + dur,
+        jumpJD: Math.max(natalJD, adCursor + 0.5),
+        active: isAct,
+        frac: isAct ? Math.max(0, Math.min(1, (targetJD - adCursor) / dur)) : (targetJD >= adCursor + dur ? 1 : 0),
+      };
+      antarList.push(item);
+      if (isAct) antar = item;
       adCursor += dur;
     }
-    if (!antar) antar = { lord: maha.lord, idx: maha.idx, startJD: maha.startJD, endJD: maha.endJD, frac: 0 };
+    if (!antar) {
+      antar = antarList[0] || { lord: maha.lord, idx: maha.idx, years: maha.years, startJD: maha.startJD, endJD: maha.endJD, jumpJD: maha.jumpJD, active: true, frac: 0 };
+      antar.active = true;
+    }
 
     // Pratyantardasha
     let pdCursor = antar.startJD;
     const adDur = antar.endJD - antar.startJD;
     let pratyantar = null;
+    const pratyantarList = [];
     for (let i = 0; i < 9; i++) {
       const idx = (antar.idx + i) % 9;
       const lord = VIM_ORDER[idx];
-      const dur = adDur * (VIM_YEARS[lord] / 120);
-      if (targetJD >= pdCursor && targetJD < pdCursor + dur) {
-        pratyantar = {
-          lord,
-          idx,
-          startJD: pdCursor,
-          endJD: pdCursor + dur,
-          frac: Math.max(0, Math.min(1, (targetJD - pdCursor) / dur)),
-        };
-        break;
-      }
+      const years = VIM_YEARS[lord];
+      const dur = adDur * (years / 120);
+      const isAct = targetJD >= pdCursor && targetJD < pdCursor + dur;
+      const item = {
+        lord,
+        idx,
+        years,
+        startJD: pdCursor,
+        endJD: pdCursor + dur,
+        jumpJD: Math.max(natalJD, pdCursor + 0.5),
+        active: isAct,
+        frac: isAct ? Math.max(0, Math.min(1, (targetJD - pdCursor) / dur)) : (targetJD >= pdCursor + dur ? 1 : 0),
+      };
+      pratyantarList.push(item);
+      if (isAct) pratyantar = item;
       pdCursor += dur;
     }
-    if (!pratyantar) pratyantar = { lord: antar.lord, idx: antar.idx, startJD: antar.startJD, endJD: antar.endJD, frac: 0 };
+    if (!pratyantar) {
+      pratyantar = pratyantarList[0] || { lord: antar.lord, idx: antar.idx, years: antar.years, startJD: antar.startJD, endJD: antar.endJD, jumpJD: antar.jumpJD, active: true, frac: 0 };
+      pratyantar.active = true;
+    }
 
-    return { isPreBirth: false, maha, antar, pratyantar };
+    return { isPreBirth: false, maha, antar, pratyantar, mahaList, antarList, pratyantarList };
   }
 
   /**

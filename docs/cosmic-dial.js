@@ -190,13 +190,21 @@
     phase: i * 0.7,
   }));
 
+  const LENS_MODES = [
+    { id: "convergences", label: "◎ CONV",  title: "Drishti Lens: Double & Triple Transit Convergences — Click or press L to cycle" },
+    { id: "all",          label: "◎ RAYS",  title: "Drishti Lens: All Classical Vedic Graha Drishti Rays — Click or press L to cycle" },
+    { id: "resonance",    label: "◎ NATAL", title: "Drishti Lens: Natal Degree Resonance Beams — Click or press L to cycle" },
+  ];
+
   // ---------------------------------------------------------------------------
   // Application State
   // ---------------------------------------------------------------------------
 
   const state = {
     theme: "dark",             // "dark" | "light"
-    zen: false,
+    zen: true,                 // Fullscreen Zen Cosmic Observatory is the default & primary view
+    dashaOpen: false,          // Interactive Concentric 3-Ring Vimshottari Dasha Dials drawer
+    dashaHover: null,          // { tier, item } hovered arc on #dashaDialCanvas
     lens: "convergences",      // "convergences" | "all" | "resonance"
     ayanamsa: "lahiri",        // "lahiri" | "raman"
     speed: "week",             // "day" | "week" | "month"
@@ -232,6 +240,8 @@
   let staticCacheKey = "";
   let canvas = null;
   let ctx = null;
+  let dashaCanvas = null;
+  let dashaCtx = null;
   let canvasSize = 680;
   let dpr = 1;
 
@@ -1356,6 +1366,7 @@
     state.lastFrameMs = nowMs;
     stepSimulation(dtSec, nowMs);
     renderFrame(nowMs);
+    if (state.dashaOpen) renderDashaDial();
     requestAnimationFrame(tickLoop);
   }
 
@@ -1644,15 +1655,15 @@
     if (zenDate) zenDate.textContent = `${shortDate} · ${zenAgeShort}`;
     if (zenMeta) {
       const ascStr = (state.natal && state.natal.details.Lagna)
-        ? `Asc ${state.natal.details.Lagna.rasi.sanskrit} ${JE.fmtDM(state.natal.details.Lagna.degInRasi)} · `
-        : "";
+        ? `Asc ${state.natal.details.Lagna.rasi.sanskrit} ${JE.fmtDM(state.natal.details.Lagna.degInRasi)}`
+        : (state.panchanga ? state.panchanga.tithiFull : "");
       const mdStr = (state.dasha && !state.dasha.isPreBirth && state.dasha.maha)
         ? ` · ${JE.PLANET_MAP[state.dasha.maha.lord].sym} ${state.dasha.maha.lord}/${state.dasha.antar.lord}`
         : "";
-      const tiStr = state.panchanga ? state.panchanga.tithiFull : "";
-      zenMeta.textContent = `${ascStr}${tiStr}${mdStr}`;
+      zenMeta.textContent = `${ascStr}${mdStr}`;
     }
     updateZenVargaBar();
+    if (state.dashaOpen) updateDashaPanelUI();
 
     // Annunciator live status + 1-line expected impact summary for Triple Transits
     const annBadge = $("ann-badge");
@@ -2006,6 +2017,309 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Interactive Concentric 3-Ring Vimshottari Dasha Dials (MD / AD / PD)
+  // ---------------------------------------------------------------------------
+
+  let lastDashaPanelKey = "";
+
+  function formatYearSpan(startJD, endJD, includeMonth = true) {
+    const d1 = JE.jdToDate(startJD);
+    const d2 = JE.jdToDate(endJD);
+    if (!includeMonth) return `${d1.getUTCFullYear()}–${d2.getUTCFullYear()}`;
+    return `${MONTHS[d1.getUTCMonth()]} ${d1.getUTCFullYear()} – ${MONTHS[d2.getUTCMonth()]} ${d2.getUTCFullYear()}`;
+  }
+
+  function setDashaOpen(on) {
+    state.dashaOpen = Boolean(on);
+    const panel = $("dasha-panel");
+    const btn = $("zen-dasha");
+    if (panel) panel.hidden = !state.dashaOpen;
+    if (btn) btn.classList.toggle("is-active", state.dashaOpen);
+    if (state.dashaOpen) {
+      lastDashaPanelKey = "";
+      updateDashaPanelUI();
+      renderDashaDial();
+    } else {
+      state.dashaHover = null;
+    }
+  }
+
+  function syncLensButton() {
+    const btn = $("zen-lens");
+    if (!btn) return;
+    const cfg = LENS_MODES.find((m) => m.id === state.lens) || LENS_MODES[0];
+    btn.textContent = cfg.label;
+    btn.title = cfg.title;
+    btn.classList.toggle("is-active", state.lens !== "convergences");
+  }
+
+  function cycleLens() {
+    const idx = LENS_MODES.findIndex((m) => m.id === state.lens);
+    const next = LENS_MODES[(idx + 1) % LENS_MODES.length];
+    state.lens = next.id;
+    syncLensButton();
+    document.querySelectorAll("[data-lens]").forEach((b) => {
+      b.classList.toggle("is-active", b.getAttribute("data-lens") === state.lens);
+    });
+  }
+
+  function updateDashaPanelUI() {
+    const breakEl = $("dasha-breakdown");
+    const epochEl = $("dasha-epochs");
+    const hoverEl = $("dasha-hover-info");
+    if (!breakEl) return;
+
+    if (hoverEl) {
+      if (state.dashaHover) {
+        const { tierLabel, item } = state.dashaHover;
+        const meta = JE.PLANET_MAP[item.lord];
+        const yrStr = tierLabel === "MAHADASHA" ? ` (${item.years}y)` : "";
+        hoverEl.innerHTML = `<b>${tierLabel} · ${meta.sym} ${item.lord}${yrStr}</b><br/>${formatYearSpan(item.startJD, item.endJD, true)} · Click to jump`;
+      } else {
+        hoverEl.textContent = "Outer: Mahadasha · Mid: Antardasha · Inner: PD · Click arc to jump";
+      }
+    }
+
+    if (!state.dasha || state.dasha.isPreBirth || !state.dasha.maha) {
+      const k = "prebirth";
+      if (k !== lastDashaPanelKey) {
+        lastDashaPanelKey = k;
+        breakEl.innerHTML = `<div class="dasha-tier-card"><div class="dasha-tier-top"><span class="dasha-tier-label">EPOCH</span><span class="dasha-tier-lord">Pre-Birth Sky</span></div></div>`;
+        if (epochEl) epochEl.innerHTML = "";
+      }
+      return;
+    }
+
+    const { maha, antar, pratyantar } = state.dasha;
+    const epKey = state.activeEpoch ? state.activeEpoch.badges.map((b) => b.label).join("|") : "";
+    const key = `${maha.lord}:${Math.round(maha.frac * 100)}|${antar.lord}:${Math.round(antar.frac * 100)}|${pratyantar.lord}:${Math.round(pratyantar.frac * 100)}|${epKey}`;
+    if (key === lastDashaPanelKey) return;
+    lastDashaPanelKey = key;
+
+    const rows = [
+      { tag: "MD", item: maha, span: formatYearSpan(maha.startJD, maha.endJD, false) },
+      { tag: "AD", item: antar, span: formatYearSpan(antar.startJD, antar.endJD, true) },
+      { tag: "PD", item: pratyantar, span: formatYearSpan(pratyantar.startJD, pratyantar.endJD, true) },
+    ];
+    breakEl.innerHTML = rows.map(({ tag, item, span }) => {
+      const p = JE.PLANET_MAP[item.lord];
+      const pct = Math.round(item.frac * 100);
+      return `<div class="dasha-tier-card">
+        <div class="dasha-tier-top">
+          <span class="dasha-tier-label">${tag}</span>
+          <span class="dasha-tier-lord" style="color:${p.color}">${p.sym} ${p.id}</span>
+          <span class="dasha-tier-dates">${span}</span>
+        </div>
+        <div class="dasha-bar"><span style="width:${pct}%"></span></div>
+      </div>`;
+    }).join("");
+
+    if (epochEl) {
+      epochEl.innerHTML = (state.activeEpoch && state.activeEpoch.badges.length)
+        ? state.activeEpoch.badges.map((b) => `<span class="epoch-pill ep-${b.type}">${b.label}</span>`).join("")
+        : "";
+    }
+  }
+
+  function renderDashaDial() {
+    if (!dashaCanvas || !dashaCtx || !state.dashaOpen) return;
+    const size = 248;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    if (dashaCanvas.width !== Math.round(size * ratio) || dashaCanvas.height !== Math.round(size * ratio)) {
+      dashaCanvas.width = Math.round(size * ratio);
+      dashaCanvas.height = Math.round(size * ratio);
+    }
+    const c = dashaCtx;
+    const T = THEMES[state.theme] || THEMES.dark;
+    c.setTransform(ratio, 0, 0, ratio, 0, 0);
+    c.clearRect(0, 0, size, size);
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const R = size * 0.48;
+
+    // Outer horological brass bezel
+    const bezGrad = c.createLinearGradient(0, 0, size, size);
+    bezGrad.addColorStop(0, T.brassStops[0]);
+    bezGrad.addColorStop(0.5, T.brassStops[2]);
+    bezGrad.addColorStop(1, T.brassStops[4]);
+    c.beginPath();
+    c.arc(cx, cy, R, 0, Math.PI * 2);
+    c.fillStyle = T.isLight ? "#e6dac2" : "#0b0e17";
+    c.fill();
+    c.strokeStyle = bezGrad;
+    c.lineWidth = 2.4;
+    c.stroke();
+
+    const drawRing = (list, rIn, rOut, tierKey, showYears, showGlyph) => {
+      if (!list || !list.length) return;
+      let acc = 0;
+      for (const item of list) {
+        const a0 = -Math.PI / 2 + (acc / 120) * Math.PI * 2;
+        acc += item.years;
+        const a1 = -Math.PI / 2 + (acc / 120) * Math.PI * 2;
+        const aMid = (a0 + a1) / 2;
+        const rm = T.rulerMetal[item.lord] || { fill: "#1a1f2e", rim: "#cfa355" };
+        const pMeta = JE.PLANET_MAP[item.lord];
+        const isHov = state.dashaHover && state.dashaHover.tierKey === tierKey && state.dashaHover.item.lord === item.lord;
+
+        c.beginPath();
+        c.arc(cx, cy, rOut, a0, a1, false);
+        c.arc(cx, cy, rIn, a1, a0, true);
+        c.closePath();
+
+        if (item.active) {
+          c.fillStyle = T.isLight ? (pMeta.color + "55") : (pMeta.color + "38");
+        } else {
+          c.fillStyle = rm.fill;
+        }
+        c.fill();
+
+        // Active elapsed sub-sweep inside the active segment
+        if (item.active && item.frac > 0.01) {
+          const aProg = a0 + (a1 - a0) * item.frac;
+          c.beginPath();
+          c.arc(cx, cy, rOut, a0, aProg, false);
+          c.arc(cx, cy, rIn, aProg, a0, true);
+          c.closePath();
+          c.fillStyle = T.isLight ? "rgba(184, 120, 16, 0.24)" : "rgba(255, 214, 102, 0.22)";
+          c.fill();
+        }
+
+        // Segment border
+        c.beginPath();
+        c.arc(cx, cy, rOut, a0, a1, false);
+        c.arc(cx, cy, rIn, a1, a0, true);
+        c.closePath();
+        c.strokeStyle = isHov
+          ? (T.isLight ? "#9e4b00" : "#ffe082")
+          : (item.active ? (T.isLight ? "#a36800" : "#ffd43b") : T.nakStroke);
+        c.lineWidth = isHov ? 2.0 : (item.active ? 1.8 : 0.75);
+        c.stroke();
+
+        // Planetary glyph (& years on outer Mahadasha ring)
+        const spanRad = a1 - a0;
+        if (showGlyph && spanRad >= 0.22) {
+          const rLbl = (rIn + rOut) / 2;
+          const gx = cx + Math.cos(aMid) * rLbl;
+          const gy = cy + Math.sin(aMid) * rLbl;
+          c.font = `700 ${showYears ? "10.5px" : "9.5px"} "DM Sans", sans-serif`;
+          c.fillStyle = item.active
+            ? (T.isLight ? "#1b1408" : "#fff8e1")
+            : (T.isLight ? "#2c2214" : pMeta.color);
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillText(pMeta.sym, gx, showYears ? gy - 4 : gy);
+          if (showYears && spanRad >= 0.30) {
+            c.font = `600 7.2px "JetBrains Mono", monospace`;
+            c.fillStyle = item.active ? (T.isLight ? "#7a4900" : "#ffd43b") : T.hubSub;
+            c.fillText(`${item.years}y`, gx, gy + 6.5);
+          }
+        }
+      }
+    };
+
+    if (state.dasha && !state.dasha.isPreBirth && state.dasha.mahaList) {
+      drawRing(state.dasha.mahaList, R * 0.70, R * 0.96, "MD", true, true);
+      drawRing(state.dasha.antarList, R * 0.48, R * 0.68, "AD", false, true);
+      drawRing(state.dasha.pratyantarList, R * 0.31, R * 0.46, "PD", false, false);
+    }
+
+    // Concentric machined brass ring dividers
+    for (const frac of [0.70, 0.48, 0.31]) {
+      c.beginPath();
+      c.arc(cx, cy, R * frac, 0, Math.PI * 2);
+      c.strokeStyle = bezGrad;
+      c.lineWidth = 1.25;
+      c.stroke();
+    }
+
+    // Center Chronometer Core
+    const rCore = R * 0.305;
+    const coreGrad = c.createRadialGradient(cx - 8, cy - 8, 2, cx, cy, rCore);
+    coreGrad.addColorStop(0, T.coreStops[0]);
+    coreGrad.addColorStop(1, T.coreStops[2]);
+    c.beginPath();
+    c.arc(cx, cy, rCore, 0, Math.PI * 2);
+    c.fillStyle = coreGrad;
+    c.fill();
+
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    if (state.dasha && !state.dasha.isPreBirth && state.dasha.maha) {
+      const mP = JE.PLANET_MAP[state.dasha.maha.lord];
+      const aP = JE.PLANET_MAP[state.dasha.antar.lord];
+      const pP = JE.PLANET_MAP[state.dasha.pratyantar.lord];
+
+      // Active AD progress ring around core edge
+      c.beginPath();
+      c.arc(cx, cy, rCore - 2.2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * state.dasha.antar.frac);
+      c.strokeStyle = T.yearArc;
+      c.lineWidth = 2.0;
+      c.stroke();
+
+      c.font = `700 10px "JetBrains Mono", monospace`;
+      c.fillStyle = T.isLight ? "#1f170c" : mP.color;
+      c.fillText(`${mP.sym} ${mP.short.toUpperCase()}`, cx, cy - 11);
+
+      c.font = `600 9px "JetBrains Mono", monospace`;
+      c.fillStyle = T.hubDoy;
+      c.fillText(`${aP.sym} ${aP.short}`, cx, cy + 2);
+
+      c.font = `600 7.5px "JetBrains Mono", monospace`;
+      c.fillStyle = T.hubSub;
+      c.fillText(`${pP.sym} ${pP.short} · ${Math.round(state.dasha.maha.frac * 100)}%`, cx, cy + 14);
+    } else {
+      c.font = `600 8.5px "JetBrains Mono", monospace`;
+      c.fillStyle = T.hubSub;
+      c.fillText("PRE-BIRTH", cx, cy);
+    }
+  }
+
+  function hitTestDashaDial(mx, my) {
+    if (!state.dasha || state.dasha.isPreBirth || !state.dasha.mahaList) return null;
+    const size = 248;
+    const cx = size / 2;
+    const cy = size / 2;
+    const R = size * 0.48;
+    const dx = mx - cx;
+    const dy = my - cy;
+    const rFrac = Math.hypot(dx, dy) / R;
+
+    let list = null;
+    let tierKey = "";
+    let tierLabel = "";
+    if (rFrac >= 0.70 && rFrac <= 0.97) {
+      list = state.dasha.mahaList;
+      tierKey = "MD";
+      tierLabel = "MAHADASHA";
+    } else if (rFrac >= 0.48 && rFrac < 0.70) {
+      list = state.dasha.antarList;
+      tierKey = "AD";
+      tierLabel = "ANTARDASHA";
+    } else if (rFrac >= 0.31 && rFrac < 0.48) {
+      list = state.dasha.pratyantarList;
+      tierKey = "PD";
+      tierLabel = "PRATYANTARDASHA";
+    } else {
+      return null;
+    }
+
+    // Clockwise fraction from 12 o'clock (-PI/2)
+    let ang = Math.atan2(dy, dx) + Math.PI / 2;
+    if (ang < 0) ang += Math.PI * 2;
+    const targetYears = (ang / (Math.PI * 2)) * 120;
+    let acc = 0;
+    for (const item of list) {
+      if (targetYears >= acc && targetYears <= acc + item.years) {
+        return { tierKey, tierLabel, item };
+      }
+      acc += item.years;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
   // Theme, Zen Mode & Resize Setup
   // ---------------------------------------------------------------------------
 
@@ -2022,6 +2336,7 @@
       zenTheme.title = state.theme === "light" ? "Switch to Night Obsidian theme" : "Switch to Daylight Brass theme";
     }
     staticCacheKey = "";
+    if (state.dashaOpen) renderDashaDial();
   }
 
   function setZenMode(on) {
@@ -2068,26 +2383,42 @@
     } catch (_) {}
     applyTheme(state.theme);
 
+    let loaded = null;
     try {
       const raw = localStorage.getItem("nakshatra-cosmic-birth");
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved && saved.date && saved.lat !== undefined) {
-        // Heal legacy raw-coord numeric tz values (e.g. India +5 -> Asia/Kolkata +5:30)
-        if (typeof saved.tz !== "string" || !saved.tz.includes("/")) {
-          const resolved = (saved.city && JE.findCity(saved.city)) || null;
-          saved.tz = (resolved && resolved.tz) || (JE.inferTzForCoords ? JE.inferTzForCoords(saved.lat, saved.lon) : saved.tz);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.date && saved.lat !== undefined) {
+          // Heal legacy raw-coord numeric tz values (e.g. India +5 -> Asia/Kolkata +5:30)
+          if (typeof saved.tz !== "string" || !saved.tz.includes("/")) {
+            const resolved = (saved.city && JE.findCity(saved.city)) || null;
+            saved.tz = (resolved && resolved.tz) || (JE.inferTzForCoords ? JE.inferTzForCoords(saved.lat, saved.lon) : saved.tz);
+          }
+          loaded = saved;
         }
-        state.birthInput = saved;
-        if ($("birth-date")) $("birth-date").value = saved.date;
-        if ($("zen-birth-date")) $("zen-birth-date").value = saved.date;
-        if ($("birth-time")) $("birth-time").value = saved.time || "06:30";
-        if ($("zen-birth-time")) $("zen-birth-time").value = saved.time || "06:30";
-        if ($("birth-city")) $("birth-city").value = saved.city || "Hyderabad, India";
-        if ($("zen-birth-city")) $("zen-birth-city").value = saved.city || "Hyderabad, India";
-        if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
       }
     } catch (_) {}
+
+    // Default single-view Zen Observatory starts cleanly locked to saved chart or Hyderabad sample
+    if (!loaded) {
+      loaded = {
+        date: "1988-08-15",
+        time: "06:30",
+        city: "Hyderabad, India",
+        lat: 17.3850,
+        lon: 78.4867,
+        tz: "Asia/Kolkata",
+      };
+    }
+
+    state.birthInput = loaded;
+    if ($("birth-date")) $("birth-date").value = loaded.date;
+    if ($("zen-birth-date")) $("zen-birth-date").value = loaded.date;
+    if ($("birth-time")) $("birth-time").value = loaded.time || "06:30";
+    if ($("zen-birth-time")) $("zen-birth-time").value = loaded.time || "06:30";
+    if ($("birth-city")) $("birth-city").value = loaded.city || "Hyderabad, India";
+    if ($("zen-birth-city")) $("zen-birth-city").value = loaded.city || "Hyderabad, India";
+    if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
   }
 
   function bindControls() {
@@ -2096,19 +2427,44 @@
     $("btn-theme")?.addEventListener("click", toggleTheme);
     $("zen-theme")?.addEventListener("click", toggleTheme);
 
-    // Zen / Cinema Mode
-    $("btn-zen")?.addEventListener("click", () => setZenMode(!state.zen));
-    $("zen-exit")?.addEventListener("click", () => setZenMode(false));
+    // Drishti Optical Lens Cycler (◎ CONV -> ◎ RAYS -> ◎ NATAL)
+    $("zen-lens")?.addEventListener("click", cycleLens);
+    syncLensButton();
+
+    // Concentric 3-Ring Vimshottari Dasha Dials Drawer Toggle
+    $("zen-dasha")?.addEventListener("click", () => setDashaOpen(!state.dashaOpen));
+    $("dasha-panel-close")?.addEventListener("click", () => setDashaOpen(false));
+
+    // Keyboard shortcuts (Space = Play/Pause, L = Drishti Lens, D = Dasha Dials, Arrows = ±1M/±1Y, Esc = Close)
     window.addEventListener("keydown", (e) => {
+      const tag = document.activeElement ? document.activeElement.tagName : "";
+      const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
       if (e.key === "Escape") {
-        if (document.activeElement && document.activeElement.id === "zen-birth-city") {
+        if (typing && document.activeElement) {
           document.activeElement.blur();
         } else if (state.pinned) {
           state.pinned = null;
           renderPinnedLore();
-        } else if (state.zen) {
-          setZenMode(false);
+        } else if (state.dashaOpen) {
+          setDashaOpen(false);
         }
+        return;
+      }
+      if (typing) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        state.playing = !state.playing;
+        syncPlayButtons();
+      } else if (e.key === "l" || e.key === "L") {
+        cycleLens();
+      } else if (e.key === "d" || e.key === "D") {
+        setDashaOpen(!state.dashaOpen);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        stepByUnit(e.shiftKey ? "y" : "m", -1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        stepByUnit(e.shiftKey ? "y" : "m", 1);
       }
     });
 
@@ -2126,7 +2482,7 @@
     $("btn-play")?.addEventListener("click", togglePlay);
     $("zen-play")?.addEventListener("click", togglePlay);
 
-    // Reverse / Forward (synced between Main & Zen decks)
+    // Reverse / Forward
     const toggleDir = () => {
       state.direction = -state.direction;
       const btnRev = $("btn-rev");
@@ -2143,15 +2499,17 @@
     $("btn-rev")?.addEventListener("click", toggleDir);
     $("zen-rev")?.addEventListener("click", toggleDir);
 
-    // Today & Birth buttons
+    // Today & Birth Jump buttons
     const jumpToday = () => jumpToJD(JE.dateToJD(new Date()), false);
-    $("btn-today")?.addEventListener("click", jumpToday);
-    $("zen-today")?.addEventListener("click", jumpToday);
-    $("btn-birth")?.addEventListener("click", () => {
+    const jumpBirth = () => {
       if (state.natalJD === null) return;
       jumpToJD(state.natalJD, true);
       if (Audio) Audio.playNatalLock(true);
-    });
+    };
+    $("btn-today")?.addEventListener("click", jumpToday);
+    $("zen-today")?.addEventListener("click", jumpToday);
+    $("btn-birth")?.addEventListener("click", jumpBirth);
+    $("zen-birth-jump")?.addEventListener("click", jumpBirth);
 
     // Direct Date Picker
     const elJump = $("jump-date");
@@ -2455,6 +2813,37 @@
       });
     }
 
+    // Interactive Concentric Dasha Dial pointer events (hover to inspect, click any arc to time-travel!)
+    if (dashaCanvas) {
+      dashaCanvas.addEventListener("pointermove", (e) => {
+        const rect = dashaCanvas.getBoundingClientRect();
+        const hit = hitTestDashaDial(e.clientX - rect.left, e.clientY - rect.top);
+        const prev = state.dashaHover;
+        const changed = (!hit && prev) || (hit && !prev) || (hit && prev && (hit.tierKey !== prev.tierKey || hit.item.lord !== prev.item.lord));
+        if (changed) {
+          state.dashaHover = hit;
+          updateDashaPanelUI();
+          renderDashaDial();
+        }
+      });
+      dashaCanvas.addEventListener("pointerleave", () => {
+        if (state.dashaHover) {
+          state.dashaHover = null;
+          updateDashaPanelUI();
+          renderDashaDial();
+        }
+      });
+      dashaCanvas.addEventListener("click", (e) => {
+        const rect = dashaCanvas.getBoundingClientRect();
+        const hit = hitTestDashaDial(e.clientX - rect.left, e.clientY - rect.top);
+        if (!hit || !hit.item) return;
+        jumpToJD(hit.item.jumpJD, true);
+        if (Audio) Audio.playPadaHit();
+        updateDashaPanelUI();
+        renderDashaDial();
+      });
+    }
+
     window.addEventListener("resize", resizeCanvas);
   }
 
@@ -2462,11 +2851,15 @@
     canvas = $("cosmicDialCanvas");
     if (!canvas) return;
     ctx = canvas.getContext("2d");
+    dashaCanvas = $("dashaDialCanvas");
+    dashaCtx = dashaCanvas ? dashaCanvas.getContext("2d") : null;
+    document.body.classList.add("is-zen");
     populateCityDatalist();
     loadSavedPreferences();
     resizeCanvas();
     bindControls();
     recomputeForAyanamsaOrNatal(null);
+    updateZenVargaBar(true);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => { staticCacheKey = ""; });
     }

@@ -2356,18 +2356,19 @@
 
   function resizeCanvas() {
     if (!canvas) return;
+    const vpW = document.documentElement.clientWidth || window.innerWidth || 680;
+    const vpH = window.innerHeight || 680;
     const dock = $("zen-dock");
     const dockH = (dock && !dock.hidden) ? Math.ceil(dock.getBoundingClientRect().height) : 92;
-    const reserve = dockH + (window.innerWidth <= 639 ? 14 : 20);
+    const reserve = dockH + (vpW <= 639 ? 14 : 20);
     if (Math.abs(reserve - lastDockReserve) >= 2) {
       lastDockReserve = reserve;
       document.documentElement.style.setProperty("--dock-reserve", `${reserve}px`);
     }
-    const stage = canvas.parentElement;
-    const availW = Math.max(220, (stage ? stage.clientWidth : window.innerWidth) - (window.innerWidth <= 639 ? 8 : 20));
+    const availW = Math.max(220, vpW - (vpW <= 639 ? 16 : 32));
     const maxCap = 860;
-    const topCushion = window.innerHeight <= 540 ? 12 : (window.innerWidth <= 639 ? 16 : 24);
-    const availH = window.innerHeight ? Math.max(220, window.innerHeight - reserve - topCushion) : 680;
+    const topCushion = vpH <= 540 ? 12 : (vpW <= 639 ? 18 : 24);
+    const availH = Math.max(220, vpH - reserve - topCushion);
     const target = Math.max(220, Math.min(maxCap, Math.floor(Math.min(availW, availH))));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (target !== canvasSize || canvas.width !== Math.round(target * dpr)) {

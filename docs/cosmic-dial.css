@@ -450,6 +450,8 @@ body.is-zen .pinned-lore {
 .dial-stage {
   position: relative;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1782,12 +1784,23 @@ body.is-zen .pinned-lore {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.26rem 0.42rem;
   }
+  .zen-date {
+    grid-column: 1;
+    grid-row: 1;
+  }
   .zen-meta {
+    grid-column: 2;
+    grid-row: 1;
     display: block;
     text-align: center;
   }
+  .zen-born-wrap {
+    grid-column: 3;
+    grid-row: 1;
+  }
   .zen-controls {
     grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -1833,15 +1846,20 @@ body.is-zen .pinned-lore {
     gap: 0.24rem 0.36rem;
   }
   .zen-date {
+    grid-column: 1;
+    grid-row: 1;
     font-size: 0.62rem;
   }
   .zen-meta {
+    grid-column: 2;
+    grid-row: 1;
     display: block;
     text-align: right;
     font-size: 0.58rem;
   }
   .zen-born-wrap {
     grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
     display: grid;
     grid-template-columns: auto minmax(0, 1.05fr) minmax(0, 0.88fr) minmax(0, 1.12fr);
@@ -1857,6 +1875,7 @@ body.is-zen .pinned-lore {
   }
   .zen-controls {
     grid-column: 1 / -1;
+    grid-row: 3;
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;

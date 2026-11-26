@@ -579,14 +579,14 @@ body.is-zen .dial-footer-rail {
 
 .zen-bar-row {
   display: grid;
-  grid-template-columns: 174px 244px minmax(0, 1fr) auto;
+  grid-template-columns: 140px 348px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.48rem;
+  gap: 0.44rem;
 }
 
 .zen-date {
   font-family: var(--font-mono);
-  font-size: 0.69rem;
+  font-size: 0.67rem;
   font-weight: 700;
   color: var(--text-strong);
   font-variant-numeric: tabular-nums;
@@ -597,48 +597,67 @@ body.is-zen .dial-footer-rail {
 .zen-born-wrap {
   display: flex;
   align-items: center;
-  gap: 0.24rem;
+  gap: 0.2rem;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.54rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--muted-cool);
 }
 
 .zen-birth-input {
-  width: 108px;
-  padding: 0.13rem 0.24rem;
+  width: 104px;
+  padding: 0.13rem 0.2rem;
   border-radius: 4px;
   border: 1px solid var(--border-brass);
   background: var(--input-bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.61rem;
+  font-size: 0.60rem;
   outline: none;
   cursor: pointer;
 }
 
 .zen-birth-time {
-  width: 88px;
-  padding: 0.13rem 0.22rem;
+  width: 84px;
+  padding: 0.13rem 0.18rem;
   border-radius: 4px;
   border: 1px solid var(--border-brass);
   background: var(--input-bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.61rem;
+  font-size: 0.60rem;
   outline: none;
   cursor: pointer;
 }
 
+.zen-birth-city {
+  width: 118px;
+  padding: 0.13rem 0.26rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-brass);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
 .zen-birth-input:focus,
-.zen-birth-time:focus {
+.zen-birth-time:focus,
+.zen-birth-city:focus {
   border-color: var(--brass-bright);
+}
+
+.zen-birth-city.is-invalid {
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 1px rgba(235, 86, 44, 0.35);
 }
 
 .zen-meta {
   font-family: var(--font-mono);
-  font-size: 0.63rem;
+  font-size: 0.61rem;
   color: var(--brass-bright);
   white-space: nowrap;
   overflow: hidden;
@@ -649,8 +668,45 @@ body.is-zen .dial-footer-rail {
 .zen-controls {
   display: flex;
   align-items: center;
-  gap: 0.22rem;
+  gap: 0.2rem;
   flex-shrink: 0;
+}
+
+.zen-ayan-seg {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--recess-1);
+}
+
+.zen-ayan-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted-cool);
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.16rem 0.34rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s, color 0.14s;
+}
+
+.zen-ayan-btn + .zen-ayan-btn {
+  border-left: 1px solid var(--border-brass);
+}
+
+.zen-ayan-btn:hover {
+  color: var(--brass-bright);
+}
+
+.zen-ayan-btn.is-active {
+  color: var(--btn-active-text);
+  background: linear-gradient(180deg, var(--btn-active-1) 0%, var(--btn-active-2) 100%);
 }
 
 /* ==========================================================================
@@ -1486,12 +1542,19 @@ body.is-zen .dial-footer-rail {
   }
 }
 
+@media (max-width: 1040px) {
+  .zen-meta { display: none; }
+  .zen-bar-row {
+    grid-template-columns: 140px 348px auto;
+    justify-content: space-between;
+  }
+}
+
 @media (max-width: 640px) {
   .cosmic-topbar { padding: 0.45rem 0.8rem; }
   .brand-sub, .telemetry-pill { display: none; }
   .cosmic-hero { padding: 0.5rem 0.65rem 1rem; }
   .mech-row-6 { grid-template-columns: repeat(3, 1fr); }
-  .zen-meta { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cosmic-dial.css?v=9" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=10" />
 </head>
 <body>
   <canvas id="celestialTapestry" class="celestial-tapestry" aria-hidden="true"></canvas>
@@ -232,11 +232,12 @@
 
     <div class="zen-bar-row">
       <span id="zen-date" class="zen-date">-- --- ----</span>
-      <label class="zen-born-wrap" title="Edit birth date & local time in Zen mode">
+      <div class="zen-born-wrap" title="Edit birth date, local time &amp; place in Zen mode">
         <span>BORN</span>
         <input id="zen-birth-date" class="zen-birth-input" type="date" value="1988-08-15" aria-label="Birth date in Zen mode" />
         <input id="zen-birth-time" class="zen-birth-time" type="time" value="06:30" aria-label="Birth local time in Zen mode" />
-      </label>
+        <input id="zen-birth-city" class="zen-birth-city" type="text" list="city-list" value="Hyderabad, India" placeholder="City / lat,lon" aria-label="Birth place in Zen mode" title="Birth place (pick city or enter lat, lon)" />
+      </div>
       <span id="zen-meta" class="zen-meta"></span>
       <div class="zen-controls">
         <button id="zen-play" type="button" class="mech-btn mech-btn-xs is-active" title="Play or pause">❚❚</button>
@@ -247,9 +248,13 @@
         <button id="zen-prev-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Previous convergence">⏮</button>
         <button id="zen-next-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Next convergence">⏭</button>
         <button id="zen-today" type="button" class="mech-btn mech-btn-xs" title="Snap to today">NOW</button>
+        <div class="zen-ayan-seg" role="group" aria-label="Ayanamsa switch">
+          <button type="button" class="zen-ayan-btn is-active" data-ayanamsa="lahiri" title="Chitrapaksha (Lahiri) Ayanamsa">CHITRA</button>
+          <button type="button" class="zen-ayan-btn" data-ayanamsa="raman" title="B.V. Raman Ayanamsa">RAMAN</button>
+        </div>
         <button id="zen-sound" type="button" class="mech-btn mech-btn-xs is-active" title="Toggle Tabla & Tanpura background sound on/off">🔊</button>
-        <button id="zen-theme" type="button" class="mech-btn mech-btn-xs" title="Toggle Day / Night theme">☀ DAY</button>
-        <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Exit Zen mode (Esc)">✕ EXIT</button>
+        <button id="zen-theme" type="button" class="mech-btn mech-btn-xs" title="Toggle Day / Night theme">☀</button>
+        <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Exit Zen mode (Esc)">✕</button>
       </div>
     </div>
   </div>
@@ -257,6 +262,6 @@
   <script src="jyotish-engine.js?v=9" defer></script>
   <script src="cosmic-audio.js?v=9" defer></script>
   <script src="cosmic-tapestry.js?v=8" defer></script>
-  <script src="cosmic-dial.js?v=9" defer></script>
+  <script src="cosmic-dial.js?v=10" defer></script>
 </body>
 </html>

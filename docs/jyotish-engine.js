@@ -687,15 +687,17 @@
     return { triples, doubles, padaHits };
   }
 
-  /** Scan forward day-by-day to find the next newly entering Double or Triple Transit */
-  function findNextConvergence(startJD, natalSnap, ayanamsaMode = "lahiri", maxDays = 1460) {
+  /** Scan forward or backward to find the next/previous distinct Double or Triple Transit */
+  function findConvergence(startJD, natalSnap, ayanamsaMode = "lahiri", direction = 1, maxDays = 1825, minJD = null) {
+    const dir = direction < 0 ? -1 : 1;
     const curState = analyzeTransits(computeSiderealSnapshot(startJD, ayanamsaMode), natalSnap);
     const curKeys = new Set([
       ...curState.triples.map((x) => x.key),
       ...curState.doubles.map((x) => x.key),
     ]);
-    for (let step = 1; step <= maxDays; step += 2) {
-      const jd = startJD + step;
+    for (let step = 2; step <= maxDays; step += 2) {
+      const jd = startJD + step * dir;
+      if (minJD !== null && jd < minJD) break;
       const snap = computeSiderealSnapshot(jd, ayanamsaMode);
       const res = analyzeTransits(snap, natalSnap);
       const newTriple = res.triples.find((x) => !curKeys.has(x.key));
@@ -704,6 +706,14 @@
       if (newDouble) return { jd, event: newDouble, snap };
     }
     return null;
+  }
+
+  function findNextConvergence(startJD, natalSnap, ayanamsaMode = "lahiri", maxDays = 1825) {
+    return findConvergence(startJD, natalSnap, ayanamsaMode, 1, maxDays, null);
+  }
+
+  function findPrevConvergence(startJD, natalSnap, ayanamsaMode = "lahiri", maxDays = 1825, minJD = null) {
+    return findConvergence(startJD, natalSnap, ayanamsaMode, -1, maxDays, minJD);
   }
 
   // ---------------------------------------------------------------------------
@@ -861,7 +871,9 @@
     aspectsTargetRasi,
     getAspectLabel,
     analyzeTransits,
+    findConvergence,
     findNextConvergence,
+    findPrevConvergence,
     findCity,
   };
 })(typeof window !== "undefined" ? window : globalThis);

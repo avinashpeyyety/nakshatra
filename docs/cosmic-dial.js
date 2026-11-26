@@ -61,6 +61,7 @@
     simJD: JE.dateToJD(new Date()),
     lastCheckedDay: Math.floor(JE.dateToJD(new Date())),
     birthInput: null,          // { name, date, time, city, lat, lon, tz }
+    natalJD: null,             // exact birth Julian Day when locked
     natal: null,               // computeSiderealSnapshot result
     transit: null,             // current computeSiderealSnapshot result
     analysis: { triples: [], doubles: [], padaHits: [] },
@@ -858,9 +859,23 @@
     if (state.playing) {
       const rate = SPEED_MAP[state.speed].daysPerSec;
       const dDays = dtSec * rate * state.direction;
+      const prevJD = state.simJD;
       state.simJD += dDays;
+
+      // When rewinding backward toward a locked birth moment, pause crisply at exact birth alignment
+      if (state.direction < 0 && state.natalJD !== null && prevJD > state.natalJD && state.simJD <= state.natalJD) {
+        state.simJD = state.natalJD;
+        state.playing = false;
+        const btnPlay = $("btn-play");
+        if (btnPlay) {
+          btnPlay.textContent = "▶ ENGAGE";
+          btnPlay.classList.remove("is-active");
+        }
+        if (Audio) Audio.playNatalLock(true);
+      }
+
       // Rotate physical cosmic gears proportionally to solar motion (scaled for tangible mechanical feel)
-      state.gearAngle += dDays * 0.065;
+      state.gearAngle += (state.simJD - prevJD) * 0.065;
     }
 
     // Compute live 60fps positions
@@ -958,6 +973,51 @@
     return `${String(d.getUTCDate()).padStart(2, "0")} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   }
 
+  function formatIsoDate(d) {
+    const y = String(d.getUTCFullYear()).padStart(4, "0");
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function getTimelineBounds() {
+    const todayJD = JE.dateToJD(new Date());
+    const baseMin = state.natalJD !== null ? state.natalJD : JE.ymdhmsToJD(1950, 1, 1, 12);
+    const baseMax = todayJD + 30 * 365.25;
+    const minJD = Math.min(baseMin, state.simJD - 1);
+    const maxJD = Math.max(baseMax, state.simJD + 1);
+    return { minJD, maxJD, todayJD };
+  }
+
+  function jumpToJD(jd, playSound = false) {
+    const oldJD = state.simJD;
+    state.simJD = jd;
+    state.lastCheckedDay = Math.floor(jd);
+    state.gearAngle += Math.max(-18, Math.min(18, (jd - oldJD) * 0.025));
+    state.trails = {};
+    state.transit = JE.computeSiderealSnapshot(jd, state.ayanamsa);
+    state.activeEventKeys = new Set();
+    evaluateAndTriggerTransits(state.transit, jd, performance.now(), playSound);
+    syncSidePanelUI();
+  }
+
+  function stepByUnit(unit, delta) {
+    const d = JE.jdToDate(state.simJD);
+    let targetJD = state.simJD;
+    if (unit === "d") {
+      targetJD = state.simJD + delta;
+    } else if (unit === "m") {
+      const next = new Date(d.getTime());
+      next.setUTCMonth(next.getUTCMonth() + delta);
+      targetJD = JE.dateToJD(next);
+    } else if (unit === "y") {
+      const next = new Date(d.getTime());
+      next.setUTCFullYear(next.getUTCFullYear() + delta);
+      targetJD = JE.dateToJD(next);
+    }
+    jumpToJD(targetJD, true);
+  }
+
   function tickLoop(nowMs) {
     const dtSec = Math.min(0.1, Math.max(0.001, (nowMs - state.lastFrameMs) / 1000));
     state.lastFrameMs = nowMs;
@@ -985,10 +1045,12 @@
     if (state.birthInput) {
       const b = state.birthInput;
       const bJD = JE.localBirthToJD(b.date, b.time, b.tz);
+      state.natalJD = bJD;
       state.natal = JE.computeSiderealSnapshot(bJD, state.ayanamsa, b.lat, b.lon);
       const lagR = state.natal.details.Lagna.rasiIdx;
       state.targetZenithDeg = lagR * 30 + 15;
     } else {
+      state.natalJD = null;
       state.natal = null;
       // Subtle visual ayanamsa clutch shift even in sky mode so user feels Lahiri <-> Raman engage!
       state.targetZenithDeg = state.ayanamsa === "raman" ? 13.55 : 15.0;
@@ -1009,19 +1071,71 @@
   function syncSidePanelUI() {
     if (!state.transit) return;
     const curDate = JE.jdToDate(state.simJD);
-    const { doy, daysInYear, year } = JE.dayOfYearUtc(curDate);
+    const { doy, daysInYear } = JE.dayOfYearUtc(curDate);
+    const { minJD, maxJD, todayJD } = getTimelineBounds();
 
-    // Date & Day-of-Year readout in console
+    // Date, Day-of-Year, Age / Offset & Lifespan Timeline readout
     const elDate = $("chrono-date");
     const elDoy = $("chrono-doy");
-    const elSlider = $("year-scrubber");
+    const elAge = $("chrono-age");
+    const elJump = $("jump-date");
+    const elSlider = $("timeline-scrubber");
+    const elTlStart = $("tl-start");
+    const elTlEnd = $("tl-end");
+    const elTodayMark = $("timeline-today-mark");
+    const elBtnBirth = $("btn-birth");
     const elAyanVal = $("ayanamsa-readout");
+
     if (elDate) elDate.textContent = formatShortDate(curDate);
     if (elDoy) elDoy.textContent = `DAY ${String(doy).padStart(3, "0")} / ${daysInYear}`;
-    if (elSlider && document.activeElement !== elSlider) {
-      elSlider.max = String(daysInYear);
-      elSlider.value = String(doy);
+
+    if (elAge) {
+      if (state.natalJD !== null) {
+        const diffDays = state.simJD - state.natalJD;
+        if (Math.abs(diffDays) < 0.6) {
+          elAge.textContent = "BIRTH MOMENT";
+        } else {
+          const yrs = diffDays / 365.2425;
+          elAge.textContent = yrs >= 0 ? `AGE ${yrs.toFixed(1)} YRS` : `${yrs.toFixed(1)}Y PRE-BIRTH`;
+        }
+      } else {
+        const diffDays = state.simJD - todayJD;
+        if (Math.abs(diffDays) < 0.8) {
+          elAge.textContent = "PRESENT SKY";
+        } else {
+          const yrs = diffDays / 365.2425;
+          elAge.textContent = `${yrs >= 0 ? "+" : ""}${yrs.toFixed(1)} YRS`;
+        }
+      }
     }
+
+    if (elJump && document.activeElement !== elJump) {
+      elJump.value = formatIsoDate(curDate);
+    }
+
+    if (elSlider && document.activeElement !== elSlider) {
+      const frac = Math.max(0, Math.min(1, (state.simJD - minJD) / Math.max(1, maxJD - minJD)));
+      elSlider.value = String(Math.round(frac * 10000));
+    }
+
+    if (elTlStart) {
+      const startYr = JE.jdToDate(minJD).getUTCFullYear();
+      elTlStart.textContent = state.natalJD !== null ? `BORN ${startYr}` : String(startYr);
+    }
+    if (elTlEnd) {
+      elTlEnd.textContent = String(JE.jdToDate(maxJD).getUTCFullYear());
+    }
+    if (elTodayMark) {
+      const tFrac = Math.max(0, Math.min(1, (todayJD - minJD) / Math.max(1, maxJD - minJD)));
+      elTodayMark.style.left = `${(tFrac * 100).toFixed(2)}%`;
+    }
+    if (elBtnBirth) {
+      elBtnBirth.disabled = state.natalJD === null;
+      elBtnBirth.title = state.natalJD !== null
+        ? "Jump back to exact birth date & time"
+        : "Lock a birth chart below to jump to your birth moment";
+    }
+
     if (elAyanVal) {
       elAyanVal.textContent = `${state.ayanamsa === "raman" ? "B.V. Raman" : "Lahiri"} · ${JE.fmtDMS(state.transit.ayanamsa)}`;
     }
@@ -1274,14 +1388,45 @@
     const btnToday = $("btn-today");
     if (btnToday) {
       btnToday.addEventListener("click", () => {
-        state.simJD = JE.dateToJD(new Date());
-        state.lastCheckedDay = Math.floor(state.simJD);
-        state.trails = {};
-        state.activeEventKeys = new Set();
-        evaluateAndTriggerTransits(JE.computeSiderealSnapshot(state.simJD, state.ayanamsa), state.simJD, performance.now(), false);
-        syncSidePanelUI();
+        jumpToJD(JE.dateToJD(new Date()), false);
       });
     }
+
+    // Snap back to exact Birth Moment
+    const btnBirth = $("btn-birth");
+    if (btnBirth) {
+      btnBirth.addEventListener("click", () => {
+        if (state.natalJD === null) return;
+        jumpToJD(state.natalJD, true);
+        if (Audio) Audio.playNatalLock(true);
+      });
+    }
+
+    // Direct Date Picker jump (any past or future date)
+    const elJump = $("jump-date");
+    if (elJump) {
+      elJump.addEventListener("change", () => {
+        const val = elJump.value;
+        if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) return;
+        const [y, m, d] = val.split("-").map(Number);
+        if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return;
+        if (state.birthInput && state.birthInput.date === val && state.natalJD !== null) {
+          jumpToJD(state.natalJD, true);
+        } else {
+          jumpToJD(JE.ymdhmsToJD(y, m, d, 12), true);
+        }
+      });
+    }
+
+    // Quick Bidirectional Time-Step Buttons (-1Y, -1M, +1M, +1Y)
+    document.querySelectorAll("[data-step]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const spec = btn.getAttribute("data-step") || "";
+        const m = spec.match(/^([+-]?\d+)([dmy])$/);
+        if (!m) return;
+        stepByUnit(m[2], Number(m[1]));
+      });
+    });
 
     // Speed buttons: DAY / WEEK / MONTH
     document.querySelectorAll("[data-speed]").forEach((btn) => {
@@ -1305,17 +1450,22 @@
       });
     });
 
-    // Day-of-Year Scrubber
-    const scrubber = $("year-scrubber");
+    // Bidirectional Lifespan Timeline Scrubber (Birth Date <-> Today <-> Future)
+    const scrubber = $("timeline-scrubber");
     if (scrubber) {
-      scrubber.addEventListener("input", () => {
-        const d = JE.jdToDate(state.simJD);
-        const yearStartJD = JE.ymdhmsToJD(d.getUTCFullYear(), 1, 1, 12);
-        state.simJD = yearStartJD + (Number(scrubber.value) - 1);
-        state.lastCheckedDay = Math.floor(state.simJD);
-        state.trails = {};
-        syncSidePanelUI();
+      let dragBounds = null;
+      scrubber.addEventListener("pointerdown", () => {
+        dragBounds = getTimelineBounds();
       });
+      scrubber.addEventListener("input", () => {
+        const b = dragBounds || getTimelineBounds();
+        const frac = Number(scrubber.value) / 10000;
+        const targetJD = b.minJD + frac * (b.maxJD - b.minJD);
+        jumpToJD(targetJD, false);
+      });
+      const clearDrag = () => { dragBounds = null; };
+      scrubber.addEventListener("change", clearDrag);
+      scrubber.addEventListener("pointerup", clearDrag);
     }
 
     // Sound Toggle
@@ -1328,19 +1478,23 @@
       });
     }
 
-    // Jump to Next Major Double / Triple Transit
+    // Jump to Previous Major Double / Triple Transit (backwards toward Birth Date)
+    const btnPrev = $("btn-prev-transit");
+    if (btnPrev) {
+      btnPrev.addEventListener("click", () => {
+        const hit = JE.findPrevConvergence(state.simJD, state.natal, state.ayanamsa, 1825, state.natalJD);
+        if (!hit) return;
+        jumpToJD(hit.jd, true);
+      });
+    }
+
+    // Jump to Next Major Double / Triple Transit (forward)
     const btnNext = $("btn-next-transit");
     if (btnNext) {
       btnNext.addEventListener("click", () => {
-        const hit = JE.findNextConvergence(state.simJD, state.natal, state.ayanamsa, 1460);
+        const hit = JE.findNextConvergence(state.simJD, state.natal, state.ayanamsa, 1825);
         if (!hit) return;
-        state.simJD = hit.jd;
-        state.lastCheckedDay = Math.floor(hit.jd);
-        state.trails = {};
-        state.transit = hit.snap;
-        state.activeEventKeys = new Set();
-        evaluateAndTriggerTransits(hit.snap, hit.jd, performance.now(), true);
-        syncSidePanelUI();
+        jumpToJD(hit.jd, true);
       });
     }
 

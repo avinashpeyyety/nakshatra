@@ -8,9 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cosmic-dial.css?v=7" />
+  <link rel="stylesheet" href="cosmic-dial.css?v=8" />
 </head>
 <body>
+  <canvas id="celestialTapestry" class="celestial-tapestry" aria-hidden="true"></canvas>
   <header class="cosmic-topbar">
     <div class="topbar-brand">
       <span class="brand-sigil" aria-hidden="true">☸</span>
@@ -93,7 +94,7 @@
         <div class="mech-row mech-row-3" style="margin-bottom:0.28rem;">
           <button id="btn-play" type="button" class="mech-btn is-active" title="Play or pause transit simulation">❚❚ PAUSE</button>
           <button id="btn-rev" type="button" class="mech-btn" title="Reverse or forward time playback">FWD ▶</button>
-          <button id="btn-sound" type="button" class="mech-btn" title="Cycle soundscape: Mute → Clockwork → Cosmic Drone">🔇 MUTE</button>
+          <button id="btn-sound" type="button" class="mech-btn is-active" title="Toggle Tabla & Tanpura cosmic ambience (Cycle: Music → Chimes → Mute)">🔊 MUSIC</button>
         </div>
 
         <div class="mech-row mech-row-3" role="group" aria-label="Transit speed">
@@ -231,6 +232,10 @@
 
     <div class="zen-bar-row">
       <span id="zen-date" class="zen-date">-- --- ----</span>
+      <label class="zen-born-wrap" title="Edit birth date directly in Zen mode">
+        <span>BORN</span>
+        <input id="zen-birth-date" class="zen-birth-input" type="date" value="1988-08-15" aria-label="Birth date in Zen mode" />
+      </label>
       <span id="zen-meta" class="zen-meta"></span>
       <div class="zen-controls">
         <button id="zen-play" type="button" class="mech-btn mech-btn-xs is-active" title="Play or pause">❚❚</button>
@@ -241,14 +246,16 @@
         <button id="zen-prev-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Previous convergence">⏮</button>
         <button id="zen-next-transit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Next convergence">⏭</button>
         <button id="zen-today" type="button" class="mech-btn mech-btn-xs" title="Snap to today">NOW</button>
+        <button id="zen-sound" type="button" class="mech-btn mech-btn-xs is-active" title="Toggle Tabla & Tanpura background sound on/off">🔊</button>
         <button id="zen-theme" type="button" class="mech-btn mech-btn-xs" title="Toggle Day / Night theme">☀ DAY</button>
         <button id="zen-exit" type="button" class="mech-btn mech-btn-xs mech-btn-accent" title="Exit Zen mode (Esc)">✕ EXIT</button>
       </div>
     </div>
   </div>
 
-  <script src="jyotish-engine.js?v=7" defer></script>
-  <script src="cosmic-audio.js?v=4" defer></script>
-  <script src="cosmic-dial.js?v=7" defer></script>
+  <script src="jyotish-engine.js?v=8" defer></script>
+  <script src="cosmic-audio.js?v=8" defer></script>
+  <script src="cosmic-tapestry.js?v=8" defer></script>
+  <script src="cosmic-dial.js?v=8" defer></script>
 </body>
 </html>

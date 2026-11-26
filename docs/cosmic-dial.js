@@ -1209,6 +1209,7 @@
         if (Audio) Audio.playNatalLock(true);
       }
       state.gearAngle += (state.simJD - prevJD) * 0.065;
+      if (window.CelestialTapestry) window.CelestialTapestry.setDialAngle(state.gearAngle);
     }
 
     state.transit = JE.computeSiderealSnapshot(state.simJD, state.ayanamsa);
@@ -1435,6 +1436,11 @@
       const spanStr = d1 === d2 ? d1 : `${d1}–${d2}`;
       bar.classList.add("is-active");
       bar.innerHTML = `<span class="zv-tag">✦ ${spanStr}</span> ${w.vargaSummary}`;
+      return;
+    }
+    if (state.zen && state.hovered && state.hovered.telemetryHtml) {
+      bar.classList.add("is-active");
+      bar.innerHTML = state.hovered.telemetryHtml;
       return;
     }
     const liveTr = state.analysis && state.analysis.triples[0];
@@ -1829,6 +1835,11 @@
   }
 
   function updateHoverTelemetry(hit) {
+    // In Zen Mode, route hover telemetry cleanly into the fixed-height #zen-varga-bar (0px wheel movement!)
+    if (state.zen) {
+      updateZenVargaBar();
+      return;
+    }
     const bar = $("dial-telemetry-bar");
     const legend = $("dial-legend");
     if (!bar || !legend) return;
@@ -2004,6 +2015,7 @@
       if (saved && saved.date && saved.lat !== undefined) {
         state.birthInput = saved;
         if ($("birth-date")) $("birth-date").value = saved.date;
+        if ($("zen-birth-date")) $("zen-birth-date").value = saved.date;
         if ($("birth-time")) $("birth-time").value = saved.time || "06:30";
         if ($("birth-city")) $("birth-city").value = saved.city || "Hyderabad, India";
         if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
@@ -2196,13 +2208,47 @@
     bindTripleMarkerHost($("main-triple-markers"), false);
     bindTripleMarkerHost($("zen-triple-markers"), true);
 
-    // 3-State Soundscape Switch (Mute -> Clockwork -> Cosmic)
+    // Synced Tabla & Tanpura Soundscape Controls (Main Console + Zen Deck, ON by default)
     const btnSound = $("btn-sound");
-    if (btnSound && Audio) {
-      btnSound.addEventListener("click", () => {
-        const m = Audio.cycleMode();
-        btnSound.textContent = m === "full" ? "🔊 COSMIC" : (m === "mech" ? "⚙ CLOCKWORK" : "🔇 MUTE");
+    const zenSound = $("zen-sound");
+    const syncSoundButtons = (m) => {
+      if (btnSound) {
+        btnSound.textContent = m === "full" ? "🔊 MUSIC" : (m === "mech" ? "⚙ CHIMES" : "🔇 MUTE");
         btnSound.classList.toggle("is-active", m !== "off");
+      }
+      if (zenSound) {
+        zenSound.textContent = m === "off" ? "🔇" : (m === "mech" ? "⚙" : "🔊");
+        zenSound.classList.toggle("is-active", m !== "off");
+        zenSound.title = m === "off"
+          ? "Turn Tabla & Tanpura cosmic ambience ON"
+          : "Turn background sound OFF";
+      }
+    };
+    if (Audio) {
+      Audio.onChange((m) => syncSoundButtons(m));
+      btnSound?.addEventListener("click", () => Audio.cycleMode());
+      zenSound?.addEventListener("click", () => Audio.toggleMusic());
+    }
+
+    // Inline Birth Date Editor right inside the Zen Mode bottom toolbar!
+    const zenBirth = $("zen-birth-date");
+    if (zenBirth) {
+      zenBirth.addEventListener("change", () => {
+        const val = zenBirth.value;
+        if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) return;
+        if ($("birth-date")) $("birth-date").value = val;
+        const base = state.birthInput || {
+          time: $("birth-time")?.value || "06:30",
+          city: "Hyderabad, India",
+          lat: 17.3850,
+          lon: 78.4867,
+          tz: "Asia/Kolkata",
+        };
+        state.birthInput = { ...base, date: val };
+        try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
+        if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
+        state.eventLog = [];
+        recomputeForAyanamsaOrNatal("lock");
       });
     }
 
@@ -2237,6 +2283,7 @@
         }
         if (errEl) errEl.textContent = "";
         state.birthInput = { date, time, city: cityObj.name, lat: cityObj.lat, lon: cityObj.lon, tz: cityObj.tz };
+        if ($("zen-birth-date")) $("zen-birth-date").value = date;
         try { localStorage.setItem("nakshatra-cosmic-birth", JSON.stringify(state.birthInput)); } catch (_) {}
         if ($("btn-unlock-natal")) $("btn-unlock-natal").hidden = false;
         state.eventLog = [];
